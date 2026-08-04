@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Horloge & XP — Mini site</title>
 
-  <!-- Google Font moderne -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap" rel="stylesheet">
 
   <style>
@@ -16,6 +15,7 @@
     --accent-2: #00d4ff;
     --glass: rgba(255,255,255,0.04);
     --text: #e6eef8;
+    --accent-3: #ffd166;
   }
 
   *{box-sizing:border-box}
@@ -32,11 +32,10 @@
     padding:24px;
   }
 
-  /* Container */
   .app{
     width:100%;
     max-width:980px;
-    min-height:620px;
+    min-height:640px;
     background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
     border-radius:16px;
     padding:28px;
@@ -45,7 +44,7 @@
     overflow:hidden;
   }
 
-  /* Weather button top-left */
+  /* Weather button top-left (toujours présent mais pas nécessaire) */
   .weather-btn{
     position:absolute;
     top:18px;
@@ -58,13 +57,14 @@
     font-weight:600;
     cursor:pointer;
     box-shadow:0 6px 18px rgba(124,92,255,0.18);
+    z-index:40;
   }
 
-  /* Top area for level */
   .top{
     display:flex;
     justify-content:flex-end;
     align-items:flex-start;
+    gap:12px;
   }
 
   /* Level card */
@@ -90,7 +90,7 @@
   }
 
   /* Main clock */
-  .main{display:flex;align-items:center;justify-content:center;height:calc(100% - 160px)}
+  .main{display:flex;align-items:center;justify-content:center;height:calc(100% - 220px)}
   .clock-card{
     text-align:center;
     background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
@@ -105,7 +105,6 @@
     font-weight:800;
     letter-spacing:1px;
     color:transparent;
-    /* gradient text cross-browser */
     background:linear-gradient(90deg,var(--accent),var(--accent-2));
     -webkit-background-clip:text;
     background-clip:text;
@@ -118,12 +117,11 @@
     font-weight:500;
   }
 
-  /* Weather panel (side) */
+  /* Weather panel (toujours visible au chargement) */
   .weather-panel{
     position:absolute;
     top:18px;
     left:18px;
-    transform:translateX(-8px);
     width:320px;
     max-width:calc(100% - 40px);
     background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
@@ -132,9 +130,7 @@
     border:1px solid rgba(255,255,255,0.04);
     box-shadow:0 18px 40px rgba(2,6,23,0.55);
     z-index:30;
-    display:none;
   }
-  .weather-panel.show{display:block}
   .weather-panel h3{margin:0 0 8px 0}
   .close{position:absolute;right:8px;top:8px;border:none;background:none;color:var(--text);font-size:16px;cursor:pointer}
   .weather-content p{margin:12px 0;color:rgba(230,238,248,0.9)}
@@ -143,31 +139,48 @@
   .weather-desc{font-weight:500;color:rgba(230,238,248,0.85)}
   .location-name{font-size:13px;color:rgba(230,238,248,0.75);margin-bottom:8px}
 
+  /* Trophy panel (top-right under level card) */
+  .trophy-panel{
+    width:220px;
+    background:var(--card);
+    border-radius:12px;
+    padding:12px;
+    backdrop-filter: blur(6px);
+    border:1px solid rgba(255,255,255,0.03);
+    margin-top:6px;
+  }
+  .trophy-panel h4{margin:0 0 8px 0;font-size:14px}
+  .trophy-list{display:flex;flex-direction:column;gap:8px}
+  .trophy{display:flex;gap:8px;align-items:center;padding:6px;border-radius:8px;background:rgba(255,255,255,0.01)}
+  .trophy.locked{opacity:0.45;filter:grayscale(40%)}
+  .trophy .icon{width:36px;height:36px;border-radius:8px;background:rgba(255,255,255,0.03);display:flex;align-items:center;justify-content:center;font-weight:700}
+  .trophy .meta{font-size:13px}
+  .trophy .meta .name{font-weight:700}
+  .trophy .meta .req{font-size:12px;color:rgba(230,238,248,0.65)}
+
   /* Footer */
   .footer{position:absolute;bottom:18px;left:28px;right:28px;display:flex;justify-content:space-between;align-items:center}
   .controls button{margin-right:8px;padding:8px 12px;border-radius:8px;border:none;background:rgba(255,255,255,0.04);color:var(--text);cursor:pointer}
   .credit{font-size:13px;color:rgba(230,238,248,0.65)}
 
-  /* Small animations */
+  /* small animations */
   #levelCard.flash { box-shadow: 0 0 0 6px rgba(124,92,255,0.12), 0 12px 30px rgba(2,6,23,0.6); transform:translateY(-6px); transition:transform .25s ease; }
   #levelCard { transition: transform .2s ease, box-shadow .3s ease; }
 
-  /* Responsive */
-  @media (max-width:600px){
-    .clock-card{min-width:unset;padding:24px}
-    .time{font-size:44px}
-    .level-card{width:100%}
-    .weather-panel{width:92%}
+  @media (max-width:900px){
+    .app{padding:18px}
+    .trophy-panel{display:none}
+    .weather-panel{position:relative;left:unset;top:unset;margin-bottom:12px}
   }
   </style>
 </head>
 <body>
   <div class="app">
-    <button id="weather-btn" class="weather-btn" aria-expanded="false" title="Météo (haut gauche)">
+    <button id="weather-btn" class="weather-btn" aria-expanded="true" title="Météo (automatique)">
       ☀️ Météo
     </button>
 
-    <header class="top">
+    <header class="top" style="gap:12px;">
       <div class="level-card" id="levelCard" role="status" aria-live="polite">
         <div class="level-info">
           <div id="levelText">Niveau 1</div>
@@ -175,6 +188,13 @@
         </div>
         <div class="xp-bar" aria-hidden="true">
           <div id="xpFill" class="xp-fill"></div>
+        </div>
+      </div>
+
+      <div class="trophy-panel" id="trophyPanel" aria-live="polite">
+        <h4>Trophées</h4>
+        <div class="trophy-list" id="trophyList">
+          <!-- list dynamique -->
         </div>
       </div>
     </header>
@@ -186,15 +206,14 @@
       </div>
     </main>
 
-    <!-- Panneau météo -->
-    <aside id="weatherPanel" class="weather-panel" aria-hidden="true">
+    <aside id="weatherPanel" class="weather-panel" aria-hidden="false">
       <button id="closeWeather" class="close" aria-label="Fermer panneau météo">✕</button>
       <h3>Météo locale</h3>
       <div id="locationName" class="location-name" aria-hidden="true"></div>
       <div id="weatherContent" class="weather-content">
-        <p>Clique sur "Météo" pour récupérer la position et afficher la météo.</p>
+        <p>Chargement météo...</p>
       </div>
-      <div class="weather-actions" style="margin-top:12px;display:flex;gap:8px;">
+      <div style="margin-top:12px;display:flex;gap:8px;">
         <button id="forceLocation">Rafraîchir</button>
         <button id="fallbackCity">Entrer une ville</button>
       </div>
@@ -202,7 +221,7 @@
 
     <footer class="footer">
       <div class="controls">
-        <button id="addXP">+ XP (test)</button>
+        <button id="addXP">+ XP (test +25)</button>
         <button id="resetXP">Réinitialiser</button>
       </div>
       <div class="credit">Fait pour le kiffe — Horloge & XP</div>
@@ -210,25 +229,28 @@
   </div>
 
   <script>
-  // Petit site Horloge + Météo + XP — tout dans ce fichier
-  // -------- Configuration XP ----------
-  const XP_PER_MINUTE = 10; // XP gagné chaque minute
-  const STORAGE_KEY = "mini_clock_xp_v1";
+  // Config XP
+  const XP_PER_MINUTE = 10;     // +10 toutes les minutes
+  const HOURLY_BONUS = 400;     // bonus chaque heure complète => 1h = 60*10 + 400 = 1000
+  const STORAGE_KEY = "mini_clock_xp_v2";
 
-  // XP -> palier suivant (exponentiel doux)
   function xpToNextLevel(level){
     return Math.floor(100 * Math.pow(1.5, level-1));
   }
 
-  // -------- State (sauvegardé) ----------
-  let state = { xp: 0, level: 1 };
+  // State stocké
+  let state = {
+    xp: 0,         // current XP in level
+    level: 1,
+    totalXP: 0     // cumul de tous les XP gagnés (pour trophées)
+  };
 
   function loadState(){
     try{
       const raw = localStorage.getItem(STORAGE_KEY);
       if(raw){
         const parsed = JSON.parse(raw);
-        if(typeof parsed.xp === "number" && typeof parsed.level === "number"){
+        if(typeof parsed.xp === "number" && typeof parsed.level === "number" && typeof parsed.totalXP === "number"){
           state = parsed;
         }
       }
@@ -239,25 +261,19 @@
     catch(e){ console.warn("saveState:", e) }
   }
 
-  // -------- Clock UI ----------
+  // Clock
   const timeEl = document.getElementById("time");
   const dateEl = document.getElementById("date");
   function pad(n){ return n < 10 ? "0"+n : n; }
-
   function updateClock(){
     const now = new Date();
-    const hours = pad(now.getHours());
-    const minutes = pad(now.getMinutes());
-    const seconds = pad(now.getSeconds());
-    timeEl.textContent = `${hours}:${minutes}:${seconds}`;
+    timeEl.textContent = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
     dateEl.textContent = now.toLocaleDateString(undefined, {weekday:'long', day:'numeric', month:'long'});
   }
-
-  // start clock
   updateClock();
   setInterval(updateClock, 1000);
 
-  // -------- XP UI ----------
+  // XP UI
   const levelText = document.getElementById("levelText");
   const xpText = document.getElementById("xpText");
   const xpFill = document.getElementById("xpFill");
@@ -271,8 +287,13 @@
     xpFill.style.width = pct + "%";
   }
 
-  function addXP(amount){
+  function addXP(amount, reason){
+    // amount est ajouté au total et au xp courant (niveau)
+    if(typeof amount !== "number" || amount <= 0) return;
+    state.totalXP += amount;
     state.xp += amount;
+
+    // level up loop
     while(state.xp >= xpToNextLevel(state.level)){
       state.xp -= xpToNextLevel(state.level);
       state.level++;
@@ -280,6 +301,8 @@
     }
     saveState();
     renderXP();
+    checkTrophies(); // vérifie déblocage
+    if(reason) showToast(`+${amount} XP (${reason})`);
   }
 
   function flashLevel(){
@@ -287,23 +310,130 @@
     setTimeout(()=>levelCardEl.classList.remove("flash"), 900);
   }
 
+  // Toast simple
+  function showToast(text){
+    const t = document.createElement("div");
+    t.textContent = text;
+    t.style.position = "fixed";
+    t.style.right = "18px";
+    t.style.bottom = "18px";
+    t.style.padding = "10px 14px";
+    t.style.background = "linear-gradient(90deg,var(--accent),var(--accent-2))";
+    t.style.color = "white";
+    t.style.borderRadius = "10px";
+    t.style.boxShadow = "0 8px 30px rgba(2,6,23,0.6)";
+    t.style.zIndex = 9999;
+    document.body.appendChild(t);
+    setTimeout(()=>{ t.style.opacity = '0'; t.style.transform='translateY(8px)'; }, 2200);
+    setTimeout(()=>t.remove(), 3000);
+  }
+
   loadState();
   renderXP();
 
-  // add XP automatically toutes les minutes
-  setInterval(()=> addXP(XP_PER_MINUTE), 60_000);
+  // scheduling aligned to the start of next minute for better timing
+  function scheduleXP(){
+    const now = new Date();
+    const msToNextMinute = (60 - now.getSeconds())*1000 - now.getMilliseconds() + 50; // slight offset
+    setTimeout(()=> {
+      // first tick at start of next minute
+      minuteTick();
+      // then every 60s
+      setInterval(minuteTick, 60_000);
+    }, msToNextMinute);
+  }
+
+  function minuteTick(){
+    // add +10 for the minute
+    addXP(XP_PER_MINUTE, "minute écoulée");
+    // if start of hour (minute == 0), add hourly bonus
+    const now = new Date();
+    if(now.getMinutes() === 0){
+      addXP(HOURLY_BONUS, "bonus horaire");
+    }
+  }
+
+  scheduleXP();
 
   // Controls
-  document.getElementById("addXP").addEventListener("click", ()=> addXP(25));
+  document.getElementById("addXP").addEventListener("click", ()=> addXP(25, "test manuel"));
   document.getElementById("resetXP").addEventListener("click", ()=>{
-    if(confirm("Réinitialiser l'XP et le niveau ?")){
-      state = {xp:0, level:1};
+    if(confirm("Réinitialiser l'XP, niveau et trophées ?")){
+      state = {xp:0, level:1, totalXP:0};
       saveState();
       renderXP();
+      resetTrophies();
     }
   });
 
-  // -------- Weather (Open-Meteo, pas de clé) ----------
+  /* ===========================
+     Trophées / Achievements
+     =========================== */
+
+  const trophyDefs = [
+    { id: "novice", name: "Novice", desc: "Atteins 100 XP", req: 100, emoji: "🌱" },
+    { id: "apprenti", name: "Apprenti", desc: "Atteins 1 000 XP", req: 1000, emoji: "🏅" },
+    { id: "heureux", name: "Heureux", desc: "Atteins 1 heure de jeu (1 000 XP)", req: 1000, emoji: "⏱️" },
+    { id: "veteran", name: "Vétéran", desc: "Atteins 10 000 XP", req: 10000, emoji: "🥈" },
+    { id: "insomnia", name: "Insomnia", desc: "12 heures = 12 000 XP (easter egg)", req: 12000, emoji: "🌙" },
+    { id: "collector", name: "Collectionneur", desc: "Atteins 50 000 XP", req: 50000, emoji: "🏆" }
+  ];
+
+  let trophies = {}; // id -> unlocked boolean
+
+  function loadTrophies(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY + "_trophies");
+      if(raw) trophies = JSON.parse(raw);
+    }catch(e){ trophies = {}; }
+  }
+  function saveTrophies(){
+    try{ localStorage.setItem(STORAGE_KEY + "_trophies", JSON.stringify(trophies)); }
+    catch(e){ console.warn("saveTrophies:", e) }
+  }
+  function resetTrophies(){
+    trophies = {};
+    saveTrophies();
+    renderTrophies();
+  }
+
+  function checkTrophies(){
+    loadTrophies();
+    let changed = false;
+    for(const t of trophyDefs){
+      if(!trophies[t.id] && state.totalXP >= t.req){
+        trophies[t.id] = { unlockedAt: Date.now() };
+        changed = true;
+        showToast(`Trophée débloqué : ${t.name} ${t.emoji}`);
+      }
+    }
+    if(changed) saveTrophies();
+    renderTrophies();
+  }
+
+  // Render trophy UI
+  const trophyListEl = document.getElementById("trophyList");
+  function renderTrophies(){
+    loadTrophies();
+    trophyListEl.innerHTML = "";
+    for(const t of trophyDefs){
+      const unlocked = !!trophies[t.id];
+      const tr = document.createElement("div");
+      tr.className = "trophy" + (unlocked ? "" : " locked");
+      tr.innerHTML = `<div class="icon">${t.emoji}</div>
+                      <div class="meta"><div class="name">${t.name}</div><div class="req">${t.desc} • ${t.req.toLocaleString()} XP</div></div>`;
+      trophyListEl.appendChild(tr);
+    }
+  }
+
+  loadTrophies();
+  renderTrophies();
+  checkTrophies();
+
+  /* ===========================
+     Météo (auto au chargement)
+     =========================== */
+
   const weatherBtn = document.getElementById("weather-btn");
   const weatherPanel = document.getElementById("weatherPanel");
   const weatherContent = document.getElementById("weatherContent");
@@ -312,70 +442,84 @@
   const fallbackCity = document.getElementById("fallbackCity");
   const locationNameEl = document.getElementById("locationName");
 
+  const DEFAULT_CITY = { latitude: 48.8566, longitude: 2.3522, pretty: "Paris, France (fallback)" };
+
   weatherBtn.addEventListener("click", async ()=>{
-    toggleWeather(true);
-    await showWeather();
+    // toggle? but we keep visible by default; here we refresh
+    await showWeather({force:true});
   });
 
-  closeWeather.addEventListener("click", ()=> toggleWeather(false));
-  forceLocation.addEventListener("click", async ()=> await showWeather());
+  closeWeather.addEventListener("click", ()=> {
+    // Hide panel if the user wants
+    weatherPanel.style.display = 'none';
+  });
+  forceLocation.addEventListener("click", async ()=> await showWeather({force:true}));
   fallbackCity.addEventListener("click", async ()=>{
     const city = prompt("Entrez le nom d'une ville (ex: Paris) :");
     if(city) await fetchWeatherByCity(city);
   });
 
-  function toggleWeather(show){
-    weatherPanel.classList.toggle("show", show);
-    weatherPanel.setAttribute("aria-hidden", (!show).toString());
-    weatherBtn.setAttribute("aria-expanded", show.toString());
-  }
+  // Auto-open and fetch weather on load
+  (async function initWeather(){
+    weatherPanel.style.display = 'block'; // always visible by default
+    await showWeather();
+  })();
 
-  // Geolocation + fallback IP
-  async function showWeather(){
+  // showWeather tries geolocation, else fallback to DEFAULT_CITY
+  async function showWeather(opts = {}){
+    const { force=false } = opts;
     locationNameEl.textContent = "";
     weatherContent.innerHTML = "<p>Récupération de la position...</p>";
-    // Try navigator.geolocation first
-    if(navigator.geolocation){
-      navigator.geolocation.getCurrentPosition(async (pos) => {
-        const lat = pos.coords.latitude;
-        const lon = pos.coords.longitude;
-        await fetchWeather(lat, lon);
-      }, async (err) => {
-        // If user denied or error, try IP fallback
-        console.warn("Geolocation error:", err);
-        weatherContent.innerHTML = `<p>Position non autorisée ou indisponible, tentative de fallback IP...</p>`;
-        const ip = await tryIPLocation();
-        if(ip) await fetchWeather(ip.latitude, ip.longitude, ip.city ? `${ip.city}${ip.region ? ', '+ip.region : ''}${ip.country_name ? ', '+ip.country_name : ''}` : null);
-        else weatherContent.innerHTML = `<p>Impossible d'obtenir la position: ${err.message}</p>`;
-      }, {timeout:10000});
-    }else{
-      const ip = await tryIPLocation();
-      if(ip) await fetchWeather(ip.latitude, ip.longitude, ip.city ? `${ip.city}${ip.region ? ', '+ip.region : ''}${ip.country_name ? ', '+ip.country_name : ''}` : null);
-      else weatherContent.innerHTML = "<p>Géolocalisation non disponible.</p>";
+
+    let used = null;
+
+    if(navigator.geolocation && !force){
+      // try quick geolocation (user may deny)
+      try{
+        const pos = await new Promise((resolve, reject) => {
+          const id = navigator.geolocation.getCurrentPosition(resolve, reject, {timeout:8000});
+        });
+        used = { latitude: pos.coords.latitude, longitude: pos.coords.longitude };
+      }catch(err){
+        console.warn("Geoloc failed:", err);
+        // don't throw — we'll fallback to DEFAULT_CITY
+      }
     }
+
+    // if not obtained, try IP geolocation but if it points to Amiens (postal 80000), we ignore and use Paris fallback
+    if(!used){
+      try{
+        const res = await fetch('https://ipapi.co/json/');
+        if(res.ok){
+          const ip = await res.json();
+          if(ip && typeof ip.latitude !== 'undefined' && typeof ip.longitude !== 'undefined'){
+            // If ip.city contains 'Amiens' or postal is 80000, we override and use DEFAULT_CITY
+            const cityLower = (ip.city || "").toLowerCase();
+            const postal = ip.postal || "";
+            if(cityLower.includes("amiens") || postal.startsWith("80")){
+              used = { latitude: DEFAULT_CITY.latitude, longitude: DEFAULT_CITY.longitude, note: "fallback to Paris (override Amiens)" };
+            } else {
+              used = { latitude: ip.latitude, longitude: ip.longitude, pretty: (ip.city ? ip.city + (ip.region ? ", "+ip.region : "") + (ip.country_name ? ", " + ip.country_name : "") : null) };
+            }
+          }
+        }
+      }catch(e){
+        console.warn("IP lookup failed:", e);
+      }
+    }
+
+    if(!used){
+      // last resort: Paris fallback
+      used = { latitude: DEFAULT_CITY.latitude, longitude: DEFAULT_CITY.longitude, pretty: DEFAULT_CITY.pretty };
+    }
+
+    await fetchWeather(used.latitude, used.longitude, used.pretty || null, used.note || null);
   }
 
-  // Try IP-based geolocation (approx.)
-  async function tryIPLocation(){
-    try{
-      const res = await fetch('https://ipapi.co/json/');
-      if(!res.ok) return null;
-      const data = await res.json();
-      // ipapi returns latitude/longitude and city, region, country_name
-      if(typeof data.latitude === 'undefined' || typeof data.longitude === 'undefined') return null;
-      return data;
-    }catch(e){
-      console.warn("IP location failed:", e);
-      return null;
-    }
-  }
-
-  // Fetch weather and optionally a pre-known location name
-  async function fetchWeather(lat, lon, knownLocationName = null){
+  async function fetchWeather(lat, lon, knownLocationName = null, note = null){
     locationNameEl.textContent = "";
     weatherContent.innerHTML = "<p>Chargement météo...</p>";
     try{
-      // Open-Meteo current weather
       const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&timezone=auto`;
       const res = await fetch(url);
       if(!res.ok) throw new Error(res.statusText);
@@ -385,7 +529,8 @@
         weatherContent.innerHTML = "<p>Météo indisponible.</p>";
         return;
       }
-      // If we don't have a location name, try reverse geocoding to show the place
+
+      // reverse geocoding to pretty name if not provided
       if(!knownLocationName){
         try{
           const revUrl = `https://geocoding-api.open-meteo.com/v1/reverse?latitude=${lat}&longitude=${lon}&count=1&language=fr`;
@@ -397,16 +542,15 @@
               knownLocationName = `${r.name}${r.admin1 ? ', '+r.admin1 : ''}${r.country ? ', '+r.country : ''}${r.postal_code ? ' ('+r.postal_code+')' : ''}`;
             }
           }
-        }catch(e){ /* ignore reverse errors */ }
+        }catch(e){ /* ignore */ }
       }
 
-      // Display name if known
-      if(knownLocationName){
-        locationNameEl.textContent = knownLocationName;
+      if(knownLocationName) {
+        locationNameEl.textContent = knownLocationName + (note ? " • " + note : "");
         locationNameEl.setAttribute('aria-hidden','false');
-      }else{
-        locationNameEl.textContent = "";
-        locationNameEl.setAttribute('aria-hidden','true');
+      } else {
+        locationNameEl.textContent = note || "";
+        locationNameEl.setAttribute('aria-hidden', knownLocationName ? 'false' : 'true');
       }
 
       const temp = cw.temperature;
@@ -428,7 +572,6 @@
     }
   }
 
-  // Simple fallback: géocodage via API open-meteo geocoding
   async function fetchWeatherByCity(city){
     locationNameEl.textContent = "";
     weatherContent.innerHTML = "<p>Recherche de la ville...</p>";
@@ -449,45 +592,25 @@
     }
   }
 
-  // Convert weather code to texte simple (source: open-meteo)
   function weatherCodeToText(code){
     const map = {
-      0: "Ciel clair",
-      1: "Principalement ensoleillé",
-      2: "Partiellement nuageux",
-      3: "Couvert",
-      45: "Brouillard",
-      48: "Brouillard givrant",
-      51: "Bruine légère",
-      53: "Bruine modérée",
-      55: "Bruine dense",
-      56: "Bruine verglaçante",
-      57: "Bruine verglaçante dense",
-      61: "Pluie légère",
-      63: "Pluie modérée",
-      65: "Pluie forte",
-      66: "Pluie verglaçante légère",
-      67: "Pluie verglaçante forte",
-      71: "Neige légère",
-      73: "Neige modérée",
-      75: "Neige forte",
-      77: "Grains de neige",
-      80: "Averses légères",
-      81: "Averses modérées",
-      82: "Averses violentes",
-      85: "Averses de neige légères",
-      86: "Averses de neige fortes",
-      95: "Orage",
-      96: "Orage avec grêle légère",
-      99: "Orage avec grêle forte"
+      0: "Ciel clair",1:"Principalement ensoleillé",2:"Partiellement nuageux",3:"Couvert",
+      45:"Brouillard",48:"Brouillard givrant",51:"Bruine légère",53:"Bruine modérée",55:"Bruine dense",
+      56:"Bruine verglaçante",57:"Bruine verglaçante dense",61:"Pluie légère",63:"Pluie modérée",65:"Pluie forte",
+      66:"Pluie verglaçante légère",67:"Pluie verglaçante forte",71:"Neige légère",73:"Neige modérée",75:"Neige forte",
+      77:"Grains de neige",80:"Averses légères",81:"Averses modérées",82:"Averses violentes",85:"Averses de neige légères",
+      86:"Averses de neige fortes",95:"Orage",96:"Orage avec grêle légère",99:"Orage avec grêle forte"
     };
     return map[code] || "Temps inconnu";
   }
 
-  // Note: sur certains navigateurs, la géolocalisation nécessite HTTPS ou serveur local.
-  // Si tu ouvres directement le fichier (file://) et la géoloc ne marche pas, lance un petit serveur:
-  // - python3 -m http.server
-  // - ou `npx http-server .`
+  // Affichage / initial checks
+  checkTrophies();
+
+  // Petit rappel pour l'utilisateur sur la correspondance 12h -> points
+  console.log("Info: 1 minute = +10 XP, 10 minutes = 100 XP, 1 heure = 1000 XP. Donc 12h = 12 000 XP.");
+
+  // Fin du script
   </script>
 </body>
 </html>
