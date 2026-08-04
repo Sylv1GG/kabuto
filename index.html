@@ -3,466 +3,261 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Plaine 3D météo — Amiens</title>
+  <title>Plaine 3D météo — Amiens (debug)</title>
   <style>
     html,body { height:100%; margin:0; background:#000; font-family:system-ui,Segoe UI,Roboto,Arial; }
     #canvas { width:100%; height:100vh; display:block; }
     #hud {
-      position:absolute; left:12px; top:12px; z-index:5;
-      background:rgba(255,255,255,0.85); color:#111; padding:10px 14px; border-radius:8px;
-      box-shadow:0 6px 18px rgba(0,0,0,0.18); font-weight:600;
+      position:absolute; left:12px; top:12px; z-index:10;
+      background:rgba(255,255,255,0.95); color:#111; padding:10px 14px; border-radius:8px;
+      box-shadow:0 6px 18px rgba(0,0,0,0.18); font-weight:600; max-width:40%;
     }
-    #credits { position:absolute; right:12px; bottom:12px; z-index:5;
+    #detail { font-weight:400; font-size:13px; margin-top:6px; color:#333; }
+    #credits { position:absolute; right:12px; bottom:12px; z-index:10;
       background:rgba(0,0,0,0.35); color:#fff; padding:6px 10px; border-radius:6px; font-size:13px; }
-    #note { font-weight:400; font-size:13px; margin-top:6px; color:#333; }
+    a { color: #06c; text-decoration: none; }
   </style>
 </head>
 <body>
   <canvas id="canvas"></canvas>
-  <div id="hud">Chargement météo...</div>
+  <div id="hud">Chargement météo...<div id="detail"></div></div>
   <div id="credits">Amiens (80000) — clic pour rafraîchir</div>
 
-  <script type="module">
-  import * as THREE from 'https://unpkg.com/three@0.152.2/build/three.module.js';
-  import { OrbitControls } from 'https://unpkg.com/three@0.152.2/examples/jsm/controls/OrbitControls.js';
+  <!-- Three.js UMD + OrbitControls (plus compatible quand on ouvre localement) -->
+  <script src="https://unpkg.com/three@0.152.2/build/three.min.js"></script>
+  <script src="https://unpkg.com/three@0.152.2/examples/js/controls/OrbitControls.js"></script>
 
-  // Coordonnées Amiens
-  const LAT = 49.8941, LON = 2.2958;
-  const UPDATE_MIN = 5;
+  <script>
+  (function(){
+    const LAT = 49.8941, LON = 2.2958;
+    const UPDATE_MIN = 5;
+    const hud = document.getElementById('hud');
+    const detail = document.getElementById('detail');
+    const canvas = document.getElementById('canvas');
 
-  // DOM
-  const canvas = document.getElementById('canvas');
-  const hud = document.getElementById('hud');
-
-  // Three.js: renderer, scene, camera
-  const renderer = new THREE.WebGLRenderer({canvas, antialias:true});
-  renderer.setPixelRatio(window.devicePixelRatio || 1);
-  renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-
-  const scene = new THREE.Scene();
-
-  const camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight, 0.1, 1000);
-  camera.position.set(0, 12, 28);
-
-  const controls = new OrbitControls(camera, renderer.domElement);
-  controls.enableDamping = true;
-  controls.minDistance = 8;
-  controls.maxDistance = 60;
-  controls.maxPolarAngle = Math.PI * 0.48;
-
-  // Lighting
-  const hemi = new THREE.HemisphereLight(0xffffff, 0x606060, 0.6);
-  scene.add(hemi);
-
-  const sun = new THREE.DirectionalLight(0xffffff, 1.0);
-  sun.position.set(10, 20, 10);
-  sun.castShadow = true;
-  sun.shadow.mapSize.set(2048,2048);
-  sun.shadow.camera.left = -30;
-  sun.shadow.camera.right = 30;
-  sun.shadow.camera.top = 30;
-  sun.shadow.camera.bottom = -30;
-  scene.add(sun);
-
-  // Fog - will be adjusted by weather
-  scene.fog = new THREE.FogExp2(0x87CEEB, 0.002);
-
-  // Ground - slightly rolling hills using vertex displacement in JS
-  const groundGeo = new THREE.PlaneGeometry(160, 160, 160, 160);
-  groundGeo.rotateX(-Math.PI/2);
-  const groundMat = new THREE.MeshStandardMaterial({color:0x4CAF50, roughness:0.8, metalness:0.0});
-  const ground = new THREE.Mesh(groundGeo, groundMat);
-  ground.receiveShadow = true;
-  scene.add(ground);
-
-  // We'll keep original positions for deformation
-  const basePositions = ground.geometry.attributes.position.array.slice();
-
-  // Grass (simple instanced blades) -> keep modest count for perf
-  const bladeCount = 800;
-  const blades = new THREE.InstancedMesh(
-    new THREE.PlaneGeometry(0.12, 0.9),
-    new THREE.MeshStandardMaterial({color:0x1e6b29, side: THREE.DoubleSide, roughness:0.9}),
-    bladeCount
-  );
-  blades.castShadow = false;
-  blades.receiveShadow = false;
-  blades.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-  for (let i=0;i<bladeCount;i++){
-    const dummy = new THREE.Object3D();
-    const x = (Math.random()-0.5) * 120;
-    const z = (Math.random()-0.5) * 120;
-    dummy.position.set(x, 0.02, z);
-    dummy.rotation.y = Math.random()*Math.PI;
-    const s = 0.6 + Math.random()*0.9;
-    dummy.scale.set(s*0.8, s, 1);
-    dummy.updateMatrix();
-    blades.setMatrixAt(i, dummy.matrix);
-  }
-  scene.add(blades);
-
-  // Trees
-  const treesGroup = new THREE.Group();
-  scene.add(treesGroup);
-
-  function createTree(isMain=false){
-    const tree = new THREE.Group();
-    // trunk
-    const trunkGeo = new THREE.CylinderGeometry(isMain?0.8:0.35, isMain?1.0:0.45, isMain?6:3.2, 10);
-    const trunkMat = new THREE.MeshStandardMaterial({color:0x7b4f2a, roughness:1});
-    const trunk = new THREE.Mesh(trunkGeo, trunkMat);
-    trunk.castShadow = true;
-    trunk.receiveShadow = true;
-    trunk.position.y = (isMain?3:1.6);
-    tree.add(trunk);
-
-    // canopy - stacked spheres for stylized cartoon tree
-    const canopy = new THREE.Group();
-    const leafMat = new THREE.MeshStandardMaterial({color:0x1f8f3b, roughness:0.6, flatShading:true});
-    const layers = isMain?5:3;
-    const baseR = isMain?4.0:1.6;
-    for (let i=0;i<layers;i++){
-      const s = baseR * (1 - i*0.12);
-      const sphereGeo = new THREE.SphereGeometry(s, 16, 12);
-      const sphere = new THREE.Mesh(sphereGeo, leafMat);
-      sphere.castShadow = true;
-      sphere.receiveShadow = true;
-      sphere.position.set(0, (i* (isMain?0.9:0.65)) + (isMain?4.0:1.1), 0);
-      // slight random offset per layer for organic look
-      sphere.position.x += (Math.random()-0.5) * (isMain?0.6:0.2);
-      sphere.position.z += (Math.random()-0.5) * (isMain?0.6:0.2);
-      canopy.add(sphere);
+    // Simple error reporting to HUD
+    function report(msg){
+      console.error(msg);
+      hud.textContent = msg;
     }
-    tree.add(canopy);
+    window.addEventListener('error', (e) => {
+      report('Erreur JS: ' + (e.message || e));
+    });
+    window.addEventListener('unhandledrejection', (e) => {
+      report('Promise rejetée: ' + (e.reason && e.reason.message ? e.reason.message : e.reason));
+    });
 
-    // small sway pivot on canopy for wind
-    tree.userData = { canopyPivot: canopy, swayOffset: Math.random()*1000 };
-    return tree;
-  }
-
-  // Place main tree center
-  const mainTree = createTree(true);
-  mainTree.position.set(0, 0, 0);
-  treesGroup.add(mainTree);
-
-  // Other trees scattered
-  for (let i=0;i<20;i++){
-    const t = createTree(false);
-    const r = 10 + Math.random()*48;
-    const ang = Math.random()*Math.PI*2;
-    t.position.set(Math.cos(ang)*r, 0, Math.sin(ang)*r);
-    t.scale.setScalar(0.8 + Math.random()*0.8);
-    t.rotation.y = (Math.random()-0.5)*0.6;
-    treesGroup.add(t);
-  }
-
-  // Clouds - simple billboards
-  const cloudTex = generateCloudTexture();
-  const cloudMat = new THREE.MeshBasicMaterial({map: cloudTex, transparent:true, depthWrite:false});
-  const clouds = new THREE.Group();
-  for (let i=0;i<6;i++){
-    const geo = new THREE.PlaneGeometry(12 + Math.random()*18, 6 + Math.random()*6);
-    const m = new THREE.Mesh(geo, cloudMat);
-    m.position.set((Math.random()-0.5)*140, 12 + Math.random()*8, (Math.random()-0.5)*80);
-    m.rotation.y = -0.2 + Math.random()*0.4;
-    m.material.opacity = 0.9 - Math.random()*0.4;
-    clouds.add(m);
-  }
-  scene.add(clouds);
-
-  // Particles for rain and snow
-  let rainGeo = null, rainPoints = null, rainVel = null;
-  let snowGeo = null, snowPoints = null, snowVel = null;
-
-  function createRain(count=1200){
-    if (rainPoints) { scene.remove(rainPoints); rainPoints.geometry.dispose(); rainPoints.material.dispose(); }
-    rainGeo = new THREE.BufferGeometry();
-    const positions = new Float32Array(count*3);
-    rainVel = new Float32Array(count);
-    for (let i=0;i<count;i++){
-      positions[i*3] = (Math.random()-0.5)*140;
-      positions[i*3+1] = Math.random()*40 + 5;
-      positions[i*3+2] = (Math.random()-0.5)*140;
-      rainVel[i] = 20 + Math.random()*10;
+    // WebGL availability check
+    function isWebGLAvailable() {
+      try {
+        const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+        return !!(gl && gl instanceof WebGLRenderingContext);
+      } catch (e) { return false; }
     }
-    rainGeo.setAttribute('position', new THREE.BufferAttribute(positions,3));
-    const material = new THREE.PointsMaterial({color:0x9bd1ff, size:0.12, transparent:true, opacity:0.85, depthWrite:false});
-    rainPoints = new THREE.Points(rainGeo, material);
-    scene.add(rainPoints);
-  }
-  function createSnow(count=900){
-    if (snowPoints) { scene.remove(snowPoints); snowPoints.geometry.dispose(); snowPoints.material.dispose(); }
-    snowGeo = new THREE.BufferGeometry();
-    const positions = new Float32Array(count*3);
-    snowVel = new Float32Array(count);
-    for (let i=0;i<count;i++){
-      positions[i*3] = (Math.random()-0.5)*140;
-      positions[i*3+1] = Math.random()*40 + 5;
-      positions[i*3+2] = (Math.random()-0.5)*140;
-      snowVel[i] = 1 + Math.random()*1.6;
+    if (!isWebGLAvailable()) {
+      report("WebGL non disponible dans ce navigateur. Essaie un autre navigateur ou active l'accélération matérielle.");
+      return;
     }
-    snowGeo.setAttribute('position', new THREE.BufferAttribute(positions,3));
-    const material = new THREE.PointsMaterial({color:0xffffff, size:0.22, transparent:true, opacity:0.95, depthWrite:false});
-    snowPoints = new THREE.Points(snowGeo, material);
-    scene.add(snowPoints);
-  }
+    // Check THREE loaded
+    if (typeof THREE === 'undefined') {
+      report("Three.js n'a pas pu se charger depuis le CDN. Vérifie la connexion internet.");
+      return;
+    }
 
-  // Skybox color management helpers
-  function setDaySky() {
-    renderer.setClearColor(0x87CEEB, 1);
-    scene.fog.color.setHex(0x87CEEB);
-    hemi.intensity = 0.6;
-  }
-  function setNightSky() {
-    renderer.setClearColor(0x081226, 1);
-    scene.fog.color.setHex(0x081226);
-    hemi.intensity = 0.15;
-  }
-
-  // Weather mapping like earlier
-  function weatherCodeToType(code) {
-    if (code === 0) return 'clear';
-    if (code === 1 || code === 2) return 'partly_cloudy';
-    if (code === 3) return 'cloudy';
-    if (code === 45 || code === 48) return 'fog';
-    if (code >= 51 && code <= 57) return 'drizzle';
-    if (code >= 61 && code <= 67) return 'rain';
-    if (code >= 71 && code <= 77) return 'snow';
-    if (code >= 80 && code <= 82) return 'rain';
-    if (code >= 85 && code <= 86) return 'snow';
-    if (code >= 95 && code <= 99) return 'thunder';
-    return 'cloudy';
-  }
-
-  // Scene weather state
-  const state = {
-    weatherType: 'clear',
-    temperature: 12,
-    wind: 3,
-    intensity: 0,
-    timeOfDay: 'day'
-  };
-
-  async function fetchWeather() {
+    // Scene minimal mais fonctionnelle
+    let renderer, scene, camera, controls;
     try {
-      hud.textContent = 'Mise à jour météo...';
-      const url = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current_weather=true&timezone=Europe%2FParis`;
-      const res = await fetch(url);
-      const json = await res.json();
-      if (!json.current_weather) throw new Error('Aucune donnée météo');
-      const cw = json.current_weather;
-      state.weatherType = weatherCodeToType(cw.weathercode);
-      state.temperature = Math.round(cw.temperature);
-      state.wind = cw.windspeed || 0;
-      state.intensity = Math.min(1, (cw.windspeed || 0)/25);
-      const localHour = new Date(cw.time + '+02:00').getHours();
-      state.timeOfDay = (localHour>=6 && localHour<20)?'day':'night';
-      hud.innerHTML = `Amiens — ${state.temperature}°C — ${state.weatherType} — vent ${Math.round(state.wind)} km/h<br><span id="note">Cliquez pour rafraîchir</span>`;
-      applyWeatherToScene();
-    } catch (err) {
-      console.error(err);
-      hud.textContent = 'Impossible de récupérer la météo.';
+      renderer = new THREE.WebGLRenderer({canvas: canvas, antialias: true});
+      renderer.setPixelRatio(window.devicePixelRatio || 1);
+      renderer.shadowMap.enabled = true;
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      scene = new THREE.Scene();
+      camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight, 0.1, 1000);
+      camera.position.set(0, 12, 28);
+      controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+    } catch (e) {
+      report("Erreur initialisation three.js: " + e.message);
+      return;
     }
-  }
 
-  function applyWeatherToScene(){
-    // Clouds visibility & position
-    clouds.children.forEach((c,i) => {
-      // higher and denser for cloudy/rain
-      if (state.weatherType === 'clear') {
-        c.material.opacity = 0.25;
-        c.scale.setScalar(0.9 + i*0.02);
-      } else if (state.weatherType === 'partly_cloudy') {
-        c.material.opacity = 0.6;
-        c.scale.setScalar(1.0 + i*0.05);
+    // Light
+    const hemi = new THREE.HemisphereLight(0xffffff, 0x444444, 0.6);
+    scene.add(hemi);
+    const sun = new THREE.DirectionalLight(0xffffff, 1.0);
+    sun.position.set(10,20,10);
+    sun.castShadow = true;
+    sun.shadow.mapSize.set(1024,1024);
+    scene.add(sun);
+
+    // Ground
+    const groundGeo = new THREE.PlaneGeometry(160,160,64,64);
+    groundGeo.rotateX(-Math.PI/2);
+    const groundMat = new THREE.MeshStandardMaterial({color:0x4CAF50, roughness:0.9});
+    const ground = new THREE.Mesh(groundGeo, groundMat);
+    ground.receiveShadow = true;
+    scene.add(ground);
+    // Simple gentle hills
+    const basePos = ground.geometry.attributes.position.array.slice();
+    function deformGround(time){
+      const pos = ground.geometry.attributes.position.array;
+      for (let i=0;i<pos.length;i+=3){
+        const x = basePos[i], z = basePos[i+2];
+        pos[i+1] = Math.sin(x*0.05 + time*0.001) * 0.6 + Math.cos(z*0.04 + time*0.0012) * 0.4;
+      }
+      ground.geometry.attributes.position.needsUpdate = true;
+      ground.geometry.computeVertexNormals();
+    }
+
+    // Main stylized tree
+    function makeTree(isMain){
+      const g = new THREE.Group();
+      const trunk = new THREE.Mesh(
+        new THREE.CylinderGeometry(isMain?0.8:0.35, isMain?1.0:0.45, isMain?6:3.2, 10),
+        new THREE.MeshStandardMaterial({color:0x7b4f2a})
+      );
+      trunk.position.y = (isMain?3:1.6);
+      trunk.castShadow = true;
+      g.add(trunk);
+      const leafMat = new THREE.MeshStandardMaterial({color:0x1f8f3b});
+      const layers = isMain?5:3;
+      const baseR = isMain?4.0:1.6;
+      for (let i=0;i<layers;i++){
+        const s = baseR * (1 - i*0.12);
+        const sph = new THREE.Mesh(new THREE.SphereGeometry(s, 16, 12), leafMat);
+        sph.position.y = (i*(isMain?0.9:0.65)) + (isMain?4.0:1.1);
+        sph.castShadow = true;
+        g.add(sph);
+      }
+      return g;
+    }
+    const mainTree = makeTree(true);
+    mainTree.position.set(0,0,0);
+    scene.add(mainTree);
+    // small cluster of trees
+    for (let i=0;i<12;i++){
+      const t = makeTree(false);
+      const r = 10 + Math.random()*48;
+      const ang = Math.random()*Math.PI*2;
+      t.position.set(Math.cos(ang)*r, 0, Math.sin(ang)*r);
+      t.scale.setScalar(0.8 + Math.random()*0.8);
+      t.rotation.y = (Math.random()-0.5)*0.6;
+      scene.add(t);
+    }
+
+    // clouds (simple sprites)
+    const cloudCanvas = document.createElement('canvas');
+    cloudCanvas.width = 256; cloudCanvas.height = 128;
+    const c2 = cloudCanvas.getContext('2d');
+    const grd = c2.createRadialGradient(120,64,10,120,64,120);
+    grd.addColorStop(0,'rgba(255,255,255,1)');
+    grd.addColorStop(1,'rgba(255,255,255,0)');
+    c2.fillStyle = grd; c2.fillRect(0,0,256,128);
+    const cloudTex = new THREE.CanvasTexture(cloudCanvas);
+    const cloudMat = new THREE.SpriteMaterial({map:cloudTex, opacity:0.9});
+    const clouds = [];
+    for (let i=0;i<5;i++){
+      const s = new THREE.Sprite(cloudMat);
+      s.scale.set(12 + Math.random()*18, 6 + Math.random()*6, 1);
+      s.position.set((Math.random()-0.5)*140, 12 + Math.random()*6, (Math.random()-0.5)*80);
+      scene.add(s);
+      clouds.push(s);
+    }
+
+    // weather state
+    const state = { weatherType:'clear', temperature:12, wind:3, intensity:0, timeOfDay:'day' };
+
+    function weatherCodeToType(code){
+      if (code === 0) return 'clear';
+      if (code === 1 || code === 2) return 'partly_cloudy';
+      if (code === 3) return 'cloudy';
+      if (code === 45 || code === 48) return 'fog';
+      if (code >= 51 && code <= 57) return 'drizzle';
+      if (code >= 61 && code <= 67) return 'rain';
+      if (code >= 71 && code <= 77) return 'snow';
+      if (code >= 80 && code <= 82) return 'rain';
+      if (code >= 85 && code <= 86) return 'snow';
+      if (code >= 95 && code <= 99) return 'thunder';
+      return 'cloudy';
+    }
+
+    async function fetchWeather(){
+      try {
+        hud.textContent = 'Mise à jour météo...';
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current_weather=true&timezone=Europe%2FParis`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error('Erreur réseau: ' + res.status);
+        const json = await res.json();
+        if (!json.current_weather) throw new Error('Aucune donnée météo reçue');
+        const cw = json.current_weather;
+        state.weatherType = weatherCodeToType(cw.weathercode);
+        state.temperature = Math.round(cw.temperature);
+        state.wind = cw.windspeed || 0;
+        state.intensity = Math.min(1, (cw.windspeed || 0)/25);
+        const localHour = new Date(cw.time + '+02:00').getHours();
+        state.timeOfDay = (localHour>=6 && localHour<20)?'day':'night';
+        hud.innerHTML = `Amiens — ${state.temperature}°C — ${state.weatherType} — vent ${Math.round(state.wind)} km/h` +
+                        `<div id="detail">Clique pour rafraîchir</div>`;
+        applyWeather();
+      } catch (err) {
+        report('Impossible de récupérer la météo: ' + (err.message||err));
+      }
+    }
+
+    function applyWeather(){
+      // clouds opacity and height
+      clouds.forEach((c,i)=>{
+        if (state.weatherType === 'clear') { c.material.opacity = 0.25; c.position.y = 10 + i*0.6; }
+        else if (state.weatherType === 'partly_cloudy') { c.material.opacity = 0.6; c.position.y = 12 + i; }
+        else { c.material.opacity = 0.9; c.position.y = 14 + i*0.8; }
+      });
+      // fog / sky
+      if (state.timeOfDay === 'day') {
+        renderer.setClearColor(0x87CEEB);
+        scene.fog = new THREE.FogExp2(0x87CEEB, 0.0009 + state.intensity*0.002);
+        hemi.intensity = 0.6;
+        sun.intensity = 1.0;
       } else {
-        c.material.opacity = 0.85;
-        c.scale.setScalar(1.2 + i*0.08);
+        renderer.setClearColor(0x081226);
+        scene.fog = new THREE.FogExp2(0x081226, 0.001 + state.intensity*0.002);
+        hemi.intensity = 0.15;
+        sun.intensity = 0.2;
       }
+    }
+
+    // animation loop
+    let last = performance.now();
+    function animate(t){
+      requestAnimationFrame(animate);
+      const dt = (t - last)/1000; last = t;
+      deformGround(t);
+      // clouds drift with wind
+      clouds.forEach((c,i)=>{
+        c.position.x += (0.01 + state.wind*0.01) * (i%2?1:-1);
+        if (c.position.x > 120) c.position.x = -120;
+      });
+      // main tree slight sway with wind
+      mainTree.rotation.z = Math.sin(t*0.0008) * (0.01 + state.wind*0.01);
+      controls.update();
+      renderer.setSize(window.innerWidth, window.innerHeight, false);
+      camera.aspect = window.innerWidth/window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.render(scene, camera);
+    }
+
+    // clicks refresh weather
+    canvas.addEventListener('click', () => fetchWeather());
+    window.addEventListener('resize', () => {
+      renderer.setSize(window.innerWidth, window.innerHeight, false);
+      camera.aspect = window.innerWidth/window.innerHeight;
+      camera.updateProjectionMatrix();
     });
 
-    // Rain / snow particles
-    if (state.weatherType === 'rain' || state.weatherType === 'drizzle' || state.weatherType === 'thunder') {
-      createRain(Math.floor(600 + state.intensity * 1400));
-      if (snowPoints) { scene.remove(snowPoints); snowPoints = null; }
-      scene.fog.density = 0.002 + state.intensity*0.006;
-    } else if (state.weatherType === 'snow') {
-      createSnow(Math.floor(400 + state.intensity * 900));
-      if (rainPoints) { scene.remove(rainPoints); rainPoints = null; }
-      scene.fog.density = 0.002 + state.intensity*0.006;
-    } else {
-      if (rainPoints) { scene.remove(rainPoints); rainPoints = null; }
-      if (snowPoints) { scene.remove(snowPoints); snowPoints = null; }
-      scene.fog.density = 0.0009;
-    }
-
-    // Fog for foggy weather
-    if (state.weatherType === 'fog') {
-      scene.fog.density = 0.01;
-      clouds.children.forEach(c => c.material.opacity = 0.4);
-    }
-
-    // Sky color
-    if (state.timeOfDay === 'day') {
-      setDaySky();
-      sun.intensity = 1.0 + (state.weatherType==='clear'?0.3: -0.3);
-      sun.color.setHex(0xffffff);
-      sun.position.set(10, 25, 8);
-    } else {
-      setNightSky();
-      sun.intensity = 0.1;
-      sun.color.setHex(0xaaaaff);
-      sun.position.set(-5, 8, -10);
-    }
-
-    // Wind affects cloud speed, grass sway amplitude, tree sway
-    // handled in render loop using state.wind
-  }
-
-  // Animate / render
-  let last = performance.now();
-  function animate(t){
-    requestAnimationFrame(animate);
-    const dt = (t - last) / 1000;
-    last = t;
-
-    // ground vertex displacement for gentle rolling hills and wind ripple
-    const pos = ground.geometry.attributes.position.array;
-    const time = t * 0.0005;
-    for (let i=0;i<pos.length;i+=3){
-      const ix = pos[i], iy = pos[i+1], iz = pos[i+2];
-      // use basePositions to compute stable displacement
-      const bx = basePositions[i], bz = basePositions[i+2];
-      const d = Math.sin(bx*0.08 + time*1.0) * 0.6 + Math.cos(bz*0.06 + time*0.8) * 0.4;
-      // wind adds directional offset
-      const windEffect = Math.sin((bx + bz)*0.02 + time*2.0) * (state.wind*0.02);
-      pos[i+1] = (d * 0.9) + windEffect * 0.6;
-    }
-    ground.geometry.attributes.position.needsUpdate = true;
-    ground.geometry.computeVertexNormals();
-
-    // Sway grass: update instance matrices
-    const dummy = new THREE.Object3D();
-    for (let i=0;i<bladeCount;i++){
-      blades.getMatrixAt(i, dummy.matrix);
-      // decode matrix to object3D? Simpler: create random sway using sin index-based
-      // We'll approximate by applying a small rotation per instance in place.
-      const m = new THREE.Matrix4();
-      blades.getMatrixAt(i, m);
-      m.decompose(dummy.position, dummy.quaternion, dummy.scale);
-      // small sway using time, factor by wind
-      const sway = Math.sin(t*0.001 + i) * (0.02 + state.wind*0.006);
-      dummy.rotation.set(0, 0, sway);
-      dummy.updateMatrix();
-      blades.setMatrixAt(i, dummy.matrix);
-    }
-    blades.instanceMatrix.needsUpdate = true;
-
-    // Trees sway
-    treesGroup.children.forEach((tr, idx) => {
-      const swayBase = 0.02 + (state.wind * 0.01);
-      const offset = tr.userData?.swayOffset || (idx*100);
-      const s = Math.sin(time*3.0 + offset) * swayBase;
-      // main tree larger sway hinge at trunk base: rotate slightly on Z
-      const canopy = tr.userData?.canopyPivot;
-      if (canopy) {
-        canopy.rotation.z = s * (tr===mainTree ? 1.6 : 1.0);
-        // slow rotation of whole small tree for more effect
-        tr.rotation.z = s * 0.35;
-      } else {
-        tr.rotation.z = s * 0.35;
-      }
-    });
-
-    // Clouds drift
-    clouds.children.forEach((c, i) => {
-      c.position.x += (0.02 + state.wind*0.02) + Math.sin(t*0.0002 + i) * 0.002;
-      if (c.position.x > 120) c.position.x = -120;
-      if (c.position.x < -120) c.position.x = 120;
-    });
-
-    // Particles update
-    if (rainPoints){
-      const p = rainGeo.attributes.position.array;
-      for (let i=0;i<p.length;i+=3){
-        p[i+1] -= (rainVel[i/3]) * dt;
-        p[i] += (state.wind * 0.05) * dt * 40;
-        if (p[i+1] < 0){
-          p[i+1] = 40 + Math.random()*10;
-          p[i] = (Math.random()-0.5)*140;
-          p[i+2] = (Math.random()-0.5)*140;
-        }
-      }
-      rainGeo.attributes.position.needsUpdate = true;
-    }
-    if (snowPoints){
-      const p = snowGeo.attributes.position.array;
-      for (let i=0;i<p.length;i+=3){
-        p[i+1] -= (snowVel[i/3]) * dt;
-        p[i] += Math.sin((t*0.0003 + i)) * 0.02 + state.wind*0.02;
-        if (p[i+1] < 0){
-          p[i+1] = 40 + Math.random()*10;
-          p[i] = (Math.random()-0.5)*140;
-          p[i+2] = (Math.random()-0.5)*140;
-        }
-      }
-      snowGeo.attributes.position.needsUpdate = true;
-    }
-
-    controls.update();
-    renderer.setSize(window.innerWidth, window.innerHeight, false);
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-
-    renderer.render(scene, camera);
-  }
-
-  // helpers
-  function generateCloudTexture(){
-    // draw a soft cloud on canvas and make a texture
-    const c = document.createElement('canvas');
-    c.width = 512; c.height = 256;
-    const ctx2 = c.getContext('2d');
-    ctx2.clearRect(0,0,c.width,c.height);
-    const grd = ctx2.createRadialGradient(160,120,20,160,120,180);
-    grd.addColorStop(0, 'rgba(255,255,255,0.95)');
-    grd.addColorStop(0.6, 'rgba(255,255,255,0.9)');
-    grd.addColorStop(1, 'rgba(255,255,255,0)');
-    ctx2.fillStyle = grd;
-    ctx2.fillRect(0,0,c.width,c.height);
-    // some blobs
-    ctx2.fillStyle = 'rgba(255,255,255,0.95)';
-    ctx2.beginPath();
-    ctx2.ellipse(150,120,110,60,0,0,Math.PI*2);
-    ctx2.fill();
-    ctx2.beginPath();
-    ctx2.ellipse(200,100,70,40,0,0,Math.PI*2);
-    ctx2.fill();
-    const tex = new THREE.CanvasTexture(c);
-    tex.needsUpdate = true;
-    return tex;
-  }
-
-  // initial weather fetch + periodic update
-  fetchWeather();
-  setInterval(fetchWeather, UPDATE_MIN * 60 * 1000);
-
-  // interaction: click canvas to refresh
-  canvas.addEventListener('click', () => {
+    // Start
     fetchWeather();
-  });
-
-  // resize
-  window.addEventListener('resize', () => {
-    renderer.setSize(window.innerWidth, window.innerHeight, false);
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-  });
-
-  // start
-  animate(performance.now());
-
+    setInterval(fetchWeather, UPDATE_MIN * 60 * 1000);
+    animate(performance.now());
+  })();
   </script>
 </body>
 </html>
