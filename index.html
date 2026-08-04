@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Plaine météo — Amiens</title>
+  <style>
+    html,body { height:100%; margin:0; background:#87CEEB; font-family:system-ui,Segoe UI,Roboto,Arial; }
+    #container { position:relative; width:100%; height:100vh; overflow:hidden; }
+    canvas { display:block; width:100%; height:100%; }
+    #info {
+      position:absolute; left:12px; top:12px;
+      background:rgba(255,255,255,0.8); padding:8px 12px; border-radius:8px;
+      box-shadow:0 6px 18px rgba(0,0,0,0.15); color:#222;
+      font-weight:600;
+    }
+    #credits { position:absolute; right:12px; bottom:12px; background:rgba(0,0,0,0.35); color:#fff;
+      padding:6px 10px; border-radius:6px; font-size:13px; }
+  </style>
+</head>
+<body>
+  <div id="container">
+    <canvas id="scene"></canvas>
+    <div id="info">Chargement météo...</div>
+    <div id="credits">Amiens (80000) — mise à jour automatique</div>
+  </div>
+
+  <script>
+  // Coordonnées approximatives Amiens, France
+  const LAT = 49.8941;
+  const LON = 2.2958;
+  // Mise à jour météo toutes les N minutes
+  const UPDATE_MIN = 5;
+
+  const canvas = document.getElementById('scene');
+  const ctx = canvas.getContext('2d');
+  const info = document.getElementById('info');
+
+  let DPR = window.devicePixelRatio || 1;
+  function resize() {
+    DPR = window.devicePixelRatio || 1;
+    canvas.width = Math.floor(canvas.clientWidth * DPR);
+    canvas.height = Math.floor(canvas.clientHeight * DPR);
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  // État de la scène déterminé par la météo
+  const scene = {
+    weatherType: 'clear', // clear, partly_cloudy, cloudy, rain, snow, thunder, fog, drizzle
+    temperature: null,
+    wind: 0,
+    intensity: 0, // 0..1
+    timeOfDay: 'day' // day/night
+  };
+
+  // Mapping WMO weather codes (Open-Meteo) -> types simples
+  function weatherCodeToType(code) {
+    // codes reference: https://open-meteo.com/en/docs
+    if (code === 0) return 'clear';
+    if (code === 1 || code === 2) return 'partly_cloudy';
+    if (code === 3) return 'cloudy';
+    if (code === 45 || code === 48) return 'fog';
+    if (code >= 51 && code <= 55) return 'drizzle';
+    if (code >= 56 && code <= 57) return 'drizzle';
+    if (code >= 61 && code <= 67) return 'rain';
+    if (code >= 71 && code <= 77) return 'snow';
+    if (code >= 80 && code <= 82) return 'rain';
+    if (code >= 85 && code <= 86) return 'snow';
+    if (code >= 95 && code <= 99) return 'thunder';
+    return 'cloudy';
+  }
+
+  // Récupérer la météo actuelle depuis Open-Meteo
+  async function fetchWeather() {
+    try {
+      const url = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current_weather=true&timezone=Europe%2FParis`;
+      const res = await fetch(url);
+      const json = await res.json();
+      const cw = json.current_weather;
+      if (!cw) throw new Error('Aucune donnée météo reçue');
+      // cw: {temperature, windspeed, winddirection, weathercode, time}
+      const type = weatherCodeToType(cw.weathercode);
+      scene.weatherType = type;
+      scene.temperature = Math.round(cw.temperature);
+      scene.wind = cw.windspeed || 0;
+      // intensity heuristique: pour pluie/drizzle/snow use code groups or windspeed
+      scene.intensity = Math.min(1, (cw.windspeed || 0) / 25);
+      // Déterminer day/night localisé: heuristique basée sur heure locale renvoyée par API (cw.time)
+      const localHour = new Date(cw.time + '+02:00').getHours(); // timezone Europe/Paris -> +02 en été; ok heuristique
+      scene.timeOfDay = (localHour >= 6 && localHour < 20) ? 'day' : 'night';
+      info.textContent = `Amiens — ${scene.temperature}°C — ${scene.weatherType} — vent ${Math.round(scene.wind)} km/h`;
+    } catch (err) {
+      console.error(err);
+      info.textContent = 'Impossible de récupérer la météo. Vérifiez la connexion.';
+    }
+  }
+
+  // --- Simple moteur d'animation pour la plaine ---
+  let last = 0;
+  // objets de particules
+  const clouds = [];
+  const raindrops = [];
+  const flakes = [];
+
+  function seedClouds() {
+    clouds.length = 0;
+    const count = 3 + Math.floor(Math.random()*4);
+    for (let i=0;i<count;i++){
+      clouds.push({
+        x: Math.random()*canvas.width,
+        y: Math.random()*canvas.height*0.35 + 20*DPR,
+        scale: 0.6 + Math.random()*1.1,
+        speed: (0.2 + Math.random()*0.6) * DPR
+      });
+    }
+  }
+  seedClouds();
+
+  function spawnRain(intensity) {
+    const target = Math.floor(100 * intensity);
+    while (raindrops.length < target) {
+      raindrops.push({
+        x: Math.random()*canvas.width,
+        y: Math.random()*canvas.height*0.2,
+        len: 10*DPR + Math.random()*10*DPR,
+        speed: 300 + Math.random()*200
+      });
+    }
+  }
+  function spawnSnow(intensity) {
+    const target = Math.floor(120 * intensity);
+    while (flakes.length < target) {
+      flakes.push({
+        x: Math.random()*canvas.width,
+        y: Math.random()*canvas.height,
+        r: 1.5*DPR + Math.random()*3*DPR,
+        speed: 20 + Math.random()*30
+      });
+    }
+  }
+
+  function update(dt) {
+    // Clouds move with wind direction roughly left->right depending on wind
+    const windFactor = Math.sign(scene.wind || 1);
+    for (const c of clouds) {
+      c.x += (c.speed + Math.abs(scene.wind)*0.4) * dt * windFactor;
+      if (c.x - 200*DPR > canvas.width) c.x = -200*DPR;
+      if (c.x + 200*DPR < 0) c.x = canvas.width + 200*DPR;
+    }
+
+    // Particules pluie
+    if (scene.weatherType === 'rain' || scene.weatherType === 'drizzle' || scene.weatherType === 'thunder') {
+      spawnRain(Math.max(0.2, scene.intensity));
+    } else {
+      raindrops.length = 0;
+    }
+    for (let i=raindrops.length-1;i>=0;i--){
+      const d = raindrops[i];
+      d.y += d.speed * dt + (scene.wind*0.6);
+      d.x += scene.wind * 0.4 * dt;
+      if (d.y > canvas.height) {
+        raindrops.splice(i,1);
+      }
+    }
+
+    // Snow
+    if (scene.weatherType === 'snow') {
+      spawnSnow(Math.max(0.2, scene.intensity));
+    } else {
+      flakes.length = 0;
+    }
+    for (let i=flakes.length-1;i>=0;i--){
+      const f = flakes[i];
+      f.y += f.speed * dt;
+      f.x += Math.sin((f.y + i) * 0.01) * 0.5 * DPR + scene.wind*0.02;
+      if (f.y > canvas.height) {
+        f.y = -10*DPR;
+        f.x = Math.random()*canvas.width;
+      }
+    }
+  }
+
+  function drawSky() {
+    // gradient sky depending on timeOfDay and weather
+    const g = ctx.createLinearGradient(0,0,0,canvas.height);
+    if (scene.timeOfDay === 'night') {
+      g.addColorStop(0, '#0b1226');
+      g.addColorStop(1, '#16223a');
+    } else {
+      if (scene.weatherType === 'clear') {
+        g.addColorStop(0, '#87CEEB');
+        g.addColorStop(1, '#cfeefe');
+      } else if (scene.weatherType === 'partly_cloudy' || scene.weatherType === 'cloudy') {
+        g.addColorStop(0, '#b7cbe0');
+        g.addColorStop(1, '#dfeffb');
+      } else if (scene.weatherType === 'rain' || scene.weatherType === 'drizzle' || scene.weatherType === 'thunder') {
+        g.addColorStop(0, '#7a8ea0');
+        g.addColorStop(1, '#a8bacb');
+      } else if (scene.weatherType === 'snow') {
+        g.addColorStop(0, '#cfe6f2');
+        g.addColorStop(1, '#eef7fb');
+      } else {
+        g.addColorStop(0, '#a9b9c8');
+        g.addColorStop(1, '#d7e8f2');
+      }
+    }
+    ctx.fillStyle = g;
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+  }
+
+  function drawSunMoon() {
+    const cx = 110*DPR;
+    const cy = 90*DPR;
+    if (scene.timeOfDay === 'day') {
+      // soleil
+      const grad = ctx.createRadialGradient(cx,cy,10*DPR,cx,cy,80*DPR);
+      grad.addColorStop(0,'#fff59d');
+      grad.addColorStop(1,'rgba(255,220,80,0.1)');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(cx,cy,50*DPR,0,Math.PI*2);
+      ctx.fill();
+    } else {
+      // lune
+      ctx.fillStyle = '#f4f5f8';
+      ctx.beginPath();
+      ctx.arc(cx,cy,36*DPR,0,Math.PI*2);
+      ctx.fill();
+      ctx.fillStyle = 'rgba(12,26,45,0.18)';
+      ctx.beginPath();
+      ctx.arc(cx+12*DPR,cy-8*DPR,30*DPR,0,Math.PI*2);
+      ctx.fill();
+    }
+  }
+
+  function drawCloud(cloud) {
+    const x = cloud.x, y = cloud.y, s = cloud.scale * 40*DPR;
+    ctx.fillStyle = 'rgba(255,255,255,0.95)';
+    if (scene.weatherType === 'cloudy' || scene.weatherType === 'rain' || scene.weatherType === 'drizzle' || scene.weatherType === 'thunder') {
+      ctx.fillStyle = 'rgba(230,235,238,0.95)';
+    }
+    ctx.beginPath();
+    ctx.arc(x, y, s*0.6, 0, Math.PI*2);
+    ctx.arc(x + s*0.6, y + s*0.1, s*0.7, 0, Math.PI*2);
+    ctx.arc(x - s*0.6, y + s*0.15, s*0.55, 0, Math.PI*2);
+    ctx.arc(x + s*1.05, y + s*0.25, s*0.45, 0, Math.PI*2);
+    ctx.fill();
+  }
+
+  function drawClouds() {
+    for (const c of clouds) drawCloud(c);
+  }
+
+  function drawPrairie() {
+    // horizon
+    const horizonY = canvas.height * 0.66;
+    // grass gradient
+    const g = ctx.createLinearGradient(0,horizonY,0,canvas.height);
+    g.addColorStop(0,'#4CAF50');
+    g.addColorStop(1,'#2e8b39');
+    ctx.fillStyle = g;
+    ctx.fillRect(0,horizonY,canvas.width,canvas.height-horizonY);
+
+    // simple waving blades
+    ctx.save();
+    ctx.translate(0, horizonY + 20*DPR);
+    const cols = Math.floor(canvas.width / (14*DPR));
+    for (let i=0;i<cols;i++){
+      const x = i * 14*DPR + (i%2?6*DPR:0);
+      const sway = Math.sin((Date.now()*0.002 + i)/6) * (2 + scene.wind*0.25) * DPR;
+      ctx.beginPath();
+      ctx.strokeStyle = '#1e6b29';
+      ctx.lineWidth = 2*DPR;
+      ctx.moveTo(x, 0);
+      ctx.quadraticCurveTo(x + sway*0.6, -18*DPR + sway, x, -36*DPR);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function drawRain() {
+    ctx.strokeStyle = 'rgba(180,200,220,0.9)';
+    ctx.lineWidth = 1.5*DPR;
+    for (const d of raindrops) {
+      ctx.beginPath();
+      ctx.moveTo(d.x, d.y);
+      ctx.lineTo(d.x + scene.wind*0.2, d.y + d.len);
+      ctx.stroke();
+    }
+  }
+
+  function drawSnow() {
+    ctx.fillStyle = 'rgba(255,255,255,0.9)';
+    for (const f of flakes) {
+      ctx.beginPath();
+      ctx.arc(f.x, f.y, f.r, 0, Math.PI*2);
+      ctx.fill();
+    }
+  }
+
+  function maybeLightning() {
+    if (scene.weatherType !== 'thunder') return;
+    // aléatoire: petite chance d'éclair
+    if (Math.random() < 0.002) {
+      // flash
+      ctx.fillStyle = 'rgba(255,255,255,0.65)';
+      ctx.fillRect(0,0,canvas.width,canvas.height);
+      // on peut dessiner zigzag (simple)
+      ctx.strokeStyle = 'rgba(255,255,230,0.95)';
+      ctx.lineWidth = 3*DPR;
+      ctx.beginPath();
+      let x = 0.6*canvas.width, y = 0.05*canvas.height;
+      ctx.moveTo(x,y);
+      for (let i=0;i<6;i++){
+        x += (Math.random()*200 - 100) * DPR;
+        y += canvas.height*0.08;
+        ctx.lineTo(Math.max(0,Math.min(canvas.width,x)), y);
+      }
+      ctx.stroke();
+    }
+  }
+
+  function drawScene(t) {
+    const dt = (t - last) / 1000 || 0.016;
+    last = t;
+    // redimension si besoin
+    if (canvas.clientWidth * DPR !== canvas.width) resize();
+
+    update(dt);
+    // background sky
+    drawSky();
+    // sun/moon
+    drawSunMoon();
+    // clouds
+    drawClouds();
+    // rain/snow behind mid-ground? draw rain before prairie so it appears in front possibly
+    if (scene.weatherType === 'rain' || scene.weatherType === 'drizzle' || scene.weatherType === 'thunder') drawRain();
+    if (scene.weatherType === 'snow') drawSnow();
+    // prairie and grass
+    drawPrairie();
+    // lightning overlay sometimes
+    maybeLightning();
+
+    requestAnimationFrame(drawScene);
+  }
+
+  // initial fetch + schedule updates
+  fetchWeather();
+  setInterval(fetchWeather, UPDATE_MIN * 60 * 1000);
+
+  // start animation
+  requestAnimationFrame(drawScene);
+
+  // Optionnel: clic pour forcer refresh météo
+  canvas.addEventListener('click', () => {
+    info.textContent = 'Mise à jour météo...';
+    fetchWeather();
+  });
+
+  // Améliorations suggérées (commentaire visible pour développeur):
+  // - Remplacer les formes simples par des SVG ou illustrations pour un rendu "dessin animé" plus riche.
+  // - Ajouter transitions de couleurs plus douces et particules mélangées (poussière, insectes).
+  // - Utiliser OpenWeatherMap ou MeteoGroup si vous voulez icônes et descriptions plus détaillées (nécessite clé API).
+  </script>
+</body>
+</html>
