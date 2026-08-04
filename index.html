@@ -105,8 +105,12 @@
     font-weight:800;
     letter-spacing:1px;
     color:transparent;
-    -webkit-background-clip:text;
+    /* gradient text cross-browser */
     background:linear-gradient(90deg,var(--accent),var(--accent-2));
+    -webkit-background-clip:text;
+    background-clip:text;
+    -webkit-text-fill-color:transparent;
+    text-fill-color:transparent;
   }
   .date{
     margin-top:8px;
@@ -137,6 +141,7 @@
   .weather-row{display:flex;align-items:center;gap:12px}
   .weather-temp{font-size:36px;font-weight:700}
   .weather-desc{font-weight:500;color:rgba(230,238,248,0.85)}
+  .location-name{font-size:13px;color:rgba(230,238,248,0.75);margin-bottom:8px}
 
   /* Footer */
   .footer{position:absolute;bottom:18px;left:28px;right:28px;display:flex;justify-content:space-between;align-items:center}
@@ -185,6 +190,7 @@
     <aside id="weatherPanel" class="weather-panel" aria-hidden="true">
       <button id="closeWeather" class="close" aria-label="Fermer panneau météo">✕</button>
       <h3>Météo locale</h3>
+      <div id="locationName" class="location-name" aria-hidden="true"></div>
       <div id="weatherContent" class="weather-content">
         <p>Clique sur "Météo" pour récupérer la position et afficher la météo.</p>
       </div>
@@ -211,17 +217,12 @@
 
   // XP -> palier suivant (exponentiel doux)
   function xpToNextLevel(level){
-    // Niveau 1 -> 100, 2 -> 150, 3 -> 225...
     return Math.floor(100 * Math.pow(1.5, level-1));
   }
 
   // -------- State (sauvegardé) ----------
-  let state = {
-    xp: 0,
-    level: 1
-  };
+  let state = { xp: 0, level: 1 };
 
-  // Load/save
   function loadState(){
     try{
       const raw = localStorage.getItem(STORAGE_KEY);
@@ -272,7 +273,6 @@
 
   function addXP(amount){
     state.xp += amount;
-    // level up loop
     while(state.xp >= xpToNextLevel(state.level)){
       state.xp -= xpToNextLevel(state.level);
       state.level++;
@@ -287,14 +287,11 @@
     setTimeout(()=>levelCardEl.classList.remove("flash"), 900);
   }
 
-  // init xp from storage
   loadState();
   renderXP();
 
   // add XP automatically toutes les minutes
-  setInterval(()=> {
-    addXP(XP_PER_MINUTE);
-  }, 60_000);
+  setInterval(()=> addXP(XP_PER_MINUTE), 60_000);
 
   // Controls
   document.getElementById("addXP").addEventListener("click", ()=> addXP(25));
@@ -313,6 +310,7 @@
   const closeWeather = document.getElementById("closeWeather");
   const forceLocation = document.getElementById("forceLocation");
   const fallbackCity = document.getElementById("fallbackCity");
+  const locationNameEl = document.getElementById("locationName");
 
   weatherBtn.addEventListener("click", async ()=>{
     toggleWeather(true);
@@ -323,9 +321,7 @@
   forceLocation.addEventListener("click", async ()=> await showWeather());
   fallbackCity.addEventListener("click", async ()=>{
     const city = prompt("Entrez le nom d'une ville (ex: Paris) :");
-    if(city){
-      await fetchWeatherByCity(city);
-    }
+    if(city) await fetchWeatherByCity(city);
   });
 
   function toggleWeather(show){
@@ -334,23 +330,49 @@
     weatherBtn.setAttribute("aria-expanded", show.toString());
   }
 
-  // Geolocation + fetch
+  // Geolocation + fallback IP
   async function showWeather(){
+    locationNameEl.textContent = "";
     weatherContent.innerHTML = "<p>Récupération de la position...</p>";
-    if(!navigator.geolocation){
-      weatherContent.innerHTML = "<p>Géolocalisation non disponible.</p>";
-      return;
+    // Try navigator.geolocation first
+    if(navigator.geolocation){
+      navigator.geolocation.getCurrentPosition(async (pos) => {
+        const lat = pos.coords.latitude;
+        const lon = pos.coords.longitude;
+        await fetchWeather(lat, lon);
+      }, async (err) => {
+        // If user denied or error, try IP fallback
+        console.warn("Geolocation error:", err);
+        weatherContent.innerHTML = `<p>Position non autorisée ou indisponible, tentative de fallback IP...</p>`;
+        const ip = await tryIPLocation();
+        if(ip) await fetchWeather(ip.latitude, ip.longitude, ip.city ? `${ip.city}${ip.region ? ', '+ip.region : ''}${ip.country_name ? ', '+ip.country_name : ''}` : null);
+        else weatherContent.innerHTML = `<p>Impossible d'obtenir la position: ${err.message}</p>`;
+      }, {timeout:10000});
+    }else{
+      const ip = await tryIPLocation();
+      if(ip) await fetchWeather(ip.latitude, ip.longitude, ip.city ? `${ip.city}${ip.region ? ', '+ip.region : ''}${ip.country_name ? ', '+ip.country_name : ''}` : null);
+      else weatherContent.innerHTML = "<p>Géolocalisation non disponible.</p>";
     }
-    navigator.geolocation.getCurrentPosition(async (pos) => {
-      const lat = pos.coords.latitude;
-      const lon = pos.coords.longitude;
-      await fetchWeather(lat, lon);
-    }, async (err) => {
-      weatherContent.innerHTML = `<p>Impossible d'obtenir la position : ${err.message}</p>`;
-    }, {timeout:10000});
   }
 
-  async function fetchWeather(lat, lon){
+  // Try IP-based geolocation (approx.)
+  async function tryIPLocation(){
+    try{
+      const res = await fetch('https://ipapi.co/json/');
+      if(!res.ok) return null;
+      const data = await res.json();
+      // ipapi returns latitude/longitude and city, region, country_name
+      if(typeof data.latitude === 'undefined' || typeof data.longitude === 'undefined') return null;
+      return data;
+    }catch(e){
+      console.warn("IP location failed:", e);
+      return null;
+    }
+  }
+
+  // Fetch weather and optionally a pre-known location name
+  async function fetchWeather(lat, lon, knownLocationName = null){
+    locationNameEl.textContent = "";
     weatherContent.innerHTML = "<p>Chargement météo...</p>";
     try{
       // Open-Meteo current weather
@@ -363,6 +385,30 @@
         weatherContent.innerHTML = "<p>Météo indisponible.</p>";
         return;
       }
+      // If we don't have a location name, try reverse geocoding to show the place
+      if(!knownLocationName){
+        try{
+          const revUrl = `https://geocoding-api.open-meteo.com/v1/reverse?latitude=${lat}&longitude=${lon}&count=1&language=fr`;
+          const rres = await fetch(revUrl);
+          if(rres.ok){
+            const rdata = await rres.json();
+            if(rdata.results && rdata.results.length > 0){
+              const r = rdata.results[0];
+              knownLocationName = `${r.name}${r.admin1 ? ', '+r.admin1 : ''}${r.country ? ', '+r.country : ''}${r.postal_code ? ' ('+r.postal_code+')' : ''}`;
+            }
+          }
+        }catch(e){ /* ignore reverse errors */ }
+      }
+
+      // Display name if known
+      if(knownLocationName){
+        locationNameEl.textContent = knownLocationName;
+        locationNameEl.setAttribute('aria-hidden','false');
+      }else{
+        locationNameEl.textContent = "";
+        locationNameEl.setAttribute('aria-hidden','true');
+      }
+
       const temp = cw.temperature;
       const wind = cw.windspeed;
       const code = cw.weathercode;
@@ -384,6 +430,7 @@
 
   // Simple fallback: géocodage via API open-meteo geocoding
   async function fetchWeatherByCity(city){
+    locationNameEl.textContent = "";
     weatherContent.innerHTML = "<p>Recherche de la ville...</p>";
     try{
       const gurl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=fr`;
@@ -395,7 +442,8 @@
         return;
       }
       const r = gdata.results[0];
-      await fetchWeather(r.latitude, r.longitude);
+      const pretty = `${r.name}${r.admin1 ? ', '+r.admin1 : ''}${r.country ? ', '+r.country : ''}${r.postal_code ? ' ('+r.postal_code+')' : ''}`;
+      await fetchWeather(r.latitude, r.longitude, pretty);
     }catch(e){
       weatherContent.innerHTML = `<p>Erreur géocodage: ${e.message}</p>`;
     }
@@ -436,9 +484,10 @@
     return map[code] || "Temps inconnu";
   }
 
-  // Petit conseil : sur certains navigateurs, la géolocalisation ne fonctionne pas en ouvrant le fichier via file://.
-  // Héberge avec un petit serveur local (ex: `npx http-server` ou `python -m http.server`) si besoin.
-
+  // Note: sur certains navigateurs, la géolocalisation nécessite HTTPS ou serveur local.
+  // Si tu ouvres directement le fichier (file://) et la géoloc ne marche pas, lance un petit serveur:
+  // - python3 -m http.server
+  // - ou `npx http-server .`
   </script>
 </body>
 </html>
