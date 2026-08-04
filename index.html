@@ -35,29 +35,13 @@
   .app{
     width:100%;
     max-width:980px;
-    min-height:640px;
+    min-height:700px;
     background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
     border-radius:16px;
-    padding:28px;
+    padding:24px;
     position:relative;
     box-shadow: 0 10px 40px rgba(2,6,23,0.6);
     overflow:hidden;
-  }
-
-  /* Weather button top-left (toujours présent mais pas nécessaire) */
-  .weather-btn{
-    position:absolute;
-    top:18px;
-    left:18px;
-    background:linear-gradient(90deg,var(--accent),var(--accent-2));
-    border:none;
-    color:white;
-    padding:10px 14px;
-    border-radius:10px;
-    font-weight:600;
-    cursor:pointer;
-    box-shadow:0 6px 18px rgba(124,92,255,0.18);
-    z-index:40;
   }
 
   .top{
@@ -79,6 +63,7 @@
   .level-info{display:flex;flex-direction:column;gap:6px}
   #levelText{font-weight:700;font-size:18px;letter-spacing:0.4px}
   #xpText{font-size:13px;color:rgba(230,238,248,0.8)}
+  #totalXPText{font-size:12px;color:rgba(230,238,248,0.65);margin-top:6px}
 
   /* XP bar */
   .xp-bar{height:12px;background:rgba(255,255,255,0.04);border-radius:8px;margin-top:10px;overflow:hidden}
@@ -90,7 +75,7 @@
   }
 
   /* Main clock */
-  .main{display:flex;align-items:center;justify-content:center;height:calc(100% - 220px)}
+  .main{display:flex;align-items:center;justify-content:center;height:calc(100% - 260px)}
   .clock-card{
     text-align:center;
     background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
@@ -99,6 +84,7 @@
     border:1px solid rgba(255,255,255,0.03);
     box-shadow: 0 6px 30px rgba(2,6,23,0.45);
     min-width:420px;
+    cursor:default;
   }
   .time{
     font-size:72px;
@@ -110,12 +96,15 @@
     background-clip:text;
     -webkit-text-fill-color:transparent;
     text-fill-color:transparent;
+    user-select:none;
   }
+  .time.hint{cursor:pointer;opacity:0.95}
   .date{
     margin-top:8px;
     color:rgba(230,238,248,0.85);
     font-weight:500;
   }
+  .small-hint{font-size:12px;color:rgba(230,238,248,0.6);margin-top:6px}
 
   /* Weather panel (toujours visible au chargement) */
   .weather-panel{
@@ -141,7 +130,7 @@
 
   /* Trophy panel (top-right under level card) */
   .trophy-panel{
-    width:220px;
+    width:260px;
     background:var(--card);
     border-radius:12px;
     padding:12px;
@@ -158,10 +147,23 @@
   .trophy .meta .name{font-weight:700}
   .trophy .meta .req{font-size:12px;color:rgba(230,238,248,0.65)}
 
-  /* Footer */
-  .footer{position:absolute;bottom:18px;left:28px;right:28px;display:flex;justify-content:space-between;align-items:center}
-  .controls button{margin-right:8px;padding:8px 12px;border-radius:8px;border:none;background:rgba(255,255,255,0.04);color:var(--text);cursor:pointer}
-  .credit{font-size:13px;color:rgba(230,238,248,0.65)}
+  /* Controls small */
+  .controls{display:flex;gap:8px}
+  .controls button{padding:8px 12px;border-radius:8px;border:none;background:rgba(255,255,255,0.04);color:var(--text);cursor:pointer}
+
+  /* Toast & confetti */
+  .toast{
+    position:fixed;right:18px;bottom:18px;padding:10px 14px;border-radius:10px;color:#fff;z-index:9999;
+    box-shadow:0 8px 30px rgba(2,6,23,0.6);
+  }
+  .confetti{
+    position:fixed;left:50%;top:30%;width:10px;height:10px;border-radius:2px;opacity:0.95;z-index:9998;pointer-events:none;
+    animation: confetti-fall 1200ms linear forwards;
+  }
+  @keyframes confetti-fall {
+    0% { transform: translate3d(0,0,0) rotate(0deg); opacity:1; }
+    100% { transform: translate3d(var(--dx, 0px), 700px, 0) rotate(720deg); opacity:0; }
+  }
 
   /* small animations */
   #levelCard.flash { box-shadow: 0 0 0 6px rgba(124,92,255,0.12), 0 12px 30px rgba(2,6,23,0.6); transform:translateY(-6px); transition:transform .25s ease; }
@@ -176,15 +178,12 @@
 </head>
 <body>
   <div class="app">
-    <button id="weather-btn" class="weather-btn" aria-expanded="true" title="Météo (automatique)">
-      ☀️ Météo
-    </button>
-
     <header class="top" style="gap:12px;">
       <div class="level-card" id="levelCard" role="status" aria-live="polite">
         <div class="level-info">
           <div id="levelText">Niveau 1</div>
           <div id="xpText">XP: 0 / 100</div>
+          <div id="totalXPText">Total XP : 0</div>
         </div>
         <div class="xp-bar" aria-hidden="true">
           <div id="xpFill" class="xp-fill"></div>
@@ -193,16 +192,34 @@
 
       <div class="trophy-panel" id="trophyPanel" aria-live="polite">
         <h4>Trophées</h4>
-        <div class="trophy-list" id="trophyList">
-          <!-- list dynamique -->
+        <div class="trophy-list" id="trophyList"></div>
+        <div class="small-hint" style="margin-top:8px;">Astuce : clique 7x sur l'heure pour un easter-egg.</div>
+      </div>
+
+      <!-- Theme & Format toggles -->
+      <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end;">
+        <div>
+          <label style="font-size:12px;color:rgba(230,238,248,0.7);margin-right:6px">Format</label>
+          <select id="formatToggle" style="background:rgba(255,255,255,0.03);color:var(--text);border-radius:8px;padding:6px;border:none;">
+            <option value="24">24h</option>
+            <option value="12">12h</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:12px;color:rgba(230,238,248,0.7);margin-right:6px">Thème</label>
+          <select id="themeToggle" style="background:rgba(255,255,255,0.03);color:var(--text);border-radius:8px;padding:6px;border:none;">
+            <option value="dark">Sombre</option>
+            <option value="light">Clair</option>
+          </select>
         </div>
       </div>
     </header>
 
     <main class="main">
-      <div class="clock-card">
-        <div id="time" class="time">--:--:--</div>
+      <div class="clock-card" title="Clique 7 fois sur l'heure pour l'easter-egg">
+        <div id="time" class="time hint">--:--:--</div>
         <div id="date" class="date">--</div>
+        <div class="small-hint" id="info12h">Info: 12h = 12 000 XP</div>
       </div>
     </main>
 
@@ -219,12 +236,12 @@
       </div>
     </aside>
 
-    <footer class="footer">
+    <footer class="footer" style="position:absolute;bottom:18px;left:28px;right:28px;display:flex;justify-content:space-between;align-items:center">
       <div class="controls">
         <button id="addXP">+ XP (test +25)</button>
         <button id="resetXP">Réinitialiser</button>
       </div>
-      <div class="credit">Fait pour le kiffe — Horloge & XP</div>
+      <div class="credit" style="font-size:13px;color:rgba(230,238,248,0.65)">Fait pour le kiffe — Horloge & XP</div>
     </footer>
   </div>
 
@@ -232,7 +249,7 @@
   // Config XP
   const XP_PER_MINUTE = 10;     // +10 toutes les minutes
   const HOURLY_BONUS = 400;     // bonus chaque heure complète => 1h = 60*10 + 400 = 1000
-  const STORAGE_KEY = "mini_clock_xp_v2";
+  const STORAGE_KEY = "mini_clock_xp_v3";
 
   function xpToNextLevel(level){
     return Math.floor(100 * Math.pow(1.5, level-1));
@@ -242,7 +259,8 @@
   let state = {
     xp: 0,         // current XP in level
     level: 1,
-    totalXP: 0     // cumul de tous les XP gagnés (pour trophées)
+    totalXP: 0,    // cumul de tous les XP gagnés (pour trophées)
+    prefs: { format: "24", theme: "dark" }
   };
 
   function loadState(){
@@ -251,31 +269,48 @@
       if(raw){
         const parsed = JSON.parse(raw);
         if(typeof parsed.xp === "number" && typeof parsed.level === "number" && typeof parsed.totalXP === "number"){
-          state = parsed;
+          state = Object.assign(state, parsed);
         }
+      }
+      const prefRaw = localStorage.getItem(STORAGE_KEY + "_prefs");
+      if(prefRaw){
+        const p = JSON.parse(prefRaw);
+        state.prefs = Object.assign(state.prefs || {}, p);
       }
     }catch(e){ console.warn("loadState:", e) }
   }
-  function saveState(){
-    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
-    catch(e){ console.warn("saveState:", e) }
-  }
+  function saveState(){ try{ localStorage.setItem(STORAGE_KEY, JSON.stringify({xp:state.xp, level:state.level, totalXP:state.totalXP})); localStorage.setItem(STORAGE_KEY + "_prefs", JSON.stringify(state.prefs)); } catch(e){ console.warn(e) } }
 
   // Clock
   const timeEl = document.getElementById("time");
   const dateEl = document.getElementById("date");
+  const info12El = document.getElementById("info12h");
   function pad(n){ return n < 10 ? "0"+n : n; }
+
+  function formatTime(date){
+    if(state.prefs.format === "12"){
+      let h = date.getHours();
+      const ampm = h >= 12 ? "PM" : "AM";
+      h = h % 12; if(h===0) h = 12;
+      return `${pad(h)}:${pad(date.getMinutes())}:${pad(date.getSeconds())} ${ampm}`;
+    } else {
+      return `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+    }
+  }
+
   function updateClock(){
     const now = new Date();
-    timeEl.textContent = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+    timeEl.textContent = formatTime(now);
     dateEl.textContent = now.toLocaleDateString(undefined, {weekday:'long', day:'numeric', month:'long'});
   }
+  loadState();
   updateClock();
   setInterval(updateClock, 1000);
 
   // XP UI
   const levelText = document.getElementById("levelText");
   const xpText = document.getElementById("xpText");
+  const totalXPText = document.getElementById("totalXPText");
   const xpFill = document.getElementById("xpFill");
   const levelCardEl = document.getElementById("levelCard");
 
@@ -284,16 +319,14 @@
     const pct = Math.min(100, Math.round(100 * state.xp / next));
     levelText.textContent = `Niveau ${state.level}`;
     xpText.textContent = `XP: ${state.xp} / ${next}`;
+    totalXPText.textContent = `Total XP : ${state.totalXP.toLocaleString()}`;
     xpFill.style.width = pct + "%";
   }
 
   function addXP(amount, reason){
-    // amount est ajouté au total et au xp courant (niveau)
     if(typeof amount !== "number" || amount <= 0) return;
     state.totalXP += amount;
     state.xp += amount;
-
-    // level up loop
     while(state.xp >= xpToNextLevel(state.level)){
       state.xp -= xpToNextLevel(state.level);
       state.level++;
@@ -301,8 +334,8 @@
     }
     saveState();
     renderXP();
-    checkTrophies(); // vérifie déblocage
-    if(reason) showToast(`+${amount} XP (${reason})`);
+    checkTrophies();
+    if(reason) showToast(`+${amount} XP — ${reason}`);
   }
 
   function flashLevel(){
@@ -310,59 +343,45 @@
     setTimeout(()=>levelCardEl.classList.remove("flash"), 900);
   }
 
-  // Toast simple
-  function showToast(text){
+  // Toast
+  function showToast(text, color){
     const t = document.createElement("div");
+    t.className = "toast";
     t.textContent = text;
-    t.style.position = "fixed";
-    t.style.right = "18px";
-    t.style.bottom = "18px";
-    t.style.padding = "10px 14px";
-    t.style.background = "linear-gradient(90deg,var(--accent),var(--accent-2))";
-    t.style.color = "white";
-    t.style.borderRadius = "10px";
-    t.style.boxShadow = "0 8px 30px rgba(2,6,23,0.6)";
-    t.style.zIndex = 9999;
+    t.style.background = color || "linear-gradient(90deg,var(--accent),var(--accent-2))";
     document.body.appendChild(t);
-    setTimeout(()=>{ t.style.opacity = '0'; t.style.transform='translateY(8px)'; }, 2200);
+    setTimeout(()=>{ t.style.opacity = '0'; t.style.transform='translateY(8px)'; }, 2400);
     setTimeout(()=>t.remove(), 3000);
   }
 
-  loadState();
   renderXP();
 
-  // scheduling aligned to the start of next minute for better timing
+  // Align ticks to start of minute
   function scheduleXP(){
     const now = new Date();
-    const msToNextMinute = (60 - now.getSeconds())*1000 - now.getMilliseconds() + 50; // slight offset
+    const msToNextMinute = (60 - now.getSeconds())*1000 - now.getMilliseconds() + 50;
     setTimeout(()=> {
-      // first tick at start of next minute
       minuteTick();
-      // then every 60s
       setInterval(minuteTick, 60_000);
     }, msToNextMinute);
   }
 
   function minuteTick(){
-    // add +10 for the minute
     addXP(XP_PER_MINUTE, "minute écoulée");
-    // if start of hour (minute == 0), add hourly bonus
     const now = new Date();
-    if(now.getMinutes() === 0){
-      addXP(HOURLY_BONUS, "bonus horaire");
-    }
+    if(now.getMinutes() === 0) addXP(HOURLY_BONUS, "bonus horaire");
   }
-
   scheduleXP();
 
   // Controls
   document.getElementById("addXP").addEventListener("click", ()=> addXP(25, "test manuel"));
   document.getElementById("resetXP").addEventListener("click", ()=>{
     if(confirm("Réinitialiser l'XP, niveau et trophées ?")){
-      state = {xp:0, level:1, totalXP:0};
+      state = {xp:0, level:1, totalXP:0, prefs: state.prefs || {format:'24', theme:'dark'}};
       saveState();
       renderXP();
       resetTrophies();
+      showToast("Réinitialisé", "linear-gradient(90deg,#666,#999)");
     }
   });
 
@@ -373,13 +392,14 @@
   const trophyDefs = [
     { id: "novice", name: "Novice", desc: "Atteins 100 XP", req: 100, emoji: "🌱" },
     { id: "apprenti", name: "Apprenti", desc: "Atteins 1 000 XP", req: 1000, emoji: "🏅" },
-    { id: "heureux", name: "Heureux", desc: "Atteins 1 heure de jeu (1 000 XP)", req: 1000, emoji: "⏱️" },
+    { id: "heureux", name: "Heureux", desc: "Atteins 1 heure (1 000 XP)", req: 1000, emoji: "⏱️" },
     { id: "veteran", name: "Vétéran", desc: "Atteins 10 000 XP", req: 10000, emoji: "🥈" },
     { id: "insomnia", name: "Insomnia", desc: "12 heures = 12 000 XP (easter egg)", req: 12000, emoji: "🌙" },
-    { id: "collector", name: "Collectionneur", desc: "Atteins 50 000 XP", req: 50000, emoji: "🏆" }
+    { id: "collector", name: "Collectionneur", desc: "Atteins 50 000 XP", req: 50000, emoji: "🏆" },
+    { id: "curious", name: "Curieux", desc: "Clique 7x sur l'heure", req: 0, emoji: "🔍" }
   ];
 
-  let trophies = {}; // id -> unlocked boolean
+  let trophies = {}; // id -> unlocked info
 
   function loadTrophies(){
     try{
@@ -387,31 +407,41 @@
       if(raw) trophies = JSON.parse(raw);
     }catch(e){ trophies = {}; }
   }
-  function saveTrophies(){
-    try{ localStorage.setItem(STORAGE_KEY + "_trophies", JSON.stringify(trophies)); }
-    catch(e){ console.warn("saveTrophies:", e) }
-  }
-  function resetTrophies(){
-    trophies = {};
-    saveTrophies();
-    renderTrophies();
-  }
+  function saveTrophies(){ try{ localStorage.setItem(STORAGE_KEY + "_trophies", JSON.stringify(trophies)); } catch(e){ console.warn(e); } }
+  function resetTrophies(){ trophies = {}; saveTrophies(); renderTrophies(); }
 
   function checkTrophies(){
     loadTrophies();
     let changed = false;
     for(const t of trophyDefs){
-      if(!trophies[t.id] && state.totalXP >= t.req){
-        trophies[t.id] = { unlockedAt: Date.now() };
-        changed = true;
-        showToast(`Trophée débloqué : ${t.name} ${t.emoji}`);
+      if(!trophies[t.id]){
+        if(t.id === 'curious'){
+          // curious unlocked separately by clicks
+          continue;
+        }
+        if(state.totalXP >= t.req && t.req > 0){
+          trophies[t.id] = { unlockedAt: Date.now() };
+          changed = true;
+          showToast(`Trophée débloqué : ${t.name} ${t.emoji}`);
+          spawnConfetti();
+        }
       }
     }
     if(changed) saveTrophies();
     renderTrophies();
   }
 
-  // Render trophy UI
+  function unlockTrophyById(id){
+    loadTrophies();
+    if(!trophies[id]){
+      trophies[id] = { unlockedAt: Date.now() };
+      saveTrophies();
+      renderTrophies();
+      showToast(`Trophée débloqué : ${trophyDefs.find(t=>t.id===id).name}`);
+      spawnConfetti();
+    }
+  }
+
   const trophyListEl = document.getElementById("trophyList");
   function renderTrophies(){
     loadTrophies();
@@ -421,7 +451,7 @@
       const tr = document.createElement("div");
       tr.className = "trophy" + (unlocked ? "" : " locked");
       tr.innerHTML = `<div class="icon">${t.emoji}</div>
-                      <div class="meta"><div class="name">${t.name}</div><div class="req">${t.desc} • ${t.req.toLocaleString()} XP</div></div>`;
+                      <div class="meta"><div class="name">${t.name}</div><div class="req">${t.desc} • ${t.req ? t.req.toLocaleString() + ' XP' : ''}</div></div>`;
       trophyListEl.appendChild(tr);
     }
   }
@@ -434,8 +464,6 @@
      Météo (auto au chargement)
      =========================== */
 
-  const weatherBtn = document.getElementById("weather-btn");
-  const weatherPanel = document.getElementById("weatherPanel");
   const weatherContent = document.getElementById("weatherContent");
   const closeWeather = document.getElementById("closeWeather");
   const forceLocation = document.getElementById("forceLocation");
@@ -444,14 +472,8 @@
 
   const DEFAULT_CITY = { latitude: 48.8566, longitude: 2.3522, pretty: "Paris, France (fallback)" };
 
-  weatherBtn.addEventListener("click", async ()=>{
-    // toggle? but we keep visible by default; here we refresh
-    await showWeather({force:true});
-  });
-
   closeWeather.addEventListener("click", ()=> {
-    // Hide panel if the user wants
-    weatherPanel.style.display = 'none';
+    document.getElementById("weatherPanel").style.display = 'none';
   });
   forceLocation.addEventListener("click", async ()=> await showWeather({force:true}));
   fallbackCity.addEventListener("click", async ()=>{
@@ -459,14 +481,12 @@
     if(city) await fetchWeatherByCity(city);
   });
 
-  // Auto-open and fetch weather on load
   (async function initWeather(){
-    weatherPanel.style.display = 'block'; // always visible by default
+    document.getElementById("weatherPanel").style.display = 'block';
     await showWeather();
   })();
 
-  // showWeather tries geolocation, else fallback to DEFAULT_CITY
-  async function showWeather(opts = {}){
+  async function showWeather(opts = {}) {
     const { force=false } = opts;
     locationNameEl.textContent = "";
     weatherContent.innerHTML = "<p>Récupération de la position...</p>";
@@ -474,26 +494,20 @@
     let used = null;
 
     if(navigator.geolocation && !force){
-      // try quick geolocation (user may deny)
       try{
-        const pos = await new Promise((resolve, reject) => {
-          const id = navigator.geolocation.getCurrentPosition(resolve, reject, {timeout:8000});
-        });
+        const pos = await new Promise((resolve, reject) => navigator.geolocation.getCurrentPosition(resolve, reject, {timeout:8000}));
         used = { latitude: pos.coords.latitude, longitude: pos.coords.longitude };
       }catch(err){
         console.warn("Geoloc failed:", err);
-        // don't throw — we'll fallback to DEFAULT_CITY
       }
     }
 
-    // if not obtained, try IP geolocation but if it points to Amiens (postal 80000), we ignore and use Paris fallback
     if(!used){
       try{
         const res = await fetch('https://ipapi.co/json/');
         if(res.ok){
           const ip = await res.json();
           if(ip && typeof ip.latitude !== 'undefined' && typeof ip.longitude !== 'undefined'){
-            // If ip.city contains 'Amiens' or postal is 80000, we override and use DEFAULT_CITY
             const cityLower = (ip.city || "").toLowerCase();
             const postal = ip.postal || "";
             if(cityLower.includes("amiens") || postal.startsWith("80")){
@@ -509,7 +523,6 @@
     }
 
     if(!used){
-      // last resort: Paris fallback
       used = { latitude: DEFAULT_CITY.latitude, longitude: DEFAULT_CITY.longitude, pretty: DEFAULT_CITY.pretty };
     }
 
@@ -525,12 +538,8 @@
       if(!res.ok) throw new Error(res.statusText);
       const data = await res.json();
       const cw = data.current_weather;
-      if(!cw){
-        weatherContent.innerHTML = "<p>Météo indisponible.</p>";
-        return;
-      }
+      if(!cw){ weatherContent.innerHTML = "<p>Météo indisponible.</p>"; return; }
 
-      // reverse geocoding to pretty name if not provided
       if(!knownLocationName){
         try{
           const revUrl = `https://geocoding-api.open-meteo.com/v1/reverse?latitude=${lat}&longitude=${lon}&count=1&language=fr`;
@@ -542,7 +551,7 @@
               knownLocationName = `${r.name}${r.admin1 ? ', '+r.admin1 : ''}${r.country ? ', '+r.country : ''}${r.postal_code ? ' ('+r.postal_code+')' : ''}`;
             }
           }
-        }catch(e){ /* ignore */ }
+        }catch(e){}
       }
 
       if(knownLocationName) {
@@ -604,13 +613,94 @@
     return map[code] || "Temps inconnu";
   }
 
-  // Affichage / initial checks
+  /* ===========================
+     Preferences (theme / format)
+     =========================== */
+
+  const themeToggle = document.getElementById("themeToggle");
+  const formatToggle = document.getElementById("formatToggle");
+
+  function applyTheme(){
+    if(state.prefs.theme === 'light'){
+      document.documentElement.style.setProperty('--bg','#f3f6fb');
+      document.documentElement.style.setProperty('--card','rgba(2,6,23,0.04)');
+      document.documentElement.style.setProperty('--text','#06121a');
+    } else {
+      document.documentElement.style.setProperty('--bg','#0f1724');
+      document.documentElement.style.setProperty('--card','rgba(255,255,255,0.06)');
+      document.documentElement.style.setProperty('--text','#e6eef8');
+    }
+  }
+
+  themeToggle.addEventListener("change", (e)=>{
+    state.prefs.theme = e.target.value;
+    applyTheme();
+    saveState();
+  });
+  formatToggle.addEventListener("change", (e)=>{
+    state.prefs.format = e.target.value;
+    saveState();
+    updateClock();
+  });
+
+  // initialize selects from prefs
+  themeToggle.value = state.prefs.theme || 'dark';
+  formatToggle.value = state.prefs.format || '24';
+  applyTheme();
+
+  /* ===========================
+     Easter-egg: click on time 7x
+     =========================== */
+
+  let clickCount = 0;
+  timeEl.addEventListener("click", ()=>{
+    clickCount++;
+    if(clickCount === 1) {
+      showToast("Tu as commencé à fouiller..."); // petit retour immédiat
+    }
+    if(clickCount >= 7){
+      unlockTrophyById('curious');
+      clickCount = 0;
+    }
+    // reset counter after 4s of inactivity
+    clearTimeout(timeEl._clickTimeout);
+    timeEl._clickTimeout = setTimeout(()=> clickCount = 0, 4000);
+  });
+
+  /* ===========================
+     Confetti on trophy unlock
+     =========================== */
+
+  function spawnConfetti(){
+    const colors = ['#ffd166','#7c5cff','#00d4ff','#ff6b6b','#9be15d'];
+    for(let i=0;i<18;i++){
+      const c = document.createElement('div');
+      c.className = 'confetti';
+      c.style.background = colors[Math.floor(Math.random()*colors.length)];
+      const dx = (Math.random()-0.5)*800 + (Math.random()<0.5?-100:100);
+      c.style.setProperty('--dx', dx + 'px');
+      c.style.left = (window.innerWidth/2 + (Math.random()-0.5)*200) + 'px';
+      c.style.top = (window.innerHeight*0.2 + (Math.random()-0.5)*200) + 'px';
+      c.style.width = (6 + Math.random()*8) + 'px';
+      c.style.height = (10 + Math.random()*8) + 'px';
+      document.body.appendChild(c);
+      setTimeout(()=> c.remove(), 1400);
+    }
+  }
+
+  /* ===========================
+     Final helpers & notes
+     =========================== */
+
+  // affiche l'info 12h calculée
+  info12El.textContent = "Info: 1 min = 10 XP • 10 min = 100 XP • 1 h = 1000 XP • 12 h = 12 000 XP";
+
+  // run initial trophy check (in case prefs loaded changed totals)
   checkTrophies();
 
-  // Petit rappel pour l'utilisateur sur la correspondance 12h -> points
-  console.log("Info: 1 minute = +10 XP, 10 minutes = 100 XP, 1 heure = 1000 XP. Donc 12h = 12 000 XP.");
+  // Friendly console note
+  console.log("Horloge & XP initialisé — 12h = 12 000 XP.");
 
-  // Fin du script
   </script>
 </body>
 </html>
