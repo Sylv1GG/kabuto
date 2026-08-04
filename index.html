@@ -1,585 +1,749 @@
 <!doctype html>
 <html lang="fr">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Plaine 3D — Arbre principal (fix)</title>
-  <style>
-    html,body { height:100%; margin:0; background:#081226; font-family:system-ui,Segoe UI,Roboto,Arial; }
-    #canvas { width:100%; height:100vh; display:block; }
-    #hud {
-      position:absolute; left:12px; top:12px; z-index:10;
-      background:rgba(255,255,255,0.92); color:#111; padding:10px 14px; border-radius:8px;
-      box-shadow:0 6px 18px rgba(0,0,0,0.18); font-weight:600; max-width:38%;
-    }
-    #detail { font-weight:400; font-size:13px; margin-top:6px; color:#333; }
-    #credits { position:absolute; right:12px; bottom:12px; z-index:10;
-      background:rgba(0,0,0,0.35); color:#fff; padding:6px 10px; border-radius:6px; font-size:13px; }
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Plaine interactive — Amiens</title>
+<style>
+  html,body { height:100%; margin:0; background:#081226; font-family:system-ui,Segoe UI,Roboto,Arial; }
+  #canvas { display:block; width:100%; height:100vh; touch-action:none; }
+  #hud {
+    position:absolute; left:12px; top:12px; z-index:20;
+    background:rgba(255,255,255,0.95); color:#111; padding:10px 14px; border-radius:8px;
+    box-shadow:0 6px 18px rgba(0,0,0,0.18); font-weight:600;
+  }
+  #msg { position:absolute; left:50%; transform:translateX(-50%); top:12px; z-index:20;
+    background:rgba(0,0,0,0.55); color:#fff; padding:8px 12px; border-radius:8px; font-weight:600;}
+  #credits { position:absolute; right:12px; bottom:12px; z-index:20;
+    background:rgba(0,0,0,0.35); color:#fff; padding:6px 10px; border-radius:6px; font-size:13px; }
+  a { color:#8cf; }
+</style>
 </head>
 <body>
-  <canvas id="canvas"></canvas>
-  <div id="hud">Chargement météo...<div id="detail"></div></div>
-  <div id="credits">Amiens (80000) — scène fixe — clic pour rafraîchir météo</div>
+<canvas id="canvas"></canvas>
+<div id="hud">Chargement météo...</div>
+<div id="msg" style="display:none"></div>
+<div id="credits">Amiens (80000) — clique pour déplacer — flèches pour contrôle</div>
 
-  <!-- Three.js UMD -->
-  <script src="https://unpkg.com/three@0.152.2/build/three.min.js"></script>
+<script>
+/*
+Interactive 2D scene (canvas)
+- layered parallax landscape inspired by the provided image
+- character + companion follow path on click or arrow keys
+- weather integration via Open-Meteo (current_weather)
+- day/night, rain/snow, wind affect animation
+- no external libs
+*/
 
-  <script>
-  (function () {
-    // ---------- Configuration ----------
-    const LAT = 49.8941, LON = 2.2958;
-    const UPDATE_MIN = 5;
+const LAT = 49.8941, LON = 2.2958;
+const UPDATE_MIN = 5;
 
-    // DOM
-    const canvas = document.getElementById('canvas');
-    const hud = document.getElementById('hud');
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const hud = document.getElementById('hud');
+const msg = document.getElementById('msg');
 
-    // Basic error reporting to HUD
-    function report(msg){
-      console.error(msg);
-      hud.textContent = msg;
+let DPR = Math.max(1, window.devicePixelRatio || 1);
+
+function resize(){
+  DPR = Math.max(1, window.devicePixelRatio || 1);
+  canvas.width = Math.floor(canvas.clientWidth * DPR);
+  canvas.height = Math.floor(canvas.clientHeight * DPR);
+}
+window.addEventListener('resize', resize);
+resize();
+
+// --- Scene state ---
+const state = {
+  time: 0,
+  width: canvas.width,
+  height: canvas.height,
+  weatherType: 'clear',
+  temperature: 14,
+  wind: 2,
+  intensity: 0,
+  timeOfDay: 'day' // 'day' or 'night'
+};
+
+// --- Path (curved path from foreground to tree base) ---
+// We'll parametrize path by t in [0,1] -> (x,y) in canvas coordinates.
+// Path is built using control points so it can be drawn and character follows it.
+function buildPath(w,h){
+  const cx = w/2;
+  const baseY = h*0.68;
+  const points = [];
+  // Rough winding path: start near bottom center, curve, end at tree center
+  points.push({x: cx, y: h*0.95});
+  points.push({x: cx + w*0.04, y: h*0.85});
+  points.push({x: cx + w*0.06, y: h*0.76});
+  points.push({x: cx + w*0.02, y: h*0.72});
+  points.push({x: cx - w*0.01, y: baseY});
+  points.push({x: cx - w*0.0, y: baseY - 40});
+  return points;
+}
+let pathPoints = buildPath(canvas.width/DPR, canvas.height/DPR);
+
+// cubic bezier helper (Catmull-Rom -> draw smooth)
+function getPointOnCurve(points, t){
+  // use Catmull-Rom spline interpolation
+  const l = points.length;
+  const p = (l - 1) * t;
+  const i = Math.floor(p);
+  const f = p - i;
+  const p0 = points[Math.max(0, i-1)];
+  const p1 = points[i];
+  const p2 = points[Math.min(l-1, i+1)];
+  const p3 = points[Math.min(l-1, i+2)];
+  function catmull(a,b,c,d,t){
+    const t2 = t*t, t3 = t2*t;
+    return 0.5*( (2*b) + (-a + c)*t + (2*a - 5*b + 4*c - d)*t2 + (-a + 3*b - 3*c + d)*t3 );
+  }
+  const x = catmull(p0.x, p1.x, p2.x, p3.x, f);
+  const y = catmull(p0.y, p1.y, p2.y, p3.y, f);
+  return {x,y};
+}
+
+// --- Layers & parallax parameters ---
+function makeLayers(){
+  return {
+    sky: {par:0.0},
+    farMountains: {par:0.1},
+    midHills: {par:0.25},
+    village: {par:0.32},
+    fields: {par:0.45},
+    treeAndPath: {par:0.6},
+    foreground: {par:0.85}
+  };
+}
+let layers = makeLayers();
+
+// --- Clouds ---
+const clouds = [];
+function spawnCloud(x,y,scale,opacity){
+  clouds.push({x,y,scale,opacity,drift: (0.2 + Math.random()*0.6)});
+}
+function resetClouds(w,h){
+  clouds.length = 0;
+  const count = 6;
+  for (let i=0;i<count;i++){
+    spawnCloud(Math.random()*w*1.4 - w*0.2, Math.random()*h*0.28 + h*0.06, 0.6 + Math.random()*1.4, 0.8 - Math.random()*0.4);
+  }
+}
+resetClouds(canvas.width/DPR, canvas.height/DPR);
+
+// --- Character along path ---
+// Character parameter t in [0,1] where 1 = base/tree
+const player = {
+  t: 0.05,
+  targetT: 0.05,
+  speed: 0.25, // t per second baseline
+  facing: 1, // 1 = toward tree (increasing t), -1 = away
+  walking: false,
+  bounce: 0 // used for bobbing animation
+};
+const companion = {t:0.03, offset: -0.02};
+
+// Input: click to set targetT by finding nearest t for clicked x,y
+function findClosestTtoXY(x,y){
+  // simple search sampling along t
+  let bestT = 0, bestD = 1e9;
+  const samples = 200;
+  for (let i=0;i<=samples;i++){
+    const t = i/samples;
+    const p = getPointOnCurve(pathPoints, t);
+    const dx = p.x - x, dy = p.y - y;
+    const d = dx*dx + dy*dy;
+    if (d < bestD){ bestD = d; bestT = t; }
+  }
+  return bestT;
+}
+
+// keyboard control
+const keys = {left:false,right:false};
+window.addEventListener('keydown', e=>{
+  if (e.key === 'ArrowLeft') keys.left = true;
+  if (e.key === 'ArrowRight') keys.right = true;
+});
+window.addEventListener('keyup', e=>{
+  if (e.key === 'ArrowLeft') keys.left = false;
+  if (e.key === 'ArrowRight') keys.right = false;
+});
+
+// click / touch to move
+canvas.addEventListener('pointerdown', e=>{
+  const rect = canvas.getBoundingClientRect();
+  const x = (e.clientX - rect.left) * DPR;
+  const y = (e.clientY - rect.top) * DPR;
+  const t = findClosestTtoXY(x/DPR, y/DPR);
+  player.targetT = t;
+  player.walking = true;
+  hud.textContent = `Destination... (${Math.round(t*100)}%)`;
+});
+
+// --- Weather fetch / mapping ---
+function weatherCodeToType(code){
+  if (code === 0) return 'clear';
+  if (code === 1 || code === 2) return 'partly_cloudy';
+  if (code === 3) return 'cloudy';
+  if (code === 45 || code === 48) return 'fog';
+  if (code >= 51 && code <= 57) return 'drizzle';
+  if (code >= 61 && code <= 67) return 'rain';
+  if (code >= 71 && code <= 77) return 'snow';
+  if (code >= 80 && code <= 82) return 'rain';
+  if (code >= 85 && code <= 86) return 'snow';
+  if (code >= 95 && code <= 99) return 'thunder';
+  return 'cloudy';
+}
+
+async function fetchWeather(){
+  try {
+    hud.textContent = 'Mise à jour météo...';
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current_weather=true&timezone=Europe%2FParis`;
+    const res = await fetch(url);
+    const json = await res.json();
+    if (!json.current_weather) throw new Error('Aucune donnée météo');
+    const cw = json.current_weather;
+    const type = weatherCodeToType(cw.weathercode);
+    state.weatherType = type;
+    state.temperature = Math.round(cw.temperature);
+    state.wind = cw.windspeed || 0;
+    state.intensity = Math.min(1, (cw.windspeed || 0) / 28);
+    // estimate day/night from cw.time (local)
+    const localHour = new Date(cw.time + '+02:00').getHours();
+    state.timeOfDay = (localHour>=6 && localHour<20) ? 'day' : 'night';
+    hud.textContent = `Amiens — ${state.temperature}°C — ${state.weatherType} — vent ${Math.round(state.wind)} km/h`;
+  } catch (err){
+    console.error(err);
+    hud.textContent = 'Impossible de récupérer météo — mode local';
+  }
+}
+fetchWeather();
+setInterval(fetchWeather, UPDATE_MIN * 60 * 1000);
+
+// --- Particles for rain / snow ---
+let rainParticles = [];
+let snowParticles = [];
+function ensurePrecip(){
+  rainParticles.length = 0;
+  snowParticles.length = 0;
+  if (state.weatherType === 'rain' || state.weatherType === 'drizzle' || state.weatherType === 'thunder'){
+    const count = Math.floor(200 + state.intensity*1000);
+    for (let i=0;i<count;i++){
+      rainParticles.push({
+        x: Math.random()*state.width,
+        y: Math.random()*state.height,
+        z: Math.random()*1,
+        vy: (200 + Math.random()*200) * (1 + state.intensity*2)
+      });
     }
-    window.addEventListener('error', e => report('Erreur JS: ' + (e.message || e)));
-    window.addEventListener('unhandledrejection', e => report('Promise rejetée: ' + (e.reason && e.reason.message ? e.reason.message : e.reason)));
-
-    // WebGL check
-    try {
-      const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-      if (!gl) { report('WebGL non disponible. Essaie un autre navigateur.'); return; }
-    } catch (e) { report('WebGL non disponible.'); return; }
-
-    if (typeof THREE === 'undefined') { report('Three.js non chargé depuis CDN.'); return; }
-
-    // ---------- Renderer / Scene / Camera ----------
-    const renderer = new THREE.WebGLRenderer({canvas, antialias: true});
-    renderer.setPixelRatio(window.devicePixelRatio || 1);
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    renderer.setSize(window.innerWidth, window.innerHeight, false);
-
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x87CEEB); // day default, will adjust by weather
-    scene.fog = new THREE.FogExp2(0x87CEEB, 0.0009);
-
-    // Fixed camera (non manipulable)
-    const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 3000);
-    camera.position.set(0, 14, 34);
-    camera.lookAt(0, 6, 0);
-
-    // Slight cinematic slow move (idle) but non-interactive
-    let idleTime = 0;
-
-    // ---------- Lights ----------
-    const hemi = new THREE.HemisphereLight(0xffffff, 0x44444a, 0.6);
-    scene.add(hemi);
-    const dir = new THREE.DirectionalLight(0xffffff, 1.0);
-    dir.position.set(18, 40, 10);
-    dir.castShadow = true;
-    dir.shadow.mapSize.set(2048, 2048);
-    dir.shadow.camera.left = -60; dir.shadow.camera.right = 60;
-    dir.shadow.camera.top = 60; dir.shadow.camera.bottom = -60;
-    dir.shadow.camera.far = 200;
-    scene.add(dir);
-
-    const ambient = new THREE.AmbientLight(0x444444, 0.25);
-    scene.add(ambient);
-
-    // ---------- Ground (textured-ish) ----------
-    const groundGeo = new THREE.PlaneGeometry(220, 220, 220, 220);
-    groundGeo.rotateX(-Math.PI/2);
-    // create subtle canvas-based grass texture
-    function makeGroundTexture(){
-      const c = document.createElement('canvas');
-      c.width = c.height = 1024;
-      const ctx = c.getContext('2d');
-      ctx.fillStyle = '#4b9b3a';
-      ctx.fillRect(0,0,c.width,c.height);
-      // draw noise and blades suggestion
-      for (let i=0;i<9000;i++){
-        const x = Math.random()*c.width;
-        const y = Math.random()*c.height;
-        const w = 1 + Math.random()*2;
-        ctx.fillStyle = `rgba(${50+Math.floor(Math.random()*40)}, ${120+Math.floor(Math.random()*80)}, ${50+Math.floor(Math.random()*40)}, ${0.03 + Math.random()*0.07})`;
-        ctx.fillRect(x,y,w,1);
-      }
-      return new THREE.CanvasTexture(c);
+  } else if (state.weatherType === 'snow'){
+    const count = Math.floor(150 + state.intensity*700);
+    for (let i=0;i<count;i++){
+      snowParticles.push({
+        x: Math.random()*state.width,
+        y: Math.random()*state.height,
+        r: 1 + Math.random()*2,
+        vy: 10 + Math.random()*30
+      });
     }
-    const groundMat = new THREE.MeshStandardMaterial({map: makeGroundTexture(), roughness:0.95});
-    const ground = new THREE.Mesh(groundGeo, groundMat);
-    ground.receiveShadow = true;
-    scene.add(ground);
+  }
+}
 
-    // keep base positions for gentle hills
-    const basePos = ground.geometry.attributes.position.array.slice();
+// initial ensure
+ensurePrecip();
 
-    // ---------- Grass: instanced subtle blades ----------
-    const bladeGeo = new THREE.PlaneGeometry(0.18, 1.0);
-    const bladeMat = new THREE.MeshToonMaterial({color: 0x1e6b29, side: THREE.DoubleSide});
-    const bladeCount = 2000;
-    const blades = new THREE.InstancedMesh(bladeGeo, bladeMat, bladeCount);
-    blades.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-    const tmp = new THREE.Object3D();
-    for (let i=0;i<bladeCount;i++){
-      tmp.position.set((Math.random()-0.5)*160, 0.02 + Math.random()*0.02, (Math.random()-0.5)*160);
-      tmp.rotation.y = Math.random()*Math.PI;
-      const s = 0.8 + Math.random()*1.6;
-      tmp.scale.set(s*0.8, s, 1);
-      tmp.updateMatrix();
-      blades.setMatrixAt(i, tmp.matrix);
+// --- Draw helpers (cartoon style) ---
+function drawSky(w,h){
+  // gradient differs by timeOfDay and weather
+  let g;
+  if (state.timeOfDay === 'day'){
+    if (state.weatherType === 'clear'){
+      g = ctx.createLinearGradient(0,0,0,h);
+      g.addColorStop(0,'#88d1ff'); g.addColorStop(1,'#dff6ff');
+    } else if (state.weatherType === 'partly_cloudy' || state.weatherType === 'cloudy'){
+      g = ctx.createLinearGradient(0,0,0,h);
+      g.addColorStop(0,'#a9cde3'); g.addColorStop(1,'#dfeff6');
+    } else { // rain/snow/fog
+      g = ctx.createLinearGradient(0,0,0,h);
+      g.addColorStop(0,'#87a6b9'); g.addColorStop(1,'#cfdfe6');
     }
-    scene.add(blades);
+  } else {
+    g = ctx.createLinearGradient(0,0,0,h);
+    g.addColorStop(0,'#071126'); g.addColorStop(1,'#12263b');
+  }
+  ctx.fillStyle = g;
+  ctx.fillRect(0,0,w,h);
+  // sun or moon
+  const sunX = w*0.82, sunY = h*0.14;
+  if (state.timeOfDay === 'day'){
+    ctx.beginPath();
+    ctx.fillStyle = 'rgba(255,240,140,0.95)';
+    ctx.arc(sunX,sunY, Math.max(18, Math.min(60, w*0.035)), 0, Math.PI*2);
+    ctx.fill();
+  } else {
+    ctx.beginPath();
+    ctx.fillStyle = 'rgba(245,245,255,0.9)';
+    ctx.arc(sunX,sunY, Math.max(12, w*0.02), 0, Math.PI*2);
+    ctx.fill();
+  }
+}
 
-    // ---------- Textures for bark & leaf (canvas) ----------
-    function makeBarkTexture(){
-      const c = document.createElement('canvas');
-      c.width = 512; c.height = 512;
-      const ctx = c.getContext('2d');
-      ctx.fillStyle = '#6b4126';
-      ctx.fillRect(0,0,c.width,c.height);
-      // vertical grain
-      for (let i=0;i<1500;i++){
-        const x = Math.random()*c.width;
-        ctx.fillStyle = `rgba(40,20,10,${0.03 + Math.random()*0.08})`;
-        ctx.fillRect(x, 0, 1, c.height);
-      }
-      // knots
-      for (let i=0;i<180;i++){
-        ctx.fillStyle = `rgba(30,15,8,${0.05 + Math.random()*0.15})`;
-        const cx = Math.random()*c.width;
-        const cy = Math.random()*c.height;
-        ctx.beginPath();
-        ctx.ellipse(cx, cy, 6+Math.random()*12, 3+Math.random()*6, Math.random()*Math.PI, 0, Math.PI*2);
-        ctx.fill();
-      }
-      return new THREE.CanvasTexture(c);
-    }
-    function makeLeafTexture(){
-      const c = document.createElement('canvas');
-      c.width = 128; c.height = 128;
-      const ctx = c.getContext('2d');
-      ctx.clearRect(0,0,c.width,c.height);
-      ctx.fillStyle = '#2fa845';
+function drawCloud(x,y,scale,alpha){
+  ctx.save();
+  ctx.translate(x,y);
+  ctx.scale(scale,scale);
+  ctx.globalAlpha = alpha;
+  // simple cloud blobs
+  ctx.fillStyle = 'white';
+  ctx.beginPath();
+  ctx.ellipse(-40,0,40,26,0,0,Math.PI*2);
+  ctx.ellipse(0,-6,56,34,0,0,Math.PI*2);
+  ctx.ellipse(46,4,36,24,0,0,Math.PI*2);
+  ctx.closePath();
+  ctx.fill();
+  ctx.globalAlpha = 1;
+  ctx.restore();
+}
+
+// mountains
+function drawMountains(w,h){
+  // far mountains (soft)
+  ctx.save();
+  ctx.translate(0,0);
+  ctx.fillStyle = '#7da78a';
+  ctx.globalAlpha = 0.35;
+  ctx.beginPath();
+  ctx.moveTo(0,h*0.45);
+  ctx.lineTo(w*0.14, h*0.28);
+  ctx.lineTo(w*0.26, h*0.47);
+  ctx.lineTo(w*0.38, h*0.33);
+  ctx.lineTo(w*0.56, h*0.5);
+  ctx.lineTo(w*0.72, h*0.34);
+  ctx.lineTo(w*0.86,h*0.46);
+  ctx.lineTo(w,h*0.3);
+  ctx.lineTo(w,h); ctx.lineTo(0,h);
+  ctx.closePath();
+  ctx.fill();
+  ctx.globalAlpha = 1;
+  ctx.restore();
+}
+
+// village (tiny)
+function drawVillage(w,h){
+  const baseY = h*0.6;
+  const cx = w*0.72;
+  // small roofs
+  for (let i=0;i<6;i++){
+    const rx = cx + (i-3)*20 + Math.sin(i*1.3)*10;
+    const ry = baseY + (i%2)*5;
+    ctx.fillStyle = '#e07a5f';
+    ctx.beginPath();
+    ctx.moveTo(rx-12,ry); ctx.lineTo(rx,ry-12); ctx.lineTo(rx+12,ry); ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = '#f7e9d7';
+    ctx.fillRect(rx-10, ry, 20, 12);
+  }
+}
+
+// fields and small trees
+function drawFields(w,h){
+  const base = h*0.66;
+  // layered strips
+  ctx.save();
+  for (let i=0;i<4;i++){
+    const y = base + i*20;
+    ctx.fillStyle = i%2? '#9ee07d' : '#8bd26a';
+    ctx.beginPath();
+    ctx.moveTo(0,y);
+    ctx.quadraticCurveTo(w*0.25,y-10 - i*6, w*0.5, y - 4 - i*8);
+    ctx.quadraticCurveTo(w*0.75,y+6 + i*3, w, y - i*2);
+    ctx.lineTo(w, h);
+    ctx.lineTo(0,h);
+    ctx.closePath();
+    ctx.fill();
+  }
+  // small dotted trees
+  for (let i=0;i<10;i++){
+    const x = w*0.08 + Math.random()*(w*0.7);
+    const y = base - Math.random()*40 - i*2;
+    drawSmallTree(x,y, 0.8 + Math.random()*0.6);
+  }
+  ctx.restore();
+}
+
+function drawSmallTree(x,y,scale){
+  // trunk
+  ctx.fillStyle = '#7b4f2a';
+  ctx.fillRect(x-2*scale, y, 4*scale, 8*scale);
+  // leaves
+  ctx.fillStyle = '#32a852';
+  ctx.beginPath();
+  ctx.ellipse(x, y-6*scale, 10*scale, 10*scale, 0, 0, Math.PI*2);
+  ctx.fill();
+}
+
+// draw big stylized tree at center
+function drawMainTree(cx,cy, scale){
+  ctx.save();
+  ctx.translate(cx,cy);
+  ctx.scale(scale,scale);
+
+  // trunk with large roots
+  ctx.fillStyle = '#6b4728';
+  ctx.beginPath();
+  ctx.moveTo(-36,160); ctx.quadraticCurveTo(-30,100,-18,40);
+  ctx.quadraticCurveTo(-10,10, -6,-16);
+  ctx.quadraticCurveTo(0,-40, 6,-16);
+  ctx.quadraticCurveTo(10,10, 18,40);
+  ctx.quadraticCurveTo(30,100,36,160);
+  ctx.lineTo(36,200); ctx.lineTo(-36,200);
+  ctx.closePath();
+  ctx.fill();
+
+  // knot and bark lines
+  ctx.strokeStyle = 'rgba(30,20,10,0.45)'; ctx.lineWidth = 2;
+  for (let i=0;i<7;i++){
+    ctx.beginPath();
+    ctx.moveTo(-20 + i*6, 40 + Math.sin(i*0.8)*6);
+    ctx.quadraticCurveTo(0, 20 + i*2, 20 - i*6, 40 + Math.cos(i*0.4)*6);
+    ctx.stroke();
+  }
+
+  // roots
+  ctx.fillStyle = '#5d3f24';
+  ctx.beginPath();
+  ctx.ellipse(-60,190,40,18,0,0,Math.PI*2);
+  ctx.ellipse(60,190,40,18,0,0,Math.PI*2);
+  ctx.fill();
+
+  // canopy layered blobs (cartoon)
+  const canopyColors = ['#2fb24a','#35c64f','#289b3f','#1f8f3b'];
+  for (let i=0;i<7;i++){
+    ctx.fillStyle = canopyColors[i%canopyColors.length];
+    const rx = Math.sin(i*0.6)*40;
+    const ry = -40 - i*10;
+    ctx.beginPath();
+    ctx.ellipse(rx, ry, 120 - i*12, 70 - i*8, 0, 0, Math.PI*2);
+    ctx.fill();
+  }
+
+  // little door at trunk base
+  ctx.fillStyle = '#3c2b20';
+  ctx.beginPath();
+  ctx.roundRect(-18, 140, 36, 40, 6);
+  ctx.fill();
+  ctx.fillStyle = '#ffd68a';
+  ctx.fillRect(-6,160,12,12); // small window
+  ctx.restore();
+}
+
+// add roundRect on ctx if not present
+if (!CanvasRenderingContext2D.prototype.roundRect){
+  CanvasRenderingContext2D.prototype.roundRect = function(x,y,w,h,r){
+    if (r===undefined) r=4;
+    this.beginPath();
+    this.moveTo(x+r,y);
+    this.arcTo(x+w,y,x+w,y+h,r);
+    this.arcTo(x+w,y+h,x,y+h,r);
+    this.arcTo(x,y+h,x,y,r);
+    this.arcTo(x,y,x+w,y,r);
+    this.closePath();
+  };
+}
+
+// draw path
+function drawPath(points){
+  // sample many points from spline and draw a curved ribbon/path
+  const samples = 200;
+  ctx.save();
+  // compute outer ribbon by stroking with shadow
+  ctx.lineWidth = 4;
+  ctx.strokeStyle = '#e7d3b6';
+  ctx.lineJoin = 'round';
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  for (let i=0;i<=samples;i++){
+    const t = i/samples;
+    const p = getPointOnCurve(points, t);
+    if (i===0) ctx.moveTo(p.x,p.y); else ctx.lineTo(p.x,p.y);
+  }
+  ctx.stroke();
+  // inner highlight
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = '#f8efd7';
+  ctx.beginPath();
+  for (let i=0;i<=samples;i++){
+    const t = i/samples;
+    const p = getPointOnCurve(points, t);
+    if (i===0) ctx.moveTo(p.x,p.y+2); else ctx.lineTo(p.x,p.y+2);
+  }
+  ctx.stroke();
+  ctx.restore();
+}
+
+// draw foreground flowers/rocks
+function drawForeground(w,h){
+  // close-up grass blades and flowers randomly placed
+  const count = Math.floor(w*h/60000);
+  for (let i=0;i<count;i++){
+    const x = Math.random()*w, y = h*0.78 + Math.random()*(h*0.18);
+    // grass blade
+    ctx.strokeStyle = '#1e6b29';
+    ctx.lineWidth = 1 + Math.random()*1.2;
+    ctx.beginPath();
+    ctx.moveTo(x,y);
+    ctx.quadraticCurveTo(x + (Math.random()-0.5)*6, y - 10 - Math.random()*12, x, y - 24 - Math.random()*18);
+    ctx.stroke();
+    // occasional flower
+    if (Math.random() < 0.06){
+      ctx.fillStyle = (Math.random()<0.5)? '#ffd1d1' : '#fff6a6';
       ctx.beginPath();
-      ctx.ellipse(64,64,46,28,0,0,Math.PI*2);
+      ctx.arc(x + (Math.random()-0.5)*6, y - 34 - Math.random()*10, 3 + Math.random()*3, 0, Math.PI*2);
       ctx.fill();
-      // central vein
-      ctx.strokeStyle = 'rgba(20,60,20,0.9)';
-      ctx.lineWidth = 2;
+    }
+  }
+}
+
+// --- Character draw (cartoon) ---
+function drawCharacterAt(x,y, facing=1, walkPhase=0, scale=1){
+  // walking animation: legs/arms swing based on walkPhase
+  ctx.save();
+  ctx.translate(x,y);
+  ctx.scale(scale,scale);
+  if (facing < 0) ctx.scale(-1,1);
+  // shadow
+  ctx.fillStyle = 'rgba(0,0,0,0.18)';
+  ctx.beginPath(); ctx.ellipse(0, 18, 10, 4, 0,0,Math.PI*2); ctx.fill();
+
+  // body
+  ctx.fillStyle = '#4b3f2f';
+  ctx.beginPath(); ctx.ellipse(0,-6,8,12,0,0,Math.PI*2); ctx.fill();
+
+  // legs
+  const legSwing = Math.sin(walkPhase*6) * 8;
+  ctx.strokeStyle = '#3a2d21'; ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(-3,6);
+  ctx.lineTo(-3 + Math.sin(walkPhase*6)*6, 20 + Math.abs(legSwing)*0.8);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(3,6);
+  ctx.lineTo(3 + Math.sin(walkPhase*6 + Math.PI)*6, 20 + Math.abs(-legSwing)*0.8);
+  ctx.stroke();
+
+  // arms
+  ctx.beginPath();
+  ctx.moveTo(-6,-6);
+  ctx.lineTo(-6 + Math.sin(walkPhase*6 + Math.PI*0.2)*6, -2 + Math.cos(walkPhase*6)*3);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(6,-6);
+  ctx.lineTo(6 + Math.sin(walkPhase*6 + Math.PI*1.2)*6, -2 + Math.cos(walkPhase*6 + 0.4)*3);
+  ctx.stroke();
+
+  // head
+  ctx.fillStyle = '#f2d7b5';
+  ctx.beginPath(); ctx.arc(0,-18,7,0,Math.PI*2); ctx.fill();
+  // hair / hat
+  ctx.fillStyle = '#2f3b4f'; ctx.beginPath(); ctx.arc(0,-22,7,Math.PI,Math.PI*2); ctx.fill();
+  // backpack
+  ctx.fillStyle = '#8b3f2e';
+  ctx.fillRect(-9,-6,5,10);
+  ctx.fillRect(4,-6,5,10);
+
+  ctx.restore();
+}
+
+// companion (little dog)
+function drawCompanionAt(x,y, facing=1, phase=0, scale=1){
+  ctx.save();
+  ctx.translate(x,y);
+  ctx.scale(scale,scale);
+  if (facing < 0) ctx.scale(-1,1);
+  // shadow
+  ctx.fillStyle = 'rgba(0,0,0,0.12)';
+  ctx.beginPath(); ctx.ellipse(0,8,6,3,0,0,Math.PI*2); ctx.fill();
+  // body
+  ctx.fillStyle = '#e29d57';
+  ctx.beginPath(); ctx.ellipse(0,-2,7,5,0,0,Math.PI*2); ctx.fill();
+  // head
+  ctx.beginPath(); ctx.arc(9,-5,4,0,Math.PI*2); ctx.fill();
+  // tail wag
+  ctx.strokeStyle = '#e29d57'; ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(-6,-4);
+  ctx.lineTo(-10 + Math.sin(phase*8)*4, -10);
+  ctx.stroke();
+  ctx.restore();
+}
+
+// precipitation draw
+function drawPrecip(w,h,dt){
+  if (state.weatherType === 'rain' || state.weatherType === 'drizzle' || state.weatherType === 'thunder'){
+    ctx.strokeStyle = 'rgba(170,200,240,0.9)';
+    ctx.lineWidth = 1.2;
+    for (let i=0;i<rainParticles.length;i++){
+      let p = rainParticles[i];
+      p.y += p.vy * dt * (1 + state.intensity*1.5) / DPR;
+      p.x += (state.wind * 10) * dt;
+      if (p.y > h){ p.y = -10; p.x = Math.random()*w; }
       ctx.beginPath();
-      ctx.moveTo(64,16);
-      ctx.quadraticCurveTo(66,64,64,112);
+      ctx.moveTo(p.x, p.y);
+      ctx.lineTo(p.x + state.wind*0.8, p.y + 8);
       ctx.stroke();
-      return new THREE.CanvasTexture(c);
     }
-    const barkTex = makeBarkTexture();
-    const leafTex = makeLeafTexture();
-
-    // ---------- Detailed main tree ----------
-    function createMainTree(){
-      const tree = new THREE.Group();
-
-      // trunk: tall cylinder with many segments, then bend vertices
-      const h = 12;
-      const trunkGeo = new THREE.CylinderGeometry(1.2, 1.6, h, 18, 64);
-      // deform for natural curve
-      for (let i=0;i<trunkGeo.attributes.position.count;i++){
-        const y = trunkGeo.attributes.position.getY(i);
-        const ratio = (y + h/2) / h; // 0..1 bottom->top
-        const bend = Math.sin(ratio * Math.PI) * 0.9; // curve amplitude
-        const x = trunkGeo.attributes.position.getX(i);
-        const z = trunkGeo.attributes.position.getZ(i);
-        trunkGeo.attributes.position.setX(i, x + bend * 0.8 * Math.sin(ratio * 2.1));
-        trunkGeo.attributes.position.setZ(i, z + bend * 0.5 * Math.cos(ratio * 1.7));
-      }
-      trunkGeo.computeVertexNormals();
-      const trunkMat = new THREE.MeshStandardMaterial({map: barkTex, roughness:1});
-      const trunk = new THREE.Mesh(trunkGeo, trunkMat);
-      trunk.castShadow = true;
-      trunk.receiveShadow = true;
-      trunk.position.y = h/2 - 0.1;
-      tree.add(trunk);
-
-      // generate branches: parametric cylinders attached to trunk
-      const branchMat = new THREE.MeshStandardMaterial({color:0x6b4426, roughness:1});
-      const branchCount = 16;
-      const leavesGroup = new THREE.Group(); // collect leaf instances here
-      // we'll create many leaves via InstancedMesh for performance
-      const leavesPerBranch = 120;
-      const totalLeaves = branchCount * leavesPerBranch;
-      const leafPlane = new THREE.PlaneGeometry(0.5, 0.8);
-      const leafMat = new THREE.MeshLambertMaterial({map: leafTex, transparent:true, side: THREE.DoubleSide});
-      const leafInst = new THREE.InstancedMesh(leafPlane, leafMat, totalLeaves);
-      leafInst.castShadow = false; leafInst.receiveShadow = false;
-
-      let leafIdx = 0;
-      for (let b=0;b<branchCount;b++){
-        const t = Math.random()*0.75 + 0.25; // position along trunk (0..1)
-        const angle = b / branchCount * Math.PI * 2 + (Math.random()-0.5) * 0.5;
-        const length = 4 + Math.random()*4;
-        const brGeo = new THREE.CylinderGeometry(0.08, 0.18, length, 8);
-        const br = new THREE.Mesh(brGeo, branchMat);
-        // pivot at base
-        const pivot = new THREE.Object3D();
-        // compute attach pos on trunk roughly
-        const attachY = 1 + t * (h - 2);
-        const attachX = Math.cos(angle) * (1.2 + t*0.6);
-        const attachZ = Math.sin(angle) * (1.2 + t*0.6);
-        pivot.position.set(attachX, attachY, attachZ);
-        // orient branch outward and slightly upward
-        const axis = new THREE.Vector3(Math.cos(angle), 0.4 + Math.random()*0.25, Math.sin(angle)).normalize();
-        br.rotation.z = Math.random() * 0.6;
-        br.position.y = length/2;
-        pivot.add(br);
-        tree.add(pivot);
-
-        // add leaves around tip region
-        for (let L=0; L<leavesPerBranch; L++){
-          const dummy = new THREE.Object3D();
-          const r = length * (0.3 + Math.random()*0.7);
-          const ang = Math.random()*Math.PI*2;
-          const x = attachX + Math.cos(angle)*r + (Math.random()-0.5)*0.6;
-          const y = attachY + (Math.random()*1.2) + (r*0.06);
-          const z = attachZ + Math.sin(angle)*r + (Math.random()-0.5)*0.6;
-          dummy.position.set(x, y, z);
-          dummy.rotation.set(Math.random()*Math.PI, Math.random()*Math.PI, Math.random()*Math.PI);
-          const s = 0.6 + Math.random()*0.9;
-          dummy.scale.setScalar(s);
-          dummy.updateMatrix();
-          leafInst.setMatrixAt(leafIdx++, dummy.matrix);
-        }
-      }
-      leafInst.instanceMatrix.needsUpdate = true;
-      leavesGroup.add(leafInst);
-      tree.add(leavesGroup);
-
-      // canopy top cluster: several big leaf spheres softened (cartoon look)
-      const canopy = new THREE.Group();
-      const leafBallMat = new THREE.MeshToonMaterial({color: 0x2da14a, flatShading: true});
-      const canopyLayers = 6;
-      for (let i=0;i<canopyLayers;i++){
-        const r = 4.8 - i*0.6;
-        const s = new THREE.Mesh(new THREE.SphereGeometry(r, 18, 12), leafBallMat);
-        s.position.set((Math.random()-0.5)*0.6, 8 + i*0.6, (Math.random()-0.5)*0.6);
-        s.castShadow = true; s.receiveShadow = true;
-        canopy.add(s);
-      }
-      tree.add(canopy);
-
-      // store references for animation
-      tree.userData = { leavesMesh: leafInst, canopy: canopy, trunk: trunk, swayOffset: Math.random()*1000, leafFallAccumulator: 0 };
-      return tree;
+    // occasional lightning flash when thunder
+    if (state.weatherType === 'thunder' && Math.random() < 0.001){
+      ctx.fillStyle = 'rgba(255,255,255,0.3)'; ctx.fillRect(0,0,w,h);
     }
-
-    const mainTree = createMainTree();
-    mainTree.position.set(0, 0, 0);
-    scene.add(mainTree);
-
-    // ---------- Surrounding trees (detailed but smaller) ----------
-    function createSmallTree(scale=0.6){
-      const g = new THREE.Group();
-      const h = 6 * scale;
-      const trunkGeo = new THREE.CylinderGeometry(0.25*scale, 0.4*scale, h, 12, 18);
-      const trunk = new THREE.Mesh(trunkGeo, new THREE.MeshStandardMaterial({map: barkTex, roughness:1}));
-      trunk.position.y = h/2;
-      trunk.castShadow = true; trunk.receiveShadow = true;
-      g.add(trunk);
-      const leafMat = new THREE.MeshToonMaterial({color: 0x2fb24a, flatShading:true});
-      for (let i=0;i<3;i++){
-        const sph = new THREE.Mesh(new THREE.SphereGeometry(1.2*scale * (1.2 - i*0.15), 12, 8), leafMat);
-        sph.position.y = h - 1 + i*0.6;
-        sph.position.x = (Math.random()-0.5)*0.25;
-        sph.castShadow = true; sph.receiveShadow = true;
-        g.add(sph);
-      }
-      g.userData = { swayOffset: Math.random()*500 };
-      return g;
+  } else if (state.weatherType === 'snow'){
+    ctx.fillStyle = 'rgba(255,255,255,0.95)';
+    for (let i=0;i<snowParticles.length;i++){
+      let s = snowParticles[i];
+      s.y += s.vy * dt;
+      s.x += Math.sin(s.y*0.01 + i) * 0.2 + state.wind*0.3;
+      if (s.y > h){ s.y = -10; s.x = Math.random()*w; }
+      ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI*2); ctx.fill();
     }
+  }
+}
 
-    // scatter
-    for (let i=0;i<28;i++){
-      const t = createSmallTree(0.6 + Math.random()*0.9);
-      const r = 9 + Math.random()*72;
-      const ang = Math.random()*Math.PI*2;
-      t.position.set(Math.cos(ang)*r, 0, Math.sin(ang)*r);
-      t.rotation.y = Math.random()*Math.PI;
-      scene.add(t);
+// --- Animation loop ---
+let lastTime = performance.now();
+function frame(now){
+  const dt = (now - lastTime) / 1000;
+  lastTime = now;
+  state.time += dt;
+  state.width = canvas.width / DPR;
+  state.height = canvas.height / DPR;
+
+  // Resize handling (if canvas size changed)
+  if (canvas.width !== Math.floor(canvas.clientWidth * DPR) || canvas.height !== Math.floor(canvas.clientHeight * DPR)){
+    resize();
+    pathPoints = buildPath(canvas.width/DPR, canvas.height/DPR);
+    resetClouds(canvas.width/DPR, canvas.height/DPR);
+    ensurePrecip();
+  }
+
+  // update clouds
+  for (let c of clouds){
+    c.x += (c.drift + state.wind*0.02) * dt * 20;
+    if (c.x > state.width + 200) c.x = -200;
+  }
+
+  // controls via arrows override click target
+  if (keys.left || keys.right){
+    player.walking = true;
+    const dir = keys.right ? 1 : -1;
+    player.targetT = Math.max(0, Math.min(1, player.targetT + dir * dt * 0.22));
+  }
+
+  // if targetT reached small epsilon, stop
+  if (Math.abs(player.t - player.targetT) < 0.002){
+    player.walking = false;
+  } else {
+    player.walking = true;
+  }
+
+  // move player.t toward targetT with speed influenced by wind and small accel
+  const dirSign = (player.targetT > player.t) ? 1 : -1;
+  player.facing = dirSign;
+  const baseSpeed = 0.25; // t per second
+  const windFactor = 1 + state.wind*0.02;
+  const speed = baseSpeed * windFactor;
+  player.t += Math.sign(player.targetT - player.t) * speed * dt;
+  player.t = Math.max(0, Math.min(1, player.t));
+  // companion follows with slight delay
+  companion.t += (player.t - companion.t - 0.02) * 2 * dt;
+
+  // walking bob
+  player.bounce = player.walking ? Math.sin(state.time * 8) * 0.8 : 0;
+
+  // update precip arrays if weather changed
+  // (on bit of change, regenerate)
+  if (Math.random() < 0.02){ ensurePrecip(); }
+
+  // DRAW
+  ctx.clearRect(0,0,canvas.width/DPR, canvas.height/DPR);
+  drawSky(state.width, state.height);
+
+  // parallax: draw layers offset by small amounts based on camera idle (we keep camera fixed) and time
+  const parOffset = Math.sin(state.time * 0.05) * 6;
+
+  // clouds (behind mountains)
+  for (let c of clouds){
+    drawCloud(c.x + parOffset*0.3, c.y * 1.0, c.scale, c.opacity);
+  }
+
+  drawMountains(state.width, state.height);
+
+  drawVillage(state.width, state.height);
+
+  drawFields(state.width, state.height);
+
+  // draw path (mid)
+  drawPath(pathPoints);
+
+  // draw tree at center (the main subject)
+  const treeCx = state.width/2;
+  const treeCy = state.height*0.48;
+  drawMainTree(treeCx, treeCy, 1.0);
+
+  // foreground vegetation
+  drawForeground(state.width, state.height);
+
+  // draw character + companion along path
+  const ppos = getPointOnCurve(pathPoints, player.t);
+  const cpos = getPointOnCurve(pathPoints, companion.t);
+  // small vertical offset to place feet on ground
+  drawCompanionAt(cpos.x, cpos.y + 2 + player.bounce*0.2, player.facing, state.time, 0.7);
+  drawCharacterAt(ppos.x, ppos.y + 2 + player.bounce*0.3, player.facing, state.time, 1.0);
+
+  // show small glowing particles around tree entrance if close
+  const treeBaseT = 1.0;
+  if (player.t > 0.92){
+    // sparkle
+    for (let i=0;i<12;i++){
+      const sx = treeCx + (Math.random()-0.5)*40;
+      const sy = treeCy + (Math.random()-0.5)*20;
+      ctx.fillStyle = 'rgba(255,240,180,0.08)';
+      ctx.beginPath(); ctx.arc(sx, sy, 6 * Math.random(), 0, Math.PI*2); ctx.fill();
     }
+    // message once
+    msg.style.display = 'block';
+    msg.textContent = "Tu es devant l'Arbre — appuie sur E pour explorer";
+  } else {
+    msg.style.display = 'none';
+  }
 
-    // ---------- Falling leaves pool (dynamic) ----------
-    const fallingLeavesGeo = new THREE.BufferGeometry();
-    const maxFall = 600;
-    const fallPos = new Float32Array(maxFall * 3);
-    const fallVel = new Float32Array(maxFall);
-    let fallCount = 0;
-    for (let i=0;i<maxFall;i++){
-      fallPos[i*3] = 9999; fallPos[i*3+1]=9999; fallPos[i*3+2]=9999;
-      fallVel[i] = 0;
-    }
-    fallingLeavesGeo.setAttribute('position', new THREE.BufferAttribute(fallPos, 3));
-    const fallMat = new THREE.PointsMaterial({map: leafTex, size: 0.8, transparent: true, depthWrite:false});
-    const fallingLeaves = new THREE.Points(fallingLeavesGeo, fallMat);
-    scene.add(fallingLeaves);
+  // precipitation overlay
+  drawPrecip(state.width, state.height, dt);
 
-    // ---------- Weather state & fetch ----------
-    function weatherCodeToType(code){
-      if (code === 0) return 'clear';
-      if (code === 1 || code === 2) return 'partly_cloudy';
-      if (code === 3) return 'cloudy';
-      if (code === 45 || code === 48) return 'fog';
-      if (code >= 51 && code <= 57) return 'drizzle';
-      if (code >= 61 && code <= 67) return 'rain';
-      if (code >= 71 && code <= 77) return 'snow';
-      if (code >= 80 && code <= 82) return 'rain';
-      if (code >= 85 && code <= 86) return 'snow';
-      if (code >= 95 && code <= 99) return 'thunder';
-      return 'cloudy';
-    }
+  lastTime = now;
+  window.requestAnimationFrame(frame);
+}
 
-    const state = { weatherType: 'clear', temperature: 12, wind: 2, intensity: 0, timeOfDay: 'day' };
+// start loop
+window.requestAnimationFrame(frame);
 
-    async function fetchWeather(){
-      try {
-        hud.textContent = 'Mise à jour météo...';
-        const url = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current_weather=true&timezone=Europe%2FParis`;
-        const res = await fetch(url);
-        if (!res.ok) throw new Error('Erreur réseau: ' + res.status);
-        const json = await res.json();
-        if (!json.current_weather) throw new Error('Aucune donnée météo reçue');
-        const cw = json.current_weather;
-        state.weatherType = weatherCodeToType(cw.weathercode);
-        state.temperature = Math.round(cw.temperature);
-        state.wind = cw.windspeed || 0;
-        state.intensity = Math.min(1, (cw.windspeed || 0)/28);
-        const localHour = new Date(cw.time + '+02:00').getHours();
-        state.timeOfDay = (localHour>=6 && localHour<20)?'day':'night';
-        hud.innerHTML = `Amiens — ${state.temperature}°C — ${state.weatherType} — vent ${Math.round(state.wind)} km/h` +
-                        `<div id="detail">Clique pour rafraîchir</div>`;
-        applyWeatherToScene();
-      } catch (err) {
-        report('Impossible de récupérer la météo: ' + (err.message || err));
-      }
-    }
+// key 'E' to interact when near tree
+window.addEventListener('keydown', e=>{
+  if ((e.key === 'e' || e.key === 'E') && player.t > 0.92){
+    hud.textContent = "Tu entres dans l'arbre... (interaction simulée)";
+    // small animation: push player back a little then forward
+    player.targetT = 0.98;
+    setTimeout(()=>{ hud.textContent = `Amiens — ${state.temperature}°C — ${state.weatherType} — vent ${Math.round(state.wind)} km/h`; }, 1800);
+  }
+});
 
-    // apply weather (sky, fog, rain/snow creation)
-    let rainPoints = null, rainGeo = null, rainVel = null;
-    let snowPoints = null, snowGeo = null, snowVel = null;
-    function createRain(count){
-      if (rainPoints) { scene.remove(rainPoints); rainPoints.geometry.dispose(); rainPoints.material.dispose(); rainPoints = null; }
-      rainGeo = new THREE.BufferGeometry();
-      const pos = new Float32Array(count*3);
-      rainVel = new Float32Array(count);
-      for (let i=0;i<count;i++){
-        pos[i*3] = (Math.random()-0.5)*180;
-        pos[i*3+1] = Math.random()*40 + 10;
-        pos[i*3+2] = (Math.random()-0.5)*180;
-        rainVel[i] = 60 + Math.random()*60;
-      }
-      rainGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-      const mat = new THREE.PointsMaterial({color: 0xa6d8ff, size: 0.12, transparent:true, opacity:0.9, depthWrite:false});
-      rainPoints = new THREE.Points(rainGeo, mat);
-      scene.add(rainPoints);
-    }
-    function createSnow(count){
-      if (snowPoints) { scene.remove(snowPoints); snowPoints.geometry.dispose(); snowPoints.material.dispose(); snowPoints = null; }
-      snowGeo = new THREE.BufferGeometry();
-      const pos = new Float32Array(count*3);
-      snowVel = new Float32Array(count);
-      for (let i=0;i<count;i++){
-        pos[i*3] = (Math.random()-0.5)*180;
-        pos[i*3+1] = Math.random()*40 + 10;
-        pos[i*3+2] = (Math.random()-0.5)*180;
-        snowVel[i] = 6 + Math.random()*6;
-      }
-      snowGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-      const mat = new THREE.PointsMaterial({color:0xffffff, size:0.32, transparent:true, opacity:0.95, depthWrite:false});
-      snowPoints = new THREE.Points(snowGeo, mat);
-      scene.add(snowPoints);
-    }
+// small guidance tooltip fade-in
+setTimeout(()=>{ hud.textContent = `Amiens — ${state.temperature}°C — ${state.weatherType} — vent ${Math.round(state.wind)} km/h`; }, 800);
 
-    function applyWeatherToScene(){
-      // sky and fog
-      if (state.timeOfDay === 'day'){
-        scene.background.set(0x87CEEB);
-        scene.fog.color.setHex(0x87CEEB);
-        scene.fog.density = 0.0009 + state.intensity*0.002;
-        hemi.intensity = 0.7;
-        dir.intensity = 1.0 - state.intensity*0.5;
-      } else {
-        scene.background.set(0x081226);
-        scene.fog.color.setHex(0x081226);
-        scene.fog.density = 0.0012 + state.intensity*0.002;
-        hemi.intensity = 0.18;
-        dir.intensity = 0.35;
-      }
+// Accessibility / fallback
+window.addEventListener('error', e => { hud.textContent = 'Erreur: ' + e.message; });
 
-      // rain / snow
-      if (state.weatherType === 'rain' || state.weatherType === 'drizzle' || state.weatherType === 'thunder'){
-        createRain(Math.floor(800 + state.intensity * 2200));
-        if (snowPoints) { scene.remove(snowPoints); snowPoints = null; }
-      } else if (state.weatherType === 'snow'){
-        createSnow(Math.floor(400 + state.intensity * 900));
-        if (rainPoints) { scene.remove(rainPoints); rainPoints = null; }
-      } else {
-        if (rainPoints) { scene.remove(rainPoints); rainPoints = null; }
-        if (snowPoints) { scene.remove(snowPoints); snowPoints = null; }
-      }
-
-      // if wind strong, spawn falling leaves gradually
-      if (state.wind > 8) {
-        // increase fall quota
-        mainTree.userData.leafFallAccumulator = Math.min(1.0, (mainTree.userData.leafFallAccumulator || 0) + (state.wind - 6) * 0.02);
-      } else {
-        mainTree.userData.leafFallAccumulator = Math.max(0, (mainTree.userData.leafFallAccumulator || 0) - 0.01);
-      }
-    }
-
-    // ---------- Animation loop ----------
-    let last = performance.now();
-    function animate(now){
-      requestAnimationFrame(animate);
-      const dt = (now - last) / 1000;
-      last = now;
-      idleTime += dt;
-
-      // slight cinematic camera idle (no user control)
-      const idleStrength = 0.08;
-      camera.position.x = Math.sin(idleTime*0.06) * idleStrength + 0;
-      camera.position.y = 14 + Math.sin(idleTime*0.03) * 0.2;
-      camera.lookAt(0, 6, 0);
-
-      // deform ground for gentle rolling
-      const pos = ground.geometry.attributes.position.array;
-      for (let i=0;i<pos.length;i+=3){
-        const bx = basePos[i], bz = basePos[i+2];
-        const d = Math.sin(bx*0.05 + now*0.0006) * 0.6 + Math.cos(bz*0.04 + now*0.0008) * 0.35;
-        const windEffect = Math.sin((bx + bz)*0.02 + now*0.0009) * (state.wind*0.01);
-        pos[i+1] = (d * 0.85) + windEffect * 0.5;
-      }
-      ground.geometry.attributes.position.needsUpdate = true;
-      ground.geometry.computeVertexNormals();
-
-      // blades sway (update instanced matrices)
-      const dummy = new THREE.Object3D();
-      for (let i=0;i<bladeCount;i++){
-        blades.getMatrixAt(i, dummy.matrix);
-        dummy.matrix.decompose(dummy.position, dummy.quaternion, dummy.scale);
-        const sway = Math.sin(now*0.001 + i) * (0.02 + state.wind*0.007);
-        dummy.rotation.set(0, 0, sway);
-        dummy.updateMatrix();
-        blades.setMatrixAt(i, dummy.matrix);
-      }
-      blades.instanceMatrix.needsUpdate = true;
-
-      // tree sway: main tree slightly heavier
-      const canopy = mainTree.userData.canopy;
-      const leavesInst = mainTree.userData.leavesMesh;
-      const baseSway = (0.015 + state.wind*0.005);
-      const s = Math.sin(now*0.0015 + mainTree.userData.swayOffset) * baseSway * 1.6;
-      mainTree.rotation.z = s * 0.7;
-      if (canopy){
-        canopy.rotation.z = s * 1.0;
-      }
-      // leaf instanced slight per-instance transform update to simulate flutter when wind
-      if (leavesInst){
-        const Lcount = leavesInst.count;
-        const mat = new THREE.Matrix4();
-        for (let i=0;i<Lcount;i++){
-          // fetch previous matrix, decompose, tweak
-          leavesInst.getMatrixAt(i, mat);
-          mat.decompose(dummy.position, dummy.quaternion, dummy.scale);
-          const flutter = Math.sin(now*0.002 + i*0.13) * (0.02 + state.wind*0.008);
-          dummy.rotation.set(dummy.rotation.x + flutter, dummy.rotation.y + flutter*0.3, dummy.rotation.z + flutter*0.6);
-          dummy.updateMatrix();
-          leavesInst.setMatrixAt(i, dummy.matrix);
-        }
-        leavesInst.instanceMatrix.needsUpdate = true;
-      }
-
-      // rain update
-      if (rainPoints && rainGeo){
-        const p = rainGeo.attributes.position.array;
-        for (let i=0;i<p.length;i+=3){
-          p[i+1] -= rainVel[i/3] * dt;
-          p[i] += (state.wind * 0.08) * dt * 40;
-          if (p[i+1] < 0) {
-            p[i+1] = 40 + Math.random()*12;
-            p[i] = (Math.random()-0.5)*180;
-            p[i+2] = (Math.random()-0.5)*180;
-          }
-        }
-        rainGeo.attributes.position.needsUpdate = true;
-      }
-      // snow update
-      if (snowPoints && snowGeo){
-        const p = snowGeo.attributes.position.array;
-        for (let i=0;i<p.length;i+=3){
-          p[i+1] -= snowVel[i/3] * dt;
-          p[i] += Math.sin(now*0.0005 + i) * 0.02 + state.wind*0.02;
-          if (p[i+1] < 0) {
-            p[i+1] = 40 + Math.random()*12;
-            p[i] = (Math.random()-0.5)*180;
-            p[i+2] = (Math.random()-0.5)*180;
-          }
-        }
-        snowGeo.attributes.position.needsUpdate = true;
-      }
-
-      // falling leaves logic: when accumulator high, spawn some
-      if (mainTree.userData.leafFallAccumulator > 0.03){
-        const spawn = Math.floor(mainTree.userData.leafFallAccumulator * 8);
-        for (let k=0;k<spawn;k++){
-          // find empty slot
-          for (let i=0;i<maxFall;i++){
-            const y = fallPos[i*3+1];
-            if (y > 9000){ // unused
-              // spawn near canopy
-              fallPos[i*3] = (Math.random()-0.5)*6 + 0; // around trunk
-              fallPos[i*3+1] = 8 + Math.random()*6;
-              fallPos[i*3+2] = (Math.random()-0.5)*6;
-              fallVel[i] = 0.2 + Math.random()*0.6 + state.wind*0.02;
-              fallCount = Math.min(maxFall, fallCount+1);
-              break;
-            }
-          }
-        }
-        mainTree.userData.leafFallAccumulator = Math.max(0, mainTree.userData.leafFallAccumulator - 0.02);
-      }
-      // update falling leaves
-      for (let i=0;i<maxFall;i++){
-        if (fallPos[i*3+1] < 9000){
-          fallVel[i] += 9.8 * dt * 0.02; // gravity small
-          fallPos[i*3+1] -= fallVel[i] * dt * 8;
-          fallPos[i*3] += (state.wind*0.02 + Math.sin(now*0.001+i)*0.01) * dt * 40;
-          if (fallPos[i*3+1] < 0.2){
-            // retire leaf
-            fallPos[i*3] = 9999; fallPos[i*3+1] = 9999; fallPos[i*3+2] = 9999;
-            fallVel[i] = 0;
-            fallCount = Math.max(0, fallCount-1);
-          }
-        }
-      }
-      fallingLeaves.geometry.attributes.position.needsUpdate = true;
-
-      // render
-      renderer.render(scene, camera);
-    }
-
-    // ---------- Interaction: click to fetch weather ----------
-    canvas.addEventListener('click', () => {
-      fetchWeather();
-    });
-    window.addEventListener('resize', () => {
-      renderer.setSize(window.innerWidth, window.innerHeight, false);
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
-    });
-
-    // ---------- Start ----------
-    fetchWeather();
-    setInterval(fetchWeather, UPDATE_MIN * 60 * 1000);
-    animate(performance.now());
-  })();
-  </script>
+// expose simple debugging
+window._sceneState = state;
+</script>
 </body>
 </html>
