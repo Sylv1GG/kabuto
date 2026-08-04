@@ -1,749 +1,656 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Plaine interactive — Amiens</title>
-<style>
-  html,body { height:100%; margin:0; background:#081226; font-family:system-ui,Segoe UI,Roboto,Arial; }
-  #canvas { display:block; width:100%; height:100vh; touch-action:none; }
-  #hud {
-    position:absolute; left:12px; top:12px; z-index:20;
-    background:rgba(255,255,255,0.95); color:#111; padding:10px 14px; border-radius:8px;
-    box-shadow:0 6px 18px rgba(0,0,0,0.18); font-weight:600;
-  }
-  #msg { position:absolute; left:50%; transform:translateX(-50%); top:12px; z-index:20;
-    background:rgba(0,0,0,0.55); color:#fff; padding:8px 12px; border-radius:8px; font-weight:600;}
-  #credits { position:absolute; right:12px; bottom:12px; z-index:20;
-    background:rgba(0,0,0,0.35); color:#fff; padding:6px 10px; border-radius:6px; font-size:13px; }
-  a { color:#8cf; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arbre Interactif - Grandir Ensemble</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 3em;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .stat {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 15px;
+            border-radius: 10px;
+            color: white;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .stat-label {
+            display: block;
+            font-size: 0.9em;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            display: block;
+            font-size: 2em;
+            font-weight: bold;
+        }
+
+        .progress-section {
+            margin-bottom: 30px;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            color: #2c3e50;
+            font-weight: 500;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: #ecf0f1;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #27ae60 0%, #2ecc71 100%);
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 15px;
+        }
+
+        .canvas-section {
+            background: linear-gradient(180deg, #e8f5e9 0%, #c8e6c9 100%);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            text-align: center;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+            position: relative;
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #treeCanvas {
+            display: block;
+            max-width: 100%;
+            height: auto;
+        }
+
+        .tree-info {
+            margin-top: 20px;
+        }
+
+        .tree-info h2 {
+            color: #1b5e20;
+            font-size: 1.8em;
+            margin-bottom: 10px;
+        }
+
+        .tree-info p {
+            color: #558b2f;
+            font-size: 1.1em;
+        }
+
+        .actions-panel {
+            margin-bottom: 30px;
+        }
+
+        .actions-panel h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+
+        .actions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+        }
+
+        .action-btn {
+            background: white;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9em;
+            font-weight: 500;
+            color: #2c3e50;
+        }
+
+        .action-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .action-btn:active {
+            transform: translateY(-1px);
+        }
+
+        .action-icon {
+            font-size: 1.8em;
+        }
+
+        .action-name {
+            display: block;
+        }
+
+        .action-cooldown {
+            font-size: 0.8em;
+            opacity: 0.7;
+        }
+
+        .effects-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        .floating-text {
+            position: fixed;
+            font-size: 1.5em;
+            font-weight: bold;
+            pointer-events: none;
+            animation: float-up 2s ease-out forwards;
+        }
+
+        @keyframes float-up {
+            0% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-100px);
+            }
+        }
+
+        .exp-gain {
+            color: #2ecc71;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        .milestone-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #f39c12 0%, #e74c3c 100%);
+            color: white;
+            padding: 30px 50px;
+            border-radius: 15px;
+            font-size: 1.5em;
+            font-weight: bold;
+            text-align: center;
+            z-index: 2000;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        @keyframes milestone-appear {
+            0% {
+                opacity: 0;
+                transform: translate(-50%, -60%);
+            }
+            50% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+                transform: translate(-50%, -30%);
+            }
+        }
+
+        .milestone-message.show {
+            animation: milestone-appear 3s ease-out forwards;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            .header h1 {
+                font-size: 2em;
+            }
+            .stats-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .actions-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 1.5em;
+            }
+            .actions-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
 <body>
-<canvas id="canvas"></canvas>
-<div id="hud">Chargement météo...</div>
-<div id="msg" style="display:none"></div>
-<div id="credits">Amiens (80000) — clique pour déplacer — flèches pour contrôle</div>
-
-<script>
-/*
-Interactive 2D scene (canvas)
-- layered parallax landscape inspired by the provided image
-- character + companion follow path on click or arrow keys
-- weather integration via Open-Meteo (current_weather)
-- day/night, rain/snow, wind affect animation
-- no external libs
-*/
-
-const LAT = 49.8941, LON = 2.2958;
-const UPDATE_MIN = 5;
-
-const canvas = document.getElementById('canvas');
-const ctx = canvas.getContext('2d');
-const hud = document.getElementById('hud');
-const msg = document.getElementById('msg');
-
-let DPR = Math.max(1, window.devicePixelRatio || 1);
-
-function resize(){
-  DPR = Math.max(1, window.devicePixelRatio || 1);
-  canvas.width = Math.floor(canvas.clientWidth * DPR);
-  canvas.height = Math.floor(canvas.clientHeight * DPR);
-}
-window.addEventListener('resize', resize);
-resize();
-
-// --- Scene state ---
-const state = {
-  time: 0,
-  width: canvas.width,
-  height: canvas.height,
-  weatherType: 'clear',
-  temperature: 14,
-  wind: 2,
-  intensity: 0,
-  timeOfDay: 'day' // 'day' or 'night'
-};
-
-// --- Path (curved path from foreground to tree base) ---
-// We'll parametrize path by t in [0,1] -> (x,y) in canvas coordinates.
-// Path is built using control points so it can be drawn and character follows it.
-function buildPath(w,h){
-  const cx = w/2;
-  const baseY = h*0.68;
-  const points = [];
-  // Rough winding path: start near bottom center, curve, end at tree center
-  points.push({x: cx, y: h*0.95});
-  points.push({x: cx + w*0.04, y: h*0.85});
-  points.push({x: cx + w*0.06, y: h*0.76});
-  points.push({x: cx + w*0.02, y: h*0.72});
-  points.push({x: cx - w*0.01, y: baseY});
-  points.push({x: cx - w*0.0, y: baseY - 40});
-  return points;
-}
-let pathPoints = buildPath(canvas.width/DPR, canvas.height/DPR);
-
-// cubic bezier helper (Catmull-Rom -> draw smooth)
-function getPointOnCurve(points, t){
-  // use Catmull-Rom spline interpolation
-  const l = points.length;
-  const p = (l - 1) * t;
-  const i = Math.floor(p);
-  const f = p - i;
-  const p0 = points[Math.max(0, i-1)];
-  const p1 = points[i];
-  const p2 = points[Math.min(l-1, i+1)];
-  const p3 = points[Math.min(l-1, i+2)];
-  function catmull(a,b,c,d,t){
-    const t2 = t*t, t3 = t2*t;
-    return 0.5*( (2*b) + (-a + c)*t + (2*a - 5*b + 4*c - d)*t2 + (-a + 3*b - 3*c + d)*t3 );
-  }
-  const x = catmull(p0.x, p1.x, p2.x, p3.x, f);
-  const y = catmull(p0.y, p1.y, p2.y, p3.y, f);
-  return {x,y};
-}
-
-// --- Layers & parallax parameters ---
-function makeLayers(){
-  return {
-    sky: {par:0.0},
-    farMountains: {par:0.1},
-    midHills: {par:0.25},
-    village: {par:0.32},
-    fields: {par:0.45},
-    treeAndPath: {par:0.6},
-    foreground: {par:0.85}
-  };
-}
-let layers = makeLayers();
-
-// --- Clouds ---
-const clouds = [];
-function spawnCloud(x,y,scale,opacity){
-  clouds.push({x,y,scale,opacity,drift: (0.2 + Math.random()*0.6)});
-}
-function resetClouds(w,h){
-  clouds.length = 0;
-  const count = 6;
-  for (let i=0;i<count;i++){
-    spawnCloud(Math.random()*w*1.4 - w*0.2, Math.random()*h*0.28 + h*0.06, 0.6 + Math.random()*1.4, 0.8 - Math.random()*0.4);
-  }
-}
-resetClouds(canvas.width/DPR, canvas.height/DPR);
-
-// --- Character along path ---
-// Character parameter t in [0,1] where 1 = base/tree
-const player = {
-  t: 0.05,
-  targetT: 0.05,
-  speed: 0.25, // t per second baseline
-  facing: 1, // 1 = toward tree (increasing t), -1 = away
-  walking: false,
-  bounce: 0 // used for bobbing animation
-};
-const companion = {t:0.03, offset: -0.02};
-
-// Input: click to set targetT by finding nearest t for clicked x,y
-function findClosestTtoXY(x,y){
-  // simple search sampling along t
-  let bestT = 0, bestD = 1e9;
-  const samples = 200;
-  for (let i=0;i<=samples;i++){
-    const t = i/samples;
-    const p = getPointOnCurve(pathPoints, t);
-    const dx = p.x - x, dy = p.y - y;
-    const d = dx*dx + dy*dy;
-    if (d < bestD){ bestD = d; bestT = t; }
-  }
-  return bestT;
-}
-
-// keyboard control
-const keys = {left:false,right:false};
-window.addEventListener('keydown', e=>{
-  if (e.key === 'ArrowLeft') keys.left = true;
-  if (e.key === 'ArrowRight') keys.right = true;
-});
-window.addEventListener('keyup', e=>{
-  if (e.key === 'ArrowLeft') keys.left = false;
-  if (e.key === 'ArrowRight') keys.right = false;
-});
-
-// click / touch to move
-canvas.addEventListener('pointerdown', e=>{
-  const rect = canvas.getBoundingClientRect();
-  const x = (e.clientX - rect.left) * DPR;
-  const y = (e.clientY - rect.top) * DPR;
-  const t = findClosestTtoXY(x/DPR, y/DPR);
-  player.targetT = t;
-  player.walking = true;
-  hud.textContent = `Destination... (${Math.round(t*100)}%)`;
-});
-
-// --- Weather fetch / mapping ---
-function weatherCodeToType(code){
-  if (code === 0) return 'clear';
-  if (code === 1 || code === 2) return 'partly_cloudy';
-  if (code === 3) return 'cloudy';
-  if (code === 45 || code === 48) return 'fog';
-  if (code >= 51 && code <= 57) return 'drizzle';
-  if (code >= 61 && code <= 67) return 'rain';
-  if (code >= 71 && code <= 77) return 'snow';
-  if (code >= 80 && code <= 82) return 'rain';
-  if (code >= 85 && code <= 86) return 'snow';
-  if (code >= 95 && code <= 99) return 'thunder';
-  return 'cloudy';
-}
-
-async function fetchWeather(){
-  try {
-    hud.textContent = 'Mise à jour météo...';
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current_weather=true&timezone=Europe%2FParis`;
-    const res = await fetch(url);
-    const json = await res.json();
-    if (!json.current_weather) throw new Error('Aucune donnée météo');
-    const cw = json.current_weather;
-    const type = weatherCodeToType(cw.weathercode);
-    state.weatherType = type;
-    state.temperature = Math.round(cw.temperature);
-    state.wind = cw.windspeed || 0;
-    state.intensity = Math.min(1, (cw.windspeed || 0) / 28);
-    // estimate day/night from cw.time (local)
-    const localHour = new Date(cw.time + '+02:00').getHours();
-    state.timeOfDay = (localHour>=6 && localHour<20) ? 'day' : 'night';
-    hud.textContent = `Amiens — ${state.temperature}°C — ${state.weatherType} — vent ${Math.round(state.wind)} km/h`;
-  } catch (err){
-    console.error(err);
-    hud.textContent = 'Impossible de récupérer météo — mode local';
-  }
-}
-fetchWeather();
-setInterval(fetchWeather, UPDATE_MIN * 60 * 1000);
-
-// --- Particles for rain / snow ---
-let rainParticles = [];
-let snowParticles = [];
-function ensurePrecip(){
-  rainParticles.length = 0;
-  snowParticles.length = 0;
-  if (state.weatherType === 'rain' || state.weatherType === 'drizzle' || state.weatherType === 'thunder'){
-    const count = Math.floor(200 + state.intensity*1000);
-    for (let i=0;i<count;i++){
-      rainParticles.push({
-        x: Math.random()*state.width,
-        y: Math.random()*state.height,
-        z: Math.random()*1,
-        vy: (200 + Math.random()*200) * (1 + state.intensity*2)
-      });
-    }
-  } else if (state.weatherType === 'snow'){
-    const count = Math.floor(150 + state.intensity*700);
-    for (let i=0;i<count;i++){
-      snowParticles.push({
-        x: Math.random()*state.width,
-        y: Math.random()*state.height,
-        r: 1 + Math.random()*2,
-        vy: 10 + Math.random()*30
-      });
-    }
-  }
-}
-
-// initial ensure
-ensurePrecip();
-
-// --- Draw helpers (cartoon style) ---
-function drawSky(w,h){
-  // gradient differs by timeOfDay and weather
-  let g;
-  if (state.timeOfDay === 'day'){
-    if (state.weatherType === 'clear'){
-      g = ctx.createLinearGradient(0,0,0,h);
-      g.addColorStop(0,'#88d1ff'); g.addColorStop(1,'#dff6ff');
-    } else if (state.weatherType === 'partly_cloudy' || state.weatherType === 'cloudy'){
-      g = ctx.createLinearGradient(0,0,0,h);
-      g.addColorStop(0,'#a9cde3'); g.addColorStop(1,'#dfeff6');
-    } else { // rain/snow/fog
-      g = ctx.createLinearGradient(0,0,0,h);
-      g.addColorStop(0,'#87a6b9'); g.addColorStop(1,'#cfdfe6');
-    }
-  } else {
-    g = ctx.createLinearGradient(0,0,0,h);
-    g.addColorStop(0,'#071126'); g.addColorStop(1,'#12263b');
-  }
-  ctx.fillStyle = g;
-  ctx.fillRect(0,0,w,h);
-  // sun or moon
-  const sunX = w*0.82, sunY = h*0.14;
-  if (state.timeOfDay === 'day'){
-    ctx.beginPath();
-    ctx.fillStyle = 'rgba(255,240,140,0.95)';
-    ctx.arc(sunX,sunY, Math.max(18, Math.min(60, w*0.035)), 0, Math.PI*2);
-    ctx.fill();
-  } else {
-    ctx.beginPath();
-    ctx.fillStyle = 'rgba(245,245,255,0.9)';
-    ctx.arc(sunX,sunY, Math.max(12, w*0.02), 0, Math.PI*2);
-    ctx.fill();
-  }
-}
-
-function drawCloud(x,y,scale,alpha){
-  ctx.save();
-  ctx.translate(x,y);
-  ctx.scale(scale,scale);
-  ctx.globalAlpha = alpha;
-  // simple cloud blobs
-  ctx.fillStyle = 'white';
-  ctx.beginPath();
-  ctx.ellipse(-40,0,40,26,0,0,Math.PI*2);
-  ctx.ellipse(0,-6,56,34,0,0,Math.PI*2);
-  ctx.ellipse(46,4,36,24,0,0,Math.PI*2);
-  ctx.closePath();
-  ctx.fill();
-  ctx.globalAlpha = 1;
-  ctx.restore();
-}
-
-// mountains
-function drawMountains(w,h){
-  // far mountains (soft)
-  ctx.save();
-  ctx.translate(0,0);
-  ctx.fillStyle = '#7da78a';
-  ctx.globalAlpha = 0.35;
-  ctx.beginPath();
-  ctx.moveTo(0,h*0.45);
-  ctx.lineTo(w*0.14, h*0.28);
-  ctx.lineTo(w*0.26, h*0.47);
-  ctx.lineTo(w*0.38, h*0.33);
-  ctx.lineTo(w*0.56, h*0.5);
-  ctx.lineTo(w*0.72, h*0.34);
-  ctx.lineTo(w*0.86,h*0.46);
-  ctx.lineTo(w,h*0.3);
-  ctx.lineTo(w,h); ctx.lineTo(0,h);
-  ctx.closePath();
-  ctx.fill();
-  ctx.globalAlpha = 1;
-  ctx.restore();
-}
-
-// village (tiny)
-function drawVillage(w,h){
-  const baseY = h*0.6;
-  const cx = w*0.72;
-  // small roofs
-  for (let i=0;i<6;i++){
-    const rx = cx + (i-3)*20 + Math.sin(i*1.3)*10;
-    const ry = baseY + (i%2)*5;
-    ctx.fillStyle = '#e07a5f';
-    ctx.beginPath();
-    ctx.moveTo(rx-12,ry); ctx.lineTo(rx,ry-12); ctx.lineTo(rx+12,ry); ctx.closePath();
-    ctx.fill();
-    ctx.fillStyle = '#f7e9d7';
-    ctx.fillRect(rx-10, ry, 20, 12);
-  }
-}
-
-// fields and small trees
-function drawFields(w,h){
-  const base = h*0.66;
-  // layered strips
-  ctx.save();
-  for (let i=0;i<4;i++){
-    const y = base + i*20;
-    ctx.fillStyle = i%2? '#9ee07d' : '#8bd26a';
-    ctx.beginPath();
-    ctx.moveTo(0,y);
-    ctx.quadraticCurveTo(w*0.25,y-10 - i*6, w*0.5, y - 4 - i*8);
-    ctx.quadraticCurveTo(w*0.75,y+6 + i*3, w, y - i*2);
-    ctx.lineTo(w, h);
-    ctx.lineTo(0,h);
-    ctx.closePath();
-    ctx.fill();
-  }
-  // small dotted trees
-  for (let i=0;i<10;i++){
-    const x = w*0.08 + Math.random()*(w*0.7);
-    const y = base - Math.random()*40 - i*2;
-    drawSmallTree(x,y, 0.8 + Math.random()*0.6);
-  }
-  ctx.restore();
-}
-
-function drawSmallTree(x,y,scale){
-  // trunk
-  ctx.fillStyle = '#7b4f2a';
-  ctx.fillRect(x-2*scale, y, 4*scale, 8*scale);
-  // leaves
-  ctx.fillStyle = '#32a852';
-  ctx.beginPath();
-  ctx.ellipse(x, y-6*scale, 10*scale, 10*scale, 0, 0, Math.PI*2);
-  ctx.fill();
-}
-
-// draw big stylized tree at center
-function drawMainTree(cx,cy, scale){
-  ctx.save();
-  ctx.translate(cx,cy);
-  ctx.scale(scale,scale);
-
-  // trunk with large roots
-  ctx.fillStyle = '#6b4728';
-  ctx.beginPath();
-  ctx.moveTo(-36,160); ctx.quadraticCurveTo(-30,100,-18,40);
-  ctx.quadraticCurveTo(-10,10, -6,-16);
-  ctx.quadraticCurveTo(0,-40, 6,-16);
-  ctx.quadraticCurveTo(10,10, 18,40);
-  ctx.quadraticCurveTo(30,100,36,160);
-  ctx.lineTo(36,200); ctx.lineTo(-36,200);
-  ctx.closePath();
-  ctx.fill();
-
-  // knot and bark lines
-  ctx.strokeStyle = 'rgba(30,20,10,0.45)'; ctx.lineWidth = 2;
-  for (let i=0;i<7;i++){
-    ctx.beginPath();
-    ctx.moveTo(-20 + i*6, 40 + Math.sin(i*0.8)*6);
-    ctx.quadraticCurveTo(0, 20 + i*2, 20 - i*6, 40 + Math.cos(i*0.4)*6);
-    ctx.stroke();
-  }
-
-  // roots
-  ctx.fillStyle = '#5d3f24';
-  ctx.beginPath();
-  ctx.ellipse(-60,190,40,18,0,0,Math.PI*2);
-  ctx.ellipse(60,190,40,18,0,0,Math.PI*2);
-  ctx.fill();
-
-  // canopy layered blobs (cartoon)
-  const canopyColors = ['#2fb24a','#35c64f','#289b3f','#1f8f3b'];
-  for (let i=0;i<7;i++){
-    ctx.fillStyle = canopyColors[i%canopyColors.length];
-    const rx = Math.sin(i*0.6)*40;
-    const ry = -40 - i*10;
-    ctx.beginPath();
-    ctx.ellipse(rx, ry, 120 - i*12, 70 - i*8, 0, 0, Math.PI*2);
-    ctx.fill();
-  }
-
-  // little door at trunk base
-  ctx.fillStyle = '#3c2b20';
-  ctx.beginPath();
-  ctx.roundRect(-18, 140, 36, 40, 6);
-  ctx.fill();
-  ctx.fillStyle = '#ffd68a';
-  ctx.fillRect(-6,160,12,12); // small window
-  ctx.restore();
-}
-
-// add roundRect on ctx if not present
-if (!CanvasRenderingContext2D.prototype.roundRect){
-  CanvasRenderingContext2D.prototype.roundRect = function(x,y,w,h,r){
-    if (r===undefined) r=4;
-    this.beginPath();
-    this.moveTo(x+r,y);
-    this.arcTo(x+w,y,x+w,y+h,r);
-    this.arcTo(x+w,y+h,x,y+h,r);
-    this.arcTo(x,y+h,x,y,r);
-    this.arcTo(x,y,x+w,y,r);
-    this.closePath();
-  };
-}
-
-// draw path
-function drawPath(points){
-  // sample many points from spline and draw a curved ribbon/path
-  const samples = 200;
-  ctx.save();
-  // compute outer ribbon by stroking with shadow
-  ctx.lineWidth = 4;
-  ctx.strokeStyle = '#e7d3b6';
-  ctx.lineJoin = 'round';
-  ctx.lineCap = 'round';
-  ctx.beginPath();
-  for (let i=0;i<=samples;i++){
-    const t = i/samples;
-    const p = getPointOnCurve(points, t);
-    if (i===0) ctx.moveTo(p.x,p.y); else ctx.lineTo(p.x,p.y);
-  }
-  ctx.stroke();
-  // inner highlight
-  ctx.lineWidth = 2;
-  ctx.strokeStyle = '#f8efd7';
-  ctx.beginPath();
-  for (let i=0;i<=samples;i++){
-    const t = i/samples;
-    const p = getPointOnCurve(points, t);
-    if (i===0) ctx.moveTo(p.x,p.y+2); else ctx.lineTo(p.x,p.y+2);
-  }
-  ctx.stroke();
-  ctx.restore();
-}
-
-// draw foreground flowers/rocks
-function drawForeground(w,h){
-  // close-up grass blades and flowers randomly placed
-  const count = Math.floor(w*h/60000);
-  for (let i=0;i<count;i++){
-    const x = Math.random()*w, y = h*0.78 + Math.random()*(h*0.18);
-    // grass blade
-    ctx.strokeStyle = '#1e6b29';
-    ctx.lineWidth = 1 + Math.random()*1.2;
-    ctx.beginPath();
-    ctx.moveTo(x,y);
-    ctx.quadraticCurveTo(x + (Math.random()-0.5)*6, y - 10 - Math.random()*12, x, y - 24 - Math.random()*18);
-    ctx.stroke();
-    // occasional flower
-    if (Math.random() < 0.06){
-      ctx.fillStyle = (Math.random()<0.5)? '#ffd1d1' : '#fff6a6';
-      ctx.beginPath();
-      ctx.arc(x + (Math.random()-0.5)*6, y - 34 - Math.random()*10, 3 + Math.random()*3, 0, Math.PI*2);
-      ctx.fill();
-    }
-  }
-}
-
-// --- Character draw (cartoon) ---
-function drawCharacterAt(x,y, facing=1, walkPhase=0, scale=1){
-  // walking animation: legs/arms swing based on walkPhase
-  ctx.save();
-  ctx.translate(x,y);
-  ctx.scale(scale,scale);
-  if (facing < 0) ctx.scale(-1,1);
-  // shadow
-  ctx.fillStyle = 'rgba(0,0,0,0.18)';
-  ctx.beginPath(); ctx.ellipse(0, 18, 10, 4, 0,0,Math.PI*2); ctx.fill();
-
-  // body
-  ctx.fillStyle = '#4b3f2f';
-  ctx.beginPath(); ctx.ellipse(0,-6,8,12,0,0,Math.PI*2); ctx.fill();
-
-  // legs
-  const legSwing = Math.sin(walkPhase*6) * 8;
-  ctx.strokeStyle = '#3a2d21'; ctx.lineWidth = 3;
-  ctx.beginPath();
-  ctx.moveTo(-3,6);
-  ctx.lineTo(-3 + Math.sin(walkPhase*6)*6, 20 + Math.abs(legSwing)*0.8);
-  ctx.stroke();
-  ctx.beginPath();
-  ctx.moveTo(3,6);
-  ctx.lineTo(3 + Math.sin(walkPhase*6 + Math.PI)*6, 20 + Math.abs(-legSwing)*0.8);
-  ctx.stroke();
-
-  // arms
-  ctx.beginPath();
-  ctx.moveTo(-6,-6);
-  ctx.lineTo(-6 + Math.sin(walkPhase*6 + Math.PI*0.2)*6, -2 + Math.cos(walkPhase*6)*3);
-  ctx.stroke();
-  ctx.beginPath();
-  ctx.moveTo(6,-6);
-  ctx.lineTo(6 + Math.sin(walkPhase*6 + Math.PI*1.2)*6, -2 + Math.cos(walkPhase*6 + 0.4)*3);
-  ctx.stroke();
-
-  // head
-  ctx.fillStyle = '#f2d7b5';
-  ctx.beginPath(); ctx.arc(0,-18,7,0,Math.PI*2); ctx.fill();
-  // hair / hat
-  ctx.fillStyle = '#2f3b4f'; ctx.beginPath(); ctx.arc(0,-22,7,Math.PI,Math.PI*2); ctx.fill();
-  // backpack
-  ctx.fillStyle = '#8b3f2e';
-  ctx.fillRect(-9,-6,5,10);
-  ctx.fillRect(4,-6,5,10);
-
-  ctx.restore();
-}
-
-// companion (little dog)
-function drawCompanionAt(x,y, facing=1, phase=0, scale=1){
-  ctx.save();
-  ctx.translate(x,y);
-  ctx.scale(scale,scale);
-  if (facing < 0) ctx.scale(-1,1);
-  // shadow
-  ctx.fillStyle = 'rgba(0,0,0,0.12)';
-  ctx.beginPath(); ctx.ellipse(0,8,6,3,0,0,Math.PI*2); ctx.fill();
-  // body
-  ctx.fillStyle = '#e29d57';
-  ctx.beginPath(); ctx.ellipse(0,-2,7,5,0,0,Math.PI*2); ctx.fill();
-  // head
-  ctx.beginPath(); ctx.arc(9,-5,4,0,Math.PI*2); ctx.fill();
-  // tail wag
-  ctx.strokeStyle = '#e29d57'; ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(-6,-4);
-  ctx.lineTo(-10 + Math.sin(phase*8)*4, -10);
-  ctx.stroke();
-  ctx.restore();
-}
-
-// precipitation draw
-function drawPrecip(w,h,dt){
-  if (state.weatherType === 'rain' || state.weatherType === 'drizzle' || state.weatherType === 'thunder'){
-    ctx.strokeStyle = 'rgba(170,200,240,0.9)';
-    ctx.lineWidth = 1.2;
-    for (let i=0;i<rainParticles.length;i++){
-      let p = rainParticles[i];
-      p.y += p.vy * dt * (1 + state.intensity*1.5) / DPR;
-      p.x += (state.wind * 10) * dt;
-      if (p.y > h){ p.y = -10; p.x = Math.random()*w; }
-      ctx.beginPath();
-      ctx.moveTo(p.x, p.y);
-      ctx.lineTo(p.x + state.wind*0.8, p.y + 8);
-      ctx.stroke();
-    }
-    // occasional lightning flash when thunder
-    if (state.weatherType === 'thunder' && Math.random() < 0.001){
-      ctx.fillStyle = 'rgba(255,255,255,0.3)'; ctx.fillRect(0,0,w,h);
-    }
-  } else if (state.weatherType === 'snow'){
-    ctx.fillStyle = 'rgba(255,255,255,0.95)';
-    for (let i=0;i<snowParticles.length;i++){
-      let s = snowParticles[i];
-      s.y += s.vy * dt;
-      s.x += Math.sin(s.y*0.01 + i) * 0.2 + state.wind*0.3;
-      if (s.y > h){ s.y = -10; s.x = Math.random()*w; }
-      ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI*2); ctx.fill();
-    }
-  }
-}
-
-// --- Animation loop ---
-let lastTime = performance.now();
-function frame(now){
-  const dt = (now - lastTime) / 1000;
-  lastTime = now;
-  state.time += dt;
-  state.width = canvas.width / DPR;
-  state.height = canvas.height / DPR;
-
-  // Resize handling (if canvas size changed)
-  if (canvas.width !== Math.floor(canvas.clientWidth * DPR) || canvas.height !== Math.floor(canvas.clientHeight * DPR)){
-    resize();
-    pathPoints = buildPath(canvas.width/DPR, canvas.height/DPR);
-    resetClouds(canvas.width/DPR, canvas.height/DPR);
-    ensurePrecip();
-  }
-
-  // update clouds
-  for (let c of clouds){
-    c.x += (c.drift + state.wind*0.02) * dt * 20;
-    if (c.x > state.width + 200) c.x = -200;
-  }
-
-  // controls via arrows override click target
-  if (keys.left || keys.right){
-    player.walking = true;
-    const dir = keys.right ? 1 : -1;
-    player.targetT = Math.max(0, Math.min(1, player.targetT + dir * dt * 0.22));
-  }
-
-  // if targetT reached small epsilon, stop
-  if (Math.abs(player.t - player.targetT) < 0.002){
-    player.walking = false;
-  } else {
-    player.walking = true;
-  }
-
-  // move player.t toward targetT with speed influenced by wind and small accel
-  const dirSign = (player.targetT > player.t) ? 1 : -1;
-  player.facing = dirSign;
-  const baseSpeed = 0.25; // t per second
-  const windFactor = 1 + state.wind*0.02;
-  const speed = baseSpeed * windFactor;
-  player.t += Math.sign(player.targetT - player.t) * speed * dt;
-  player.t = Math.max(0, Math.min(1, player.t));
-  // companion follows with slight delay
-  companion.t += (player.t - companion.t - 0.02) * 2 * dt;
-
-  // walking bob
-  player.bounce = player.walking ? Math.sin(state.time * 8) * 0.8 : 0;
-
-  // update precip arrays if weather changed
-  // (on bit of change, regenerate)
-  if (Math.random() < 0.02){ ensurePrecip(); }
-
-  // DRAW
-  ctx.clearRect(0,0,canvas.width/DPR, canvas.height/DPR);
-  drawSky(state.width, state.height);
-
-  // parallax: draw layers offset by small amounts based on camera idle (we keep camera fixed) and time
-  const parOffset = Math.sin(state.time * 0.05) * 6;
-
-  // clouds (behind mountains)
-  for (let c of clouds){
-    drawCloud(c.x + parOffset*0.3, c.y * 1.0, c.scale, c.opacity);
-  }
-
-  drawMountains(state.width, state.height);
-
-  drawVillage(state.width, state.height);
-
-  drawFields(state.width, state.height);
-
-  // draw path (mid)
-  drawPath(pathPoints);
-
-  // draw tree at center (the main subject)
-  const treeCx = state.width/2;
-  const treeCy = state.height*0.48;
-  drawMainTree(treeCx, treeCy, 1.0);
-
-  // foreground vegetation
-  drawForeground(state.width, state.height);
-
-  // draw character + companion along path
-  const ppos = getPointOnCurve(pathPoints, player.t);
-  const cpos = getPointOnCurve(pathPoints, companion.t);
-  // small vertical offset to place feet on ground
-  drawCompanionAt(cpos.x, cpos.y + 2 + player.bounce*0.2, player.facing, state.time, 0.7);
-  drawCharacterAt(ppos.x, ppos.y + 2 + player.bounce*0.3, player.facing, state.time, 1.0);
-
-  // show small glowing particles around tree entrance if close
-  const treeBaseT = 1.0;
-  if (player.t > 0.92){
-    // sparkle
-    for (let i=0;i<12;i++){
-      const sx = treeCx + (Math.random()-0.5)*40;
-      const sy = treeCy + (Math.random()-0.5)*20;
-      ctx.fillStyle = 'rgba(255,240,180,0.08)';
-      ctx.beginPath(); ctx.arc(sx, sy, 6 * Math.random(), 0, Math.PI*2); ctx.fill();
-    }
-    // message once
-    msg.style.display = 'block';
-    msg.textContent = "Tu es devant l'Arbre — appuie sur E pour explorer";
-  } else {
-    msg.style.display = 'none';
-  }
-
-  // precipitation overlay
-  drawPrecip(state.width, state.height, dt);
-
-  lastTime = now;
-  window.requestAnimationFrame(frame);
-}
-
-// start loop
-window.requestAnimationFrame(frame);
-
-// key 'E' to interact when near tree
-window.addEventListener('keydown', e=>{
-  if ((e.key === 'e' || e.key === 'E') && player.t > 0.92){
-    hud.textContent = "Tu entres dans l'arbre... (interaction simulée)";
-    // small animation: push player back a little then forward
-    player.targetT = 0.98;
-    setTimeout(()=>{ hud.textContent = `Amiens — ${state.temperature}°C — ${state.weatherType} — vent ${Math.round(state.wind)} km/h`; }, 1800);
-  }
-});
-
-// small guidance tooltip fade-in
-setTimeout(()=>{ hud.textContent = `Amiens — ${state.temperature}°C — ${state.weatherType} — vent ${Math.round(state.wind)} km/h`; }, 800);
-
-// Accessibility / fallback
-window.addEventListener('error', e => { hud.textContent = 'Erreur: ' + e.message; });
-
-// expose simple debugging
-window._sceneState = state;
-</script>
+    <div class="container">
+        <header class="header">
+            <h1>🌳 Arbre Interactif</h1>
+            <div class="stats-container">
+                <div class="stat">
+                    <span class="stat-label">Niveau</span>
+                    <span class="stat-value" id="level">1</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">EXP</span>
+                    <span class="stat-value" id="exp">0</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Santé</span>
+                    <span class="stat-value" id="health">100</span>%
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Âge</span>
+                    <span class="stat-value" id="age">0</span> jours
+                </div>
+            </div>
+        </header>
+
+        <div class="progress-section">
+            <div class="progress-label">
+                <span>Progression vers le niveau suivant</span>
+                <span id="exp-text">0 / 100</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+        </div>
+
+        <div class="canvas-section">
+            <canvas id="treeCanvas"></canvas>
+            <div class="tree-info">
+                <h2 id="tree-name">Petite Pousse</h2>
+                <p id="tree-description">Une jeune plante pleine de potentiel!</p>
+            </div>
+        </div>
+
+        <div class="actions-panel">
+            <h3>Actions</h3>
+            <div class="actions-grid">
+                <button class="action-btn" data-action="water">
+                    <span class="action-icon">💧</span>
+                    <span class="action-name">Arroser</span>
+                    <span class="action-cooldown">+15 EXP</span>
+                </button>
+                <button class="action-btn" data-action="sunlight">
+                    <span class="action-icon">☀️</span>
+                    <span class="action-name">Ensoleiller</span>
+                    <span class="action-cooldown">+20 EXP</span>
+                </button>
+                <button class="action-btn" data-action="fertilize">
+                    <span class="action-icon">🌱</span>
+                    <span class="action-name">Fertiliser</span>
+                    <span class="action-cooldown">+25 EXP</span>
+                </button>
+                <button class="action-btn" data-action="prune">
+                    <span class="action-icon">✂️</span>
+                    <span class="action-name">Tailler</span>
+                    <span class="action-cooldown">+18 EXP</span>
+                </button>
+                <button class="action-btn" data-action="rake">
+                    <span class="action-icon">🚀</span>
+                    <span class="action-name">Ratisser</span>
+                    <span class="action-cooldown">+12 EXP</span>
+                </button>
+                <button class="action-btn" data-action="talk">
+                    <span class="action-icon">💬</span>
+                    <span class="action-name">Parler</span>
+                    <span class="action-cooldown">+10 EXP</span>
+                </button>
+                <button class="action-btn" data-action="heal">
+                    <span class="action-icon">🏥</span>
+                    <span class="action-name">Soigner</span>
+                    <span class="action-cooldown">+30 EXP</span>
+                </button>
+                <button class="action-btn" data-action="polish">
+                    <span class="action-icon">✨</span>
+                    <span class="action-name">Nettoyer</span>
+                    <span class="action-cooldown">+15 EXP</span>
+                </button>
+            </div>
+        </div>
+
+        <div id="effects-container" class="effects-container"></div>
+        <div id="milestone-message" class="milestone-message"></div>
+    </div>
+
+    <script>
+        class InteractiveTree {
+            constructor() {
+                this.canvas = document.getElementById('treeCanvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.level = 1;
+                this.exp = 0;
+                this.maxExp = 100;
+                this.health = 100;
+                this.age = 0;
+                this.growth = 0.5;
+                
+                this.cooldowns = {};
+                
+                this.treeStages = [
+                    { name: 'Petite Pousse', size: 0.5, maxLeaves: 3, description: 'Une jeune plante pleine de potentiel!' },
+                    { name: 'Jeune Plant', size: 0.7, maxLeaves: 8, description: 'Il commence à prendre forme!' },
+                    { name: 'Arbre Jeune', size: 1, maxLeaves: 15, description: 'Un bel arbre en devenir!' },
+                    { name: 'Arbre Mature', size: 1.3, maxLeaves: 25, description: 'Un arbre fort et sain!' },
+                    { name: 'Grand Arbre', size: 1.6, maxLeaves: 35, description: 'Un magnifique arbre majeur!' },
+                    { name: 'Arbre Ancien', size: 2, maxLeaves: 50, description: 'Un arbre vénérable et puissant!' }
+                ];
+                
+                this.setupCanvas();
+                this.setupEventListeners();
+                this.startGameLoop();
+                this.loadGame();
+            }
+
+            setupCanvas() {
+                this.canvas.width = Math.min(600, window.innerWidth - 40);
+                this.canvas.height = 400;
+            }
+
+            setupEventListeners() {
+                window.addEventListener('resize', () => this.setupCanvas());
+                
+                document.querySelectorAll('.action-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const action = btn.dataset.action;
+                        this.performAction(action);
+                    });
+                });
+            }
+
+            performAction(action) {
+                const now = Date.now();
+                if (this.cooldowns[action] && now - this.cooldowns[action] < 300) return;
+                
+                this.cooldowns[action] = now;
+                
+                const expGains = {
+                    water: 15, sunlight: 20, fertilize: 25, prune: 18,
+                    rake: 12, talk: 10, heal: 30, polish: 15
+                };
+
+                const healthChanges = {
+                    water: 10, sunlight: 8, fertilize: 12, prune: -5,
+                    rake: 0, talk: 3, heal: 30, polish: 5
+                };
+
+                const growthBonus = {
+                    water: 0.02, sunlight: 0.03, fertilize: 0.04, prune: 0.01,
+                    rake: 0.005, talk: 0.005, heal: 0.02, polish: 0.01
+                };
+
+                const expGain = expGains[action] || 10;
+                const healthChange = healthChanges[action] || 5;
+                const growthChange = growthBonus[action] || 0.01;
+
+                this.exp += expGain;
+                this.health = Math.max(0, Math.min(100, this.health + healthChange));
+                this.growth = Math.min(3, this.growth + growthChange);
+
+                if (this.exp >= this.maxExp) {
+                    this.levelUp();
+                }
+
+                this.showFloatingText(expGain, action);
+                this.updateUI();
+                this.saveGame();
+            }
+
+            levelUp() {
+                this.level++;
+                this.exp = 0;
+                this.maxExp = Math.floor(this.maxExp * 1.15);
+                this.health = Math.min(100, this.health + 20);
+                this.showMilestoneMessage(`🎉 NIVEAU ${this.level}!`);
+            }
+
+            showFloatingText(amount, action) {
+                const effectsContainer = document.getElementById('effects-container');
+                const el = document.createElement('div');
+                el.className = 'floating-text exp-gain';
+                el.textContent = `+${amount} EXP`;
+                
+                const randomX = Math.random() * 200 - 100;
+                const randomY = Math.random() * 100 - 50;
+                el.style.left = (this.canvas.offsetLeft + this.canvas.width / 2 + randomX) + 'px';
+                el.style.top = (this.canvas.offsetTop + this.canvas.height / 2 + randomY) + 'px';
+                
+                effectsContainer.appendChild(el);
+                setTimeout(() => el.remove(), 2000);
+            }
+
+            showMilestoneMessage(text) {
+                const el = document.getElementById('milestone-message');
+                el.textContent = text;
+                el.classList.add('show');
+                setTimeout(() => el.classList.remove('show'), 3000);
+            }
+
+            updateUI() {
+                document.getElementById('level').textContent = this.level;
+                document.getElementById('exp').textContent = this.exp;
+                document.getElementById('health').textContent = Math.round(this.health);
+                document.getElementById('age').textContent = Math.floor(this.age);
+
+                const progress = (this.exp / this.maxExp) * 100;
+                document.getElementById('progress-fill').style.width = progress + '%';
+                document.getElementById('exp-text').textContent = `${this.exp} / ${this.maxExp}`;
+
+                const stage = this.getTreeStage();
+                document.getElementById('tree-name').textContent = stage.name;
+                document.getElementById('tree-description').textContent = stage.description;
+            }
+
+            getTreeStage() {
+                const stageIndex = Math.min(
+                    Math.floor(this.level / 2),
+                    this.treeStages.length - 1
+                );
+                return this.treeStages[stageIndex];
+            }
+
+            startGameLoop() {
+                const animate = () => {
+                    this.age += 0.016;
+                    this.draw();
+                    requestAnimationFrame(animate);
+                };
+                animate();
+            }
+
+            draw() {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+                const gradient = this.ctx.createLinearGradient(0, 0, 0, this.canvas.height);
+                gradient.addColorStop(0, '#87CEEB');
+                gradient.addColorStop(1, '#E0F6FF');
+                this.ctx.fillStyle = gradient;
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+                this.ctx.fillStyle = '#8B7355';
+                this.ctx.fillRect(0, this.canvas.height - 30, this.canvas.width, 30);
+                this.ctx.fillStyle = '#A0826D';
+                this.ctx.fillRect(0, this.canvas.height - 20, this.canvas.width, 20);
+
+                const centerX = this.canvas.width / 2;
+                const centerY = this.canvas.height - 40;
+                this.drawTree(centerX, centerY);
+                this.drawHealthBar(centerX, centerY - 120);
+
+                if (this.health < 30) {
+                    this.drawDamageEffect();
+                }
+            }
+
+            drawTree(x, y) {
+                const size = this.growth * 30;
+
+                this.ctx.fillStyle = '#5D4037';
+                const trunkWidth = Math.min(20, 10 + this.growth * 5);
+                const trunkHeight = Math.min(150, 60 + this.growth * 30);
+                this.ctx.fillRect(x - trunkWidth / 2, y - trunkHeight, trunkWidth, trunkHeight);
+
+                this.drawBranches(x, y - trunkHeight, size);
+
+                const foliageSize = size * 2;
+                const leafColor = this.health > 70 ? '#2E7D32' : this.health > 40 ? '#7CB342' : '#C0CA33';
+                
+                this.ctx.fillStyle = leafColor;
+                this.ctx.globalAlpha = 0.9;
+
+                this.ctx.beginPath();
+                this.ctx.arc(x, y - trunkHeight - foliageSize * 0.5, foliageSize, 0, Math.PI * 2);
+                this.ctx.fill();
+
+                const branchCount = Math.min(4, Math.floor(this.growth * 3));
+                for (let i = 0; i < branchCount; i++) {
+                    const angle = (Math.PI * 2 / branchCount) * i;
+                    const branchX = x + Math.cos(angle) * foliageSize * 0.6;
+                    const branchY = y - trunkHeight - foliageSize * 0.3;
+                    
+                    this.ctx.beginPath();
+                    this.ctx.arc(branchX, branchY, foliageSize * 0.6, 0, Math.PI * 2);
+                    this.ctx.fill();
+                }
+
+                this.ctx.globalAlpha = 1;
+            }
+
+            drawBranches(x, y, size) {
+                this.ctx.strokeStyle = '#6D4C41';
+                this.ctx.lineWidth = 3 + this.growth;
+                this.ctx.lineCap = 'round';
+
+                const branchCount = Math.min(6, Math.floor(2 + this.growth * 2));
+                
+                for (let i = 0; i < branchCount; i++) {
+                    const angle = (Math.PI / branchCount) * i + Math.PI / 4;
+                    const length = 40 + this.growth * 30;
+                    const endX = x + Math.cos(angle) * length;
+                    const endY = y - Math.sin(angle) * length;
+
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(x, y);
+                    this.ctx.lineTo(endX, endY);
+                    this.ctx.stroke();
+                }
+            }
+
+            drawHealthBar(x, y) {
+                const barWidth = 80;
+                const barHeight = 10;
+                const healthPercent = this.health / 100;
+
+                this.ctx.fillStyle = '#ddd';
+                this.ctx.fillRect(x - barWidth / 2, y, barWidth, barHeight);
+
+                const healthColor = healthPercent > 0.7 ? '#4CAF50' : 
+                                   healthPercent > 0.4 ? '#FFC107' : '#F44336';
+                this.ctx.fillStyle = healthColor;
+                this.ctx.fillRect(x - barWidth / 2, y, barWidth * healthPercent, barHeight);
+
+                this.ctx.strokeStyle = '#333';
+                this.ctx.lineWidth = 2;
+                this.ctx.strokeRect(x - barWidth / 2, y, barWidth, barHeight);
+            }
+
+            drawDamageEffect() {
+                this.ctx.fillStyle = 'rgba(255, 0, 0, 0.1)';
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+            }
+
+            saveGame() {
+                const gameState = {
+                    level: this.level,
+                    exp: this.exp,
+                    maxExp: this.maxExp,
+                    health: this.health,
+                    age: this.age,
+                    growth: this.growth
+                };
+                localStorage.setItem('treeGameState', JSON.stringify(gameState));
+            }
+
+            loadGame() {
+                const saved = localStorage.getItem('treeGameState');
+                if (saved) {
+                    const state = JSON.parse(saved);
+                    this.level = state.level;
+                    this.exp = state.exp;
+                    this.maxExp = state.maxExp;
+                    this.health = state.health;
+                    this.age = state.age;
+                    this.growth = state.growth;
+                    this.updateUI();
+                }
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            new InteractiveTree();
+        });
+    </script>
 </body>
 </html>
