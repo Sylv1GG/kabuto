@@ -1,979 +1,444 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Arbre Interactif - Adventure</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Horloge & XP — Mini site</title>
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #000;
-            overflow: hidden;
-        }
+  <!-- Google Font moderne -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap" rel="stylesheet">
 
-        #gameContainer {
-            width: 100vw;
-            height: 100vh;
-            position: relative;
-            display: flex;
-            flex-direction: column;
-        }
+  <style>
+  :root{
+    --bg:#0f1724;
+    --card: rgba(255,255,255,0.06);
+    --accent: #7c5cff;
+    --accent-2: #00d4ff;
+    --glass: rgba(255,255,255,0.04);
+    --text: #e6eef8;
+  }
 
-        #treeCanvas {
-            width: 100%;
-            height: 100%;
-            display: block;
-            cursor: grab;
-        }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0;font-family:'Poppins',system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;}
+  body{
+    background: radial-gradient(1200px 600px at 10% 10%, rgba(124,92,255,0.12), transparent),
+                radial-gradient(900px 400px at 90% 90%, rgba(0,212,255,0.06), transparent),
+                var(--bg);
+    color:var(--text);
+    -webkit-font-smoothing:antialiased;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+  }
 
-        #treeCanvas:active {
-            cursor: grabbing;
-        }
+  /* Container */
+  .app{
+    width:100%;
+    max-width:980px;
+    min-height:620px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    border-radius:16px;
+    padding:28px;
+    position:relative;
+    box-shadow: 0 10px 40px rgba(2,6,23,0.6);
+    overflow:hidden;
+  }
 
-        /* UI Overlay */
-        .ui-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 100;
-        }
+  /* Weather button top-left */
+  .weather-btn{
+    position:absolute;
+    top:18px;
+    left:18px;
+    background:linear-gradient(90deg,var(--accent),var(--accent-2));
+    border:none;
+    color:white;
+    padding:10px 14px;
+    border-radius:10px;
+    font-weight:600;
+    cursor:pointer;
+    box-shadow:0 6px 18px rgba(124,92,255,0.18);
+  }
 
-        /* HUD */
-        .hud {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            right: 20px;
-            color: white;
-            font-weight: bold;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
-            z-index: 101;
-        }
+  /* Top area for level */
+  .top{
+    display:flex;
+    justify-content:flex-end;
+    align-items:flex-start;
+  }
 
-        .world-title {
-            font-size: 2.5em;
-            margin-bottom: 15px;
-            text-align: center;
-        }
+  /* Level card */
+  .level-card{
+    width:260px;
+    background:var(--card);
+    border-radius:12px;
+    padding:12px;
+    backdrop-filter: blur(6px);
+    border:1px solid rgba(255,255,255,0.03);
+  }
+  .level-info{display:flex;flex-direction:column;gap:6px}
+  #levelText{font-weight:700;font-size:18px;letter-spacing:0.4px}
+  #xpText{font-size:13px;color:rgba(230,238,248,0.8)}
 
-        .stats-row {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            font-size: 1.2em;
-            margin-bottom: 20px;
-        }
+  /* XP bar */
+  .xp-bar{height:12px;background:rgba(255,255,255,0.04);border-radius:8px;margin-top:10px;overflow:hidden}
+  .xp-fill{
+    height:100%;
+    width:0%;
+    background:linear-gradient(90deg,var(--accent),var(--accent-2));
+    transition:width 800ms cubic-bezier(.2,.9,.3,1);
+  }
 
-        .stat-item {
-            background: rgba(0, 0, 0, 0.6);
-            padding: 10px 15px;
-            border-radius: 8px;
-            border-left: 4px solid #667eea;
-        }
+  /* Main clock */
+  .main{display:flex;align-items:center;justify-content:center;height:calc(100% - 160px)}
+  .clock-card{
+    text-align:center;
+    background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    padding:36px 48px;
+    border-radius:16px;
+    border:1px solid rgba(255,255,255,0.03);
+    box-shadow: 0 6px 30px rgba(2,6,23,0.45);
+    min-width:420px;
+  }
+  .time{
+    font-size:72px;
+    font-weight:800;
+    letter-spacing:1px;
+    color:transparent;
+    -webkit-background-clip:text;
+    background:linear-gradient(90deg,var(--accent),var(--accent-2));
+  }
+  .date{
+    margin-top:8px;
+    color:rgba(230,238,248,0.85);
+    font-weight:500;
+  }
 
-        .stat-item label {
-            display: block;
-            opacity: 0.8;
-            font-size: 0.9em;
-        }
+  /* Weather panel (side) */
+  .weather-panel{
+    position:absolute;
+    top:18px;
+    left:18px;
+    transform:translateX(-8px);
+    width:320px;
+    max-width:calc(100% - 40px);
+    background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    border-radius:12px;
+    padding:16px;
+    border:1px solid rgba(255,255,255,0.04);
+    box-shadow:0 18px 40px rgba(2,6,23,0.55);
+    z-index:30;
+    display:none;
+  }
+  .weather-panel.show{display:block}
+  .weather-panel h3{margin:0 0 8px 0}
+  .close{position:absolute;right:8px;top:8px;border:none;background:none;color:var(--text);font-size:16px;cursor:pointer}
+  .weather-content p{margin:12px 0;color:rgba(230,238,248,0.9)}
+  .weather-row{display:flex;align-items:center;gap:12px}
+  .weather-temp{font-size:36px;font-weight:700}
+  .weather-desc{font-weight:500;color:rgba(230,238,248,0.85)}
 
-        .stat-item value {
-            display: block;
-            font-size: 1.3em;
-            color: #2ecc71;
-        }
+  /* Footer */
+  .footer{position:absolute;bottom:18px;left:28px;right:28px;display:flex;justify-content:space-between;align-items:center}
+  .controls button{margin-right:8px;padding:8px 12px;border-radius:8px;border:none;background:rgba(255,255,255,0.04);color:var(--text);cursor:pointer}
+  .credit{font-size:13px;color:rgba(230,238,248,0.65)}
 
-        .progress-bar-container {
-            background: rgba(0, 0, 0, 0.6);
-            border-radius: 8px;
-            padding: 10px;
-            margin-top: 15px;
-            border: 2px solid #667eea;
-        }
+  /* Small animations */
+  #levelCard.flash { box-shadow: 0 0 0 6px rgba(124,92,255,0.12), 0 12px 30px rgba(2,6,23,0.6); transform:translateY(-6px); transition:transform .25s ease; }
+  #levelCard { transition: transform .2s ease, box-shadow .3s ease; }
 
-        .progress-bar-label {
-            font-size: 0.95em;
-            margin-bottom: 8px;
-            display: flex;
-            justify-content: space-between;
-        }
-
-        .progress-bar {
-            width: 100%;
-            height: 25px;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 5px;
-            overflow: hidden;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #2ecc71 0%, #27ae60 100%);
-            width: 0%;
-            transition: width 0.3s ease;
-        }
-
-        /* Actions Panel */
-        .actions-panel {
-            position: absolute;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-            justify-content: center;
-            pointer-events: auto;
-            z-index: 102;
-        }
-
-        .action-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border: none;
-            border-radius: 50%;
-            width: 70px;
-            height: 70px;
-            font-size: 2em;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.6);
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-        }
-
-        .action-btn:hover {
-            transform: scale(1.1);
-            box-shadow: 0 6px 25px rgba(102, 126, 234, 0.8);
-        }
-
-        .action-btn:active {
-            transform: scale(0.95);
-        }
-
-        .action-tooltip {
-            position: absolute;
-            bottom: 85px;
-            background: rgba(0, 0, 0, 0.9);
-            color: white;
-            padding: 8px 12px;
-            border-radius: 5px;
-            font-size: 0.85em;
-            white-space: nowrap;
-            border: 1px solid #667eea;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.2s ease;
-        }
-
-        .action-btn:hover .action-tooltip {
-            opacity: 1;
-        }
-
-        /* Floating Effects */
-        .effects-container {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 50;
-        }
-
-        .floating-text {
-            position: absolute;
-            font-size: 1.8em;
-            font-weight: bold;
-            pointer-events: none;
-            animation: float-up 2s ease-out forwards;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-        }
-
-        @keyframes float-up {
-            0% {
-                opacity: 1;
-                transform: translateY(0);
-            }
-            100% {
-                opacity: 0;
-                transform: translateY(-100px);
-            }
-        }
-
-        .exp-gain {
-            color: #2ecc71;
-        }
-
-        /* Milestones */
-        .milestone-message {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: linear-gradient(135deg, #f39c12 0%, #e74c3c 100%);
-            color: white;
-            padding: 40px 60px;
-            border-radius: 20px;
-            font-size: 2em;
-            font-weight: bold;
-            text-align: center;
-            z-index: 200;
-            box-shadow: 0 10px 60px rgba(0, 0, 0, 0.8);
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        @keyframes milestone-pop {
-            0% {
-                opacity: 0;
-                transform: translate(-50%, -60%) scale(0.5);
-            }
-            50% {
-                opacity: 1;
-                transform: translate(-50%, -50%) scale(1.1);
-            }
-            100% {
-                opacity: 0;
-                transform: translate(-50%, -30%) scale(1);
-            }
-        }
-
-        .milestone-message.show {
-            animation: milestone-pop 3s ease-out forwards;
-        }
-
-        /* World Complete Modal */
-        .world-complete-modal {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.9);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 300;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.5s ease;
-        }
-
-        .world-complete-modal.show {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        .world-complete-content {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 60px 80px;
-            border-radius: 30px;
-            text-align: center;
-            box-shadow: 0 20px 80px rgba(0, 0, 0, 0.8);
-            max-width: 600px;
-        }
-
-        .world-complete-content h1 {
-            font-size: 3em;
-            margin-bottom: 20px;
-            animation: pop 0.5s ease-out;
-        }
-
-        .world-complete-content p {
-            font-size: 1.5em;
-            margin-bottom: 30px;
-            opacity: 0.95;
-        }
-
-        .next-world-btn {
-            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
-            color: white;
-            border: none;
-            padding: 15px 40px;
-            font-size: 1.3em;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-        }
-
-        .next-world-btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.5);
-        }
-
-        @keyframes pop {
-            0% {
-                transform: scale(0.5);
-                opacity: 0;
-            }
-            100% {
-                transform: scale(1);
-                opacity: 1;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .world-title {
-                font-size: 1.8em;
-            }
-            .stats-row {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            .action-btn {
-                width: 60px;
-                height: 60px;
-                font-size: 1.5em;
-            }
-        }
-    </style>
+  /* Responsive */
+  @media (max-width:600px){
+    .clock-card{min-width:unset;padding:24px}
+    .time{font-size:44px}
+    .level-card{width:100%}
+    .weather-panel{width:92%}
+  }
+  </style>
 </head>
 <body>
-    <div id="gameContainer">
-        <canvas id="treeCanvas"></canvas>
-        
-        <div class="ui-overlay">
-            <div class="hud">
-                <div class="world-title" id="worldTitle">Monde 1: Les Débuts</div>
-                <div class="stats-row">
-                    <div class="stat-item">
-                        <label>Niveau</label>
-                        <value id="level">1</value>
-                    </div>
-                    <div class="stat-item">
-                        <label>EXP</label>
-                        <value id="exp">0</value>
-                    </div>
-                    <div class="stat-item">
-                        <label>Santé</label>
-                        <value id="health">100%</value>
-                    </div>
-                    <div class="stat-item">
-                        <label>Âge</label>
-                        <value id="age">0</value>
-                    </div>
-                </div>
-                <div class="progress-bar-container">
-                    <div class="progress-bar-label">
-                        <span>Progression du monde</span>
-                        <span id="exp-text">0 / 100</span>
-                    </div>
-                    <div class="progress-bar">
-                        <div class="progress-fill" id="progress-fill"></div>
-                    </div>
-                </div>
-            </div>
+  <div class="app">
+    <button id="weather-btn" class="weather-btn" aria-expanded="false" title="Météo (haut gauche)">
+      ☀️ Météo
+    </button>
+
+    <header class="top">
+      <div class="level-card" id="levelCard" role="status" aria-live="polite">
+        <div class="level-info">
+          <div id="levelText">Niveau 1</div>
+          <div id="xpText">XP: 0 / 100</div>
         </div>
-
-        <div class="actions-panel" id="actionsPanel">
-            <button class="action-btn" data-action="water">
-                <div class="action-tooltip">Arroser (15 EXP)</div>
-                💧
-            </button>
-            <button class="action-btn" data-action="sunlight">
-                <div class="action-tooltip">Ensoleiller (20 EXP)</div>
-                ☀️
-            </button>
-            <button class="action-btn" data-action="fertilize">
-                <div class="action-tooltip">Fertiliser (25 EXP)</div>
-                🌱
-            </button>
-            <button class="action-btn" data-action="prune">
-                <div class="action-tooltip">Tailler (18 EXP)</div>
-                ✂️
-            </button>
-            <button class="action-btn" data-action="rake">
-                <div class="action-tooltip">Ratisser (12 EXP)</div>
-                🚀
-            </button>
-            <button class="action-btn" data-action="talk">
-                <div class="action-tooltip">Parler (10 EXP)</div>
-                💬
-            </button>
-            <button class="action-btn" data-action="heal">
-                <div class="action-tooltip">Soigner (30 EXP)</div>
-                🏥
-            </button>
-            <button class="action-btn" data-action="polish">
-                <div class="action-tooltip">Nettoyer (15 EXP)</div>
-                ✨
-            </button>
+        <div class="xp-bar" aria-hidden="true">
+          <div id="xpFill" class="xp-fill"></div>
         </div>
+      </div>
+    </header>
 
-        <div class="effects-container" id="effectsContainer"></div>
-        <div class="milestone-message" id="milestoneMessage"></div>
-        
-        <div class="world-complete-modal" id="worldCompleteModal">
-            <div class="world-complete-content">
-                <h1>🎉 Monde Complété!</h1>
-                <p id="completeMessage">Félicitations! Tu as fait grandir ton arbre!</p>
-                <button class="next-world-btn">Monde Suivant →</button>
-            </div>
+    <main class="main">
+      <div class="clock-card">
+        <div id="time" class="time">--:--:--</div>
+        <div id="date" class="date">--</div>
+      </div>
+    </main>
+
+    <!-- Panneau météo -->
+    <aside id="weatherPanel" class="weather-panel" aria-hidden="true">
+      <button id="closeWeather" class="close" aria-label="Fermer panneau météo">✕</button>
+      <h3>Météo locale</h3>
+      <div id="weatherContent" class="weather-content">
+        <p>Clique sur "Météo" pour récupérer la position et afficher la météo.</p>
+      </div>
+      <div class="weather-actions" style="margin-top:12px;display:flex;gap:8px;">
+        <button id="forceLocation">Rafraîchir</button>
+        <button id="fallbackCity">Entrer une ville</button>
+      </div>
+    </aside>
+
+    <footer class="footer">
+      <div class="controls">
+        <button id="addXP">+ XP (test)</button>
+        <button id="resetXP">Réinitialiser</button>
+      </div>
+      <div class="credit">Fait pour le kiffe — Horloge & XP</div>
+    </footer>
+  </div>
+
+  <script>
+  // Petit site Horloge + Météo + XP — tout dans ce fichier
+  // -------- Configuration XP ----------
+  const XP_PER_MINUTE = 10; // XP gagné chaque minute
+  const STORAGE_KEY = "mini_clock_xp_v1";
+
+  // XP -> palier suivant (exponentiel doux)
+  function xpToNextLevel(level){
+    // Niveau 1 -> 100, 2 -> 150, 3 -> 225...
+    return Math.floor(100 * Math.pow(1.5, level-1));
+  }
+
+  // -------- State (sauvegardé) ----------
+  let state = {
+    xp: 0,
+    level: 1
+  };
+
+  // Load/save
+  function loadState(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if(raw){
+        const parsed = JSON.parse(raw);
+        if(typeof parsed.xp === "number" && typeof parsed.level === "number"){
+          state = parsed;
+        }
+      }
+    }catch(e){ console.warn("loadState:", e) }
+  }
+  function saveState(){
+    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+    catch(e){ console.warn("saveState:", e) }
+  }
+
+  // -------- Clock UI ----------
+  const timeEl = document.getElementById("time");
+  const dateEl = document.getElementById("date");
+  function pad(n){ return n < 10 ? "0"+n : n; }
+
+  function updateClock(){
+    const now = new Date();
+    const hours = pad(now.getHours());
+    const minutes = pad(now.getMinutes());
+    const seconds = pad(now.getSeconds());
+    timeEl.textContent = `${hours}:${minutes}:${seconds}`;
+    dateEl.textContent = now.toLocaleDateString(undefined, {weekday:'long', day:'numeric', month:'long'});
+  }
+
+  // start clock
+  updateClock();
+  setInterval(updateClock, 1000);
+
+  // -------- XP UI ----------
+  const levelText = document.getElementById("levelText");
+  const xpText = document.getElementById("xpText");
+  const xpFill = document.getElementById("xpFill");
+  const levelCardEl = document.getElementById("levelCard");
+
+  function renderXP(){
+    const next = xpToNextLevel(state.level);
+    const pct = Math.min(100, Math.round(100 * state.xp / next));
+    levelText.textContent = `Niveau ${state.level}`;
+    xpText.textContent = `XP: ${state.xp} / ${next}`;
+    xpFill.style.width = pct + "%";
+  }
+
+  function addXP(amount){
+    state.xp += amount;
+    // level up loop
+    while(state.xp >= xpToNextLevel(state.level)){
+      state.xp -= xpToNextLevel(state.level);
+      state.level++;
+      flashLevel();
+    }
+    saveState();
+    renderXP();
+  }
+
+  function flashLevel(){
+    levelCardEl.classList.add("flash");
+    setTimeout(()=>levelCardEl.classList.remove("flash"), 900);
+  }
+
+  // init xp from storage
+  loadState();
+  renderXP();
+
+  // add XP automatically toutes les minutes
+  setInterval(()=> {
+    addXP(XP_PER_MINUTE);
+  }, 60_000);
+
+  // Controls
+  document.getElementById("addXP").addEventListener("click", ()=> addXP(25));
+  document.getElementById("resetXP").addEventListener("click", ()=>{
+    if(confirm("Réinitialiser l'XP et le niveau ?")){
+      state = {xp:0, level:1};
+      saveState();
+      renderXP();
+    }
+  });
+
+  // -------- Weather (Open-Meteo, pas de clé) ----------
+  const weatherBtn = document.getElementById("weather-btn");
+  const weatherPanel = document.getElementById("weatherPanel");
+  const weatherContent = document.getElementById("weatherContent");
+  const closeWeather = document.getElementById("closeWeather");
+  const forceLocation = document.getElementById("forceLocation");
+  const fallbackCity = document.getElementById("fallbackCity");
+
+  weatherBtn.addEventListener("click", async ()=>{
+    toggleWeather(true);
+    await showWeather();
+  });
+
+  closeWeather.addEventListener("click", ()=> toggleWeather(false));
+  forceLocation.addEventListener("click", async ()=> await showWeather());
+  fallbackCity.addEventListener("click", async ()=>{
+    const city = prompt("Entrez le nom d'une ville (ex: Paris) :");
+    if(city){
+      await fetchWeatherByCity(city);
+    }
+  });
+
+  function toggleWeather(show){
+    weatherPanel.classList.toggle("show", show);
+    weatherPanel.setAttribute("aria-hidden", (!show).toString());
+    weatherBtn.setAttribute("aria-expanded", show.toString());
+  }
+
+  // Geolocation + fetch
+  async function showWeather(){
+    weatherContent.innerHTML = "<p>Récupération de la position...</p>";
+    if(!navigator.geolocation){
+      weatherContent.innerHTML = "<p>Géolocalisation non disponible.</p>";
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(async (pos) => {
+      const lat = pos.coords.latitude;
+      const lon = pos.coords.longitude;
+      await fetchWeather(lat, lon);
+    }, async (err) => {
+      weatherContent.innerHTML = `<p>Impossible d'obtenir la position : ${err.message}</p>`;
+    }, {timeout:10000});
+  }
+
+  async function fetchWeather(lat, lon){
+    weatherContent.innerHTML = "<p>Chargement météo...</p>";
+    try{
+      // Open-Meteo current weather
+      const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&timezone=auto`;
+      const res = await fetch(url);
+      if(!res.ok) throw new Error(res.statusText);
+      const data = await res.json();
+      const cw = data.current_weather;
+      if(!cw){
+        weatherContent.innerHTML = "<p>Météo indisponible.</p>";
+        return;
+      }
+      const temp = cw.temperature;
+      const wind = cw.windspeed;
+      const code = cw.weathercode;
+      const desc = weatherCodeToText(code);
+      weatherContent.innerHTML = `
+        <div class="weather-row" style="align-items:flex-start;">
+          <div>
+            <div class="weather-temp">${Math.round(temp)}°C</div>
+            <div class="weather-desc">${desc}</div>
+          </div>
         </div>
-    </div>
+        <p>Vitesse du vent : ${wind} km/h</p>
+        <p>Rafraîchis: ${new Date().toLocaleTimeString()}</p>
+      `;
+    }catch(e){
+      weatherContent.innerHTML = `<p>Erreur météo: ${e.message}</p>`;
+    }
+  }
 
-    <script>
-        class WorldData {
-            static worlds = [
-                {
-                    id: 0,
-                    name: 'Les Débuts',
-                    maxLevel: 6,
-                    requiredExp: 100,
-                    treeColor: '#2E7D32',
-                    skyGradient: ['#87CEEB', '#E0F6FF'],
-                    description: 'Cultive ton premier arbre simple et magnifique!',
-                    requiredActions: {
-                        water: { min: 3 },
-                        sunlight: { min: 2 },
-                        fertilize: { min: 2 }
-                    }
-                },
-                {
-                    id: 1,
-                    name: 'La Forêt Enchantée',
-                    maxLevel: 8,
-                    requiredExp: 150,
-                    treeColor: '#1B5E20',
-                    skyGradient: ['#4A90E2', '#7B68EE'],
-                    description: 'Un arbre mystérieux aux couleurs magiques!',
-                    requiredActions: {
-                        water: { min: 5 },
-                        sunlight: { min: 5 },
-                        fertilize: { min: 4 },
-                        prune: { min: 2 }
-                    }
-                },
-                {
-                    id: 2,
-                    name: 'Le Désert Ancien',
-                    maxLevel: 10,
-                    requiredExp: 200,
-                    treeColor: '#FF9800',
-                    skyGradient: ['#FFB347', '#FFDAB9'],
-                    description: 'Un arbre robuste du désert face aux intempéries!',
-                    requiredActions: {
-                        water: { min: 10 },
-                        sunlight: { min: 8 },
-                        heal: { min: 5 },
-                        polish: { min: 3 }
-                    }
-                },
-                {
-                    id: 3,
-                    name: 'La Montagne Gelée',
-                    maxLevel: 12,
-                    requiredExp: 250,
-                    treeColor: '#00BCD4',
-                    skyGradient: ['#B0E0E6', '#E0FFFF'],
-                    description: 'Un arbre majestueux face au froid extrême!',
-                    requiredActions: {
-                        fertilize: { min: 8 },
-                        heal: { min: 8 },
-                        talk: { min: 5 },
-                        polish: { min: 5 }
-                    }
-                }
-            ];
+  // Simple fallback: géocodage via API open-meteo geocoding
+  async function fetchWeatherByCity(city){
+    weatherContent.innerHTML = "<p>Recherche de la ville...</p>";
+    try{
+      const gurl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=fr`;
+      const gres = await fetch(gurl);
+      if(!gres.ok) throw new Error(gres.statusText);
+      const gdata = await gres.json();
+      if(!gdata.results || gdata.results.length === 0){
+        weatherContent.innerHTML = `<p>Ville introuvable: ${city}</p>`;
+        return;
+      }
+      const r = gdata.results[0];
+      await fetchWeather(r.latitude, r.longitude);
+    }catch(e){
+      weatherContent.innerHTML = `<p>Erreur géocodage: ${e.message}</p>`;
+    }
+  }
 
-            static getWorld(id) {
-                return this.worlds[Math.min(id, this.worlds.length - 1)];
-            }
-        }
+  // Convert weather code to texte simple (source: open-meteo)
+  function weatherCodeToText(code){
+    const map = {
+      0: "Ciel clair",
+      1: "Principalement ensoleillé",
+      2: "Partiellement nuageux",
+      3: "Couvert",
+      45: "Brouillard",
+      48: "Brouillard givrant",
+      51: "Bruine légère",
+      53: "Bruine modérée",
+      55: "Bruine dense",
+      56: "Bruine verglaçante",
+      57: "Bruine verglaçante dense",
+      61: "Pluie légère",
+      63: "Pluie modérée",
+      65: "Pluie forte",
+      66: "Pluie verglaçante légère",
+      67: "Pluie verglaçante forte",
+      71: "Neige légère",
+      73: "Neige modérée",
+      75: "Neige forte",
+      77: "Grains de neige",
+      80: "Averses légères",
+      81: "Averses modérées",
+      82: "Averses violentes",
+      85: "Averses de neige légères",
+      86: "Averses de neige fortes",
+      95: "Orage",
+      96: "Orage avec grêle légère",
+      99: "Orage avec grêle forte"
+    };
+    return map[code] || "Temps inconnu";
+  }
 
-        class ParticleSystem {
-            constructor() {
-                this.particles = [];
-            }
+  // Petit conseil : sur certains navigateurs, la géolocalisation ne fonctionne pas en ouvrant le fichier via file://.
+  // Héberge avec un petit serveur local (ex: `npx http-server` ou `python -m http.server`) si besoin.
 
-            addWater(x, y) {
-                for (let i = 0; i < 8; i++) {
-                    this.particles.push({
-                        x: x,
-                        y: y,
-                        vx: (Math.random() - 0.5) * 4,
-                        vy: Math.random() * 3 + 2,
-                        life: 1,
-                        type: 'water',
-                        size: Math.random() * 4 + 2
-                    });
-                }
-            }
-
-            addSun(x, y) {
-                for (let i = 0; i < 12; i++) {
-                    const angle = (Math.PI * 2 / 12) * i;
-                    this.particles.push({
-                        x: x,
-                        y: y,
-                        vx: Math.cos(angle) * 3,
-                        vy: Math.sin(angle) * 3,
-                        life: 1,
-                        type: 'sun',
-                        size: Math.random() * 3 + 1
-                    });
-                }
-            }
-
-            addLeaves(x, y) {
-                for (let i = 0; i < 6; i++) {
-                    this.particles.push({
-                        x: x,
-                        y: y,
-                        vx: (Math.random() - 0.5) * 4,
-                        vy: Math.random() * 2 - 1,
-                        life: 1,
-                        type: 'leaf',
-                        size: Math.random() * 3 + 2
-                    });
-                }
-            }
-
-            addHearts(x, y) {
-                for (let i = 0; i < 5; i++) {
-                    this.particles.push({
-                        x: x,
-                        y: y,
-                        vx: (Math.random() - 0.5) * 2,
-                        vy: -Math.random() * 3 - 1,
-                        life: 1,
-                        type: 'heart',
-                        size: Math.random() * 2 + 1
-                    });
-                }
-            }
-
-            update() {
-                this.particles = this.particles.filter(p => p.life > 0);
-                this.particles.forEach(p => {
-                    p.x += p.vx;
-                    p.y += p.vy;
-                    p.vy += 0.2;
-                    p.life -= 0.015;
-                });
-            }
-
-            draw(ctx) {
-                this.particles.forEach(p => {
-                    ctx.save();
-                    ctx.globalAlpha = p.life;
-                    
-                    if (p.type === 'water') {
-                        ctx.fillStyle = '#2196F3';
-                        ctx.beginPath();
-                        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-                        ctx.fill();
-                    } else if (p.type === 'sun') {
-                        ctx.fillStyle = '#FFC107';
-                        ctx.beginPath();
-                        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-                        ctx.fill();
-                    } else if (p.type === 'leaf') {
-                        ctx.fillStyle = '#4CAF50';
-                        ctx.beginPath();
-                        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-                        ctx.fill();
-                    } else if (p.type === 'heart') {
-                        ctx.font = `${p.size * 10}px Arial`;
-                        ctx.fillText('❤', p.x, p.y);
-                    }
-                    
-                    ctx.restore();
-                });
-            }
-        }
-
-        class InteractiveTree {
-            constructor() {
-                this.canvas = document.getElementById('treeCanvas');
-                this.ctx = this.canvas.getContext('2d');
-                this.particleSystem = new ParticleSystem();
-                
-                this.worldId = 0;
-                this.currentWorld = WorldData.getWorld(0);
-                this.level = 1;
-                this.exp = 0;
-                this.maxExp = this.currentWorld.requiredExp;
-                this.health = 100;
-                this.age = 0;
-                this.growth = 0.5;
-                this.actionCooldowns = {};
-                this.actionCount = {};
-                
-                this.setupCanvas();
-                this.setupEventListeners();
-                this.startGameLoop();
-                this.loadGame();
-            }
-
-            setupCanvas() {
-                this.canvas.width = window.innerWidth;
-                this.canvas.height = window.innerHeight;
-                window.addEventListener('resize', () => {
-                    this.canvas.width = window.innerWidth;
-                    this.canvas.height = window.innerHeight;
-                });
-            }
-
-            setupEventListeners() {
-                document.querySelectorAll('.action-btn').forEach(btn => {
-                    btn.addEventListener('click', () => {
-                        const action = btn.dataset.action;
-                        this.performAction(action, btn);
-                    });
-                });
-
-                document.querySelector('.next-world-btn').addEventListener('click', () => {
-                    this.nextWorld();
-                });
-            }
-
-            performAction(action, button) {
-                const now = Date.now();
-                if (this.actionCooldowns[action] && now - this.actionCooldowns[action] < 400) return;
-                
-                this.actionCooldowns[action] = now;
-                this.actionCount[action] = (this.actionCount[action] || 0) + 1;
-
-                const expGains = {
-                    water: 15, sunlight: 20, fertilize: 25, prune: 18,
-                    rake: 12, talk: 10, heal: 30, polish: 15
-                };
-
-                const healthChanges = {
-                    water: 10, sunlight: 8, fertilize: 12, prune: -5,
-                    rake: 0, talk: 3, heal: 30, polish: 5
-                };
-
-                const growthBonus = {
-                    water: 0.02, sunlight: 0.03, fertilize: 0.04, prune: 0.01,
-                    rake: 0.005, talk: 0.005, heal: 0.02, polish: 0.01
-                };
-
-                const expGain = expGains[action] || 10;
-                this.exp += expGain;
-                this.health = Math.max(0, Math.min(100, this.health + healthChanges[action]));
-                this.growth = Math.min(3, this.growth + growthBonus[action]);
-
-                const treeX = this.canvas.width / 2;
-                const treeY = this.canvas.height / 2;
-
-                if (action === 'water') {
-                    this.particleSystem.addWater(treeX, treeY);
-                } else if (action === 'sunlight') {
-                    this.particleSystem.addSun(treeX, treeY);
-                } else if (action === 'fertilize') {
-                    this.particleSystem.addLeaves(treeX, treeY);
-                } else if (action === 'heal') {
-                    this.particleSystem.addHearts(treeX, treeY);
-                } else if (action === 'polish') {
-                    this.particleSystem.addSun(treeX, treeY);
-                }
-
-                this.showFloatingText(expGain, treeX, treeY);
-                
-                if (this.exp >= this.maxExp) {
-                    this.levelUp();
-                }
-
-                this.updateUI();
-                this.checkWorldCompletion();
-                this.saveGame();
-            }
-
-            levelUp() {
-                this.level++;
-                this.exp = 0;
-                this.maxExp = Math.floor(this.maxExp * 1.1);
-                this.health = Math.min(100, this.health + 20);
-                this.showMilestoneMessage(`🎉 NIVEAU ${this.level}!`);
-            }
-
-            showFloatingText(amount, x, y) {
-                const el = document.createElement('div');
-                el.className = 'floating-text exp-gain';
-                el.textContent = `+${amount} EXP`;
-                el.style.left = x + 'px';
-                el.style.top = y + 'px';
-                document.getElementById('effectsContainer').appendChild(el);
-                setTimeout(() => el.remove(), 2000);
-            }
-
-            showMilestoneMessage(text) {
-                const el = document.getElementById('milestoneMessage');
-                el.textContent = text;
-                el.classList.add('show');
-                setTimeout(() => el.classList.remove('show'), 3000);
-            }
-
-            checkWorldCompletion() {
-                const world = this.currentWorld;
-                const requiredLevel = world.maxLevel;
-
-                if (this.level >= requiredLevel) {
-                    let allConditionsMet = true;
-                    
-                    for (const [action, requirement] of Object.entries(world.requiredActions)) {
-                        if ((this.actionCount[action] || 0) < requirement.min) {
-                            allConditionsMet = false;
-                            break;
-                        }
-                    }
-
-                    if (allConditionsMet) {
-                        this.completeWorld();
-                    }
-                }
-            }
-
-            completeWorld() {
-                const modal = document.getElementById('worldCompleteModal');
-                const message = document.getElementById('completeMessage');
-                
-                message.textContent = `Bravo! Tu as complété le monde "${this.currentWorld.name}"! Passe au monde suivant!`;
-                modal.classList.add('show');
-            }
-
-            nextWorld() {
-                this.worldId++;
-                if (this.worldId >= WorldData.worlds.length) {
-                    this.worldId = WorldData.worlds.length - 1;
-                }
-                
-                this.currentWorld = WorldData.getWorld(this.worldId);
-                this.level = 1;
-                this.exp = 0;
-                this.maxExp = this.currentWorld.requiredExp;
-                this.health = 100;
-                this.growth = 0.5;
-                this.actionCount = {};
-                
-                document.getElementById('worldCompleteModal').classList.remove('show');
-                document.getElementById('worldTitle').textContent = `Monde ${this.worldId + 1}: ${this.currentWorld.name}`;
-                
-                this.updateUI();
-                this.saveGame();
-            }
-
-            updateUI() {
-                document.getElementById('level').textContent = this.level;
-                document.getElementById('exp').textContent = this.exp;
-                document.getElementById('health').textContent = Math.round(this.health) + '%';
-                document.getElementById('age').textContent = Math.floor(this.age);
-
-                const progress = (this.exp / this.maxExp) * 100;
-                document.getElementById('progress-fill').style.width = progress + '%';
-                document.getElementById('exp-text').textContent = `${this.exp} / ${this.maxExp}`;
-            }
-
-            startGameLoop() {
-                const animate = () => {
-                    this.age += 0.016;
-                    this.particleSystem.update();
-                    this.draw();
-                    requestAnimationFrame(animate);
-                };
-                animate();
-            }
-
-            draw() {
-                const gradient = this.ctx.createLinearGradient(0, 0, 0, this.canvas.height);
-                gradient.addColorStop(0, this.currentWorld.skyGradient[0]);
-                gradient.addColorStop(1, this.currentWorld.skyGradient[1]);
-                this.ctx.fillStyle = gradient;
-                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-
-                this.drawClouds();
-
-                this.ctx.fillStyle = '#8B7355';
-                this.ctx.fillRect(0, this.canvas.height - 60, this.canvas.width, 60);
-                this.ctx.fillStyle = '#A0826D';
-                this.ctx.fillRect(0, this.canvas.height - 40, this.canvas.width, 40);
-
-                this.ctx.fillStyle = '#4CAF50';
-                for (let i = 0; i < this.canvas.width; i += 40) {
-                    this.ctx.fillRect(i + Math.sin(this.age * 0.5 + i) * 5, this.canvas.height - 50, 30, 20);
-                }
-
-                const centerX = this.canvas.width / 2;
-                const centerY = this.canvas.height - 100;
-                this.drawTree(centerX, centerY);
-
-                this.drawHealthBar(centerX, centerY - 150);
-
-                this.particleSystem.draw(this.ctx);
-
-                if (this.health < 30) {
-                    this.ctx.fillStyle = 'rgba(255, 0, 0, 0.05)';
-                    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-                }
-            }
-
-            drawClouds() {
-                this.ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-                for (let i = 0; i < 3; i++) {
-                    const x = (this.age * 20 + i * 400) % (this.canvas.width + 200) - 100;
-                    const y = 80 + i * 60;
-                    this.drawCloud(x, y, 60);
-                }
-            }
-
-            drawCloud(x, y, size) {
-                this.ctx.beginPath();
-                this.ctx.arc(x, y, size, 0, Math.PI * 2);
-                this.ctx.arc(x + size * 1.2, y, size * 0.8, 0, Math.PI * 2);
-                this.ctx.arc(x + size * 2.4, y, size, 0, Math.PI * 2);
-                this.ctx.fill();
-            }
-
-            drawTree(x, y) {
-                const size = this.growth * 40;
-
-                this.ctx.fillStyle = '#5D4037';
-                const trunkWidth = Math.min(30, 15 + this.growth * 8);
-                const trunkHeight = Math.min(200, 80 + this.growth * 50);
-                this.ctx.fillRect(x - trunkWidth / 2, y - trunkHeight, trunkWidth, trunkHeight);
-
-                this.ctx.strokeStyle = '#3E2723';
-                this.ctx.lineWidth = 2;
-                for (let i = 0; i < 5; i++) {
-                    const ringY = y - (trunkHeight * (i / 5));
-                    this.ctx.beginPath();
-                    this.ctx.arc(x, ringY, trunkWidth / 2 + 2, 0, Math.PI * 2);
-                    this.ctx.stroke();
-                }
-
-                this.drawBranches(x, y - trunkHeight, size);
-
-                const foliageSize = size * 2.2;
-                const leafColor = this.currentWorld.treeColor;
-                
-                this.ctx.fillStyle = leafColor;
-                this.ctx.globalAlpha = 0.85;
-
-                this.ctx.beginPath();
-                this.ctx.arc(x, y - trunkHeight - foliageSize * 0.6, foliageSize, 0, Math.PI * 2);
-                this.ctx.fill();
-
-                const branchCount = Math.min(6, Math.floor(this.growth * 4));
-                for (let i = 0; i < branchCount; i++) {
-                    const angle = (Math.PI * 2 / branchCount) * i;
-                    const branchX = x + Math.cos(angle) * foliageSize * 0.7;
-                    const branchY = y - trunkHeight - foliageSize * 0.4;
-                    
-                    this.ctx.beginPath();
-                    this.ctx.arc(branchX, branchY, foliageSize * 0.7, 0, Math.PI * 2);
-                    this.ctx.fill();
-                }
-
-                if (this.level > 3) {
-                    this.ctx.globalAlpha = 1;
-                    const flowerCount = Math.floor(this.growth * 3);
-                    for (let i = 0; i < flowerCount; i++) {
-                        const angle = (Math.PI * 2 / flowerCount) * i;
-                        const flowerX = x + Math.cos(angle) * foliageSize * 0.8;
-                        const flowerY = y - trunkHeight - foliageSize * 0.5;
-                        
-                        this.ctx.fillStyle = this.level > 8 ? '#FF69B4' : '#FFD700';
-                        this.ctx.beginPath();
-                        this.ctx.arc(flowerX, flowerY, 8, 0, Math.PI * 2);
-                        this.ctx.fill();
-                    }
-                }
-
-                this.ctx.globalAlpha = 1;
-            }
-
-            drawBranches(x, y, size) {
-                this.ctx.strokeStyle = '#6D4C41';
-                this.ctx.lineWidth = 4 + this.growth * 2;
-                this.ctx.lineCap = 'round';
-                this.ctx.lineJoin = 'round';
-
-                const branchCount = Math.min(8, Math.floor(3 + this.growth * 3));
-                
-                for (let i = 0; i < branchCount; i++) {
-                    const angle = (Math.PI / branchCount) * i + Math.PI / 4;
-                    const length = 50 + this.growth * 40;
-                    
-                    const endX = x + Math.cos(angle) * length;
-                    const endY = y - Math.sin(angle) * length;
-
-                    this.ctx.beginPath();
-                    this.ctx.moveTo(x, y);
-                    this.ctx.lineTo(endX, endY);
-                    this.ctx.stroke();
-                }
-            }
-
-            drawHealthBar(x, y) {
-                const barWidth = 120;
-                const barHeight = 15;
-                const healthPercent = this.health / 100;
-
-                this.ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-                this.ctx.fillRect(x - barWidth / 2, y, barWidth, barHeight);
-
-                const healthColor = healthPercent > 0.7 ? '#4CAF50' : 
-                                   healthPercent > 0.4 ? '#FFC107' : '#F44336';
-                this.ctx.fillStyle = healthColor;
-                this.ctx.fillRect(x - barWidth / 2, y, barWidth * healthPercent, barHeight);
-
-                this.ctx.strokeStyle = '#333';
-                this.ctx.lineWidth = 2;
-                this.ctx.strokeRect(x - barWidth / 2, y, barWidth, barHeight);
-            }
-
-            saveGame() {
-                const gameState = {
-                    worldId: this.worldId,
-                    level: this.level,
-                    exp: this.exp,
-                    maxExp: this.maxExp,
-                    health: this.health,
-                    age: this.age,
-                    growth: this.growth,
-                    actionCount: this.actionCount
-                };
-                localStorage.setItem('treeGameState', JSON.stringify(gameState));
-            }
-
-            loadGame() {
-                const saved = localStorage.getItem('treeGameState');
-                if (saved) {
-                    const state = JSON.parse(saved);
-                    this.worldId = state.worldId || 0;
-                    this.currentWorld = WorldData.getWorld(this.worldId);
-                    this.level = state.level;
-                    this.exp = state.exp;
-                    this.maxExp = state.maxExp;
-                    this.health = state.health;
-                    this.age = state.age;
-                    this.growth = state.growth;
-                    this.actionCount = state.actionCount || {};
-                    
-                    document.getElementById('worldTitle').textContent = `Monde ${this.worldId + 1}: ${this.currentWorld.name}`;
-                    this.updateUI();
-                }
-            }
-        }
-
-        window.addEventListener('DOMContentLoaded', () => {
-            new InteractiveTree();
-        });
-    </script>
+  </script>
 </body>
 </html>
