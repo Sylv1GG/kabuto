@@ -13,9 +13,8 @@
     --card: rgba(255,255,255,0.06);
     --accent: #7c5cff;
     --accent-2: #00d4ff;
-    --glass: rgba(255,255,255,0.04);
     --text: #e6eef8;
-    --accent-3: #ffd166;
+    --muted: rgba(230,238,248,0.65);
   }
 
   *{box-sizing:border-box}
@@ -32,64 +31,97 @@
     padding:24px;
   }
 
+  /* App container with room around center */
   .app{
     width:100%;
-    max-width:980px;
-    min-height:700px;
+    max-width:1000px;
+    min-height:720px;
     background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
     border-radius:16px;
     padding:24px;
     position:relative;
     box-shadow: 0 10px 40px rgba(2,6,23,0.6);
     overflow:hidden;
+    display:grid;
+    grid-template-columns: 320px 1fr 260px;
+    grid-template-rows: 160px 1fr 120px;
+    gap:16px;
   }
 
-  .top{
-    display:flex;
-    justify-content:flex-end;
-    align-items:flex-start;
-    gap:12px;
-  }
-
-  /* Level card */
-  .level-card{
-    width:260px;
+  /* Weather (top-left) */
+  .weather-panel{
+    grid-column: 1 / 2;
+    grid-row: 1 / 3;
+    align-self:start;
+    width:100%;
     background:var(--card);
     border-radius:12px;
     padding:12px;
-    backdrop-filter: blur(6px);
     border:1px solid rgba(255,255,255,0.03);
+    box-shadow:0 8px 30px rgba(2,6,23,0.45);
+    overflow:hidden;
   }
-  .level-info{display:flex;flex-direction:column;gap:6px}
-  #levelText{font-weight:700;font-size:18px;letter-spacing:0.4px}
-  #xpText{font-size:13px;color:rgba(230,238,248,0.8)}
-  #totalXPText{font-size:12px;color:rgba(230,238,248,0.65);margin-top:6px}
+  .weather-panel h3{margin:0 0 8px 0;font-size:16px}
+  .location-name{font-size:13px;color:var(--muted);margin-bottom:6px}
+  .weather-temp{font-size:36px;font-weight:700}
+  .weather-desc{font-weight:500;color:var(--muted)}
+  .weather-actions{margin-top:12px;display:flex;gap:8px}
 
-  /* XP bar */
-  .xp-bar{height:12px;background:rgba(255,255,255,0.04);border-radius:8px;margin-top:10px;overflow:hidden}
-  .xp-fill{
-    height:100%;
-    width:0%;
-    background:linear-gradient(90deg,var(--accent),var(--accent-2));
-    transition:width 800ms cubic-bezier(.2,.9,.3,1);
+  /* Level card (top-right area) */
+  .level-card{
+    grid-column: 3 / 4;
+    grid-row: 1 / 2;
+    background:var(--card);
+    border-radius:12px;
+    padding:12px;
+    border:1px solid rgba(255,255,255,0.03);
+    box-shadow:0 8px 30px rgba(2,6,23,0.2);
   }
+  #levelText{font-weight:700;font-size:18px}
+  #xpText{font-size:13px;color:var(--muted)}
+  #totalXPText{font-size:12px;color:var(--muted);margin-top:6px}
+  .xp-bar{height:12px;background:rgba(255,255,255,0.03);border-radius:8px;margin-top:10px;overflow:hidden}
+  .xp-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--accent),var(--accent-2));transition:width .8s}
 
-  /* Main clock */
-  .main{display:flex;align-items:center;justify-content:center;height:calc(100% - 260px)}
+  /* Trophy panel (under level card) */
+  .trophy-panel{
+    grid-column: 3 / 4;
+    grid-row: 2 / 3;
+    background:var(--card);
+    border-radius:12px;
+    padding:12px;
+    border:1px solid rgba(255,255,255,0.03);
+    overflow:auto;
+    max-height:420px;
+  }
+  .trophy-list{display:flex;flex-direction:column;gap:8px}
+  .trophy{display:flex;gap:8px;align-items:center;padding:8px;border-radius:8px;background:rgba(255,255,255,0.01)}
+  .trophy.locked{opacity:0.45;filter:grayscale(40%)}
+  .trophy .icon{width:40px;height:40px;border-radius:8px;background:rgba(255,255,255,0.03);display:flex;align-items:center;justify-content:center;font-weight:700}
+  .trophy .meta .name{font-weight:700}
+  .trophy .meta .req{font-size:12px;color:var(--muted)}
+
+  /* Clock in center (only the time) */
   .clock-card{
-    text-align:center;
+    grid-column: 2 / 3;
+    grid-row: 1 / 4;
+    align-self:center;
+    justify-self:center;
+    width:420px;
+    height:360px;
     background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-    padding:36px 48px;
     border-radius:16px;
+    padding:36px 24px;
     border:1px solid rgba(255,255,255,0.03);
-    box-shadow: 0 6px 30px rgba(2,6,23,0.45);
-    min-width:420px;
-    cursor:default;
+    box-shadow: 0 12px 40px rgba(2,6,23,0.45);
+    display:flex;
+    align-items:center;
+    justify-content:center;
   }
   .time{
-    font-size:72px;
+    font-size:96px;
     font-weight:800;
-    letter-spacing:1px;
+    line-height:1;
     color:transparent;
     background:linear-gradient(90deg,var(--accent),var(--accent-2));
     -webkit-background-clip:text;
@@ -97,211 +129,114 @@
     -webkit-text-fill-color:transparent;
     text-fill-color:transparent;
     user-select:none;
+    cursor:pointer;
   }
-  .time.hint{cursor:pointer;opacity:0.95}
-  .date{
-    margin-top:8px;
-    color:rgba(230,238,248,0.85);
-    font-weight:500;
-  }
-  .small-hint{font-size:12px;color:rgba(230,238,248,0.6);margin-top:6px}
 
-  /* Weather panel (toujours visible au chargement) */
-  .weather-panel{
-    position:absolute;
-    top:18px;
-    left:18px;
-    width:320px;
-    max-width:calc(100% - 40px);
-    background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-    border-radius:12px;
-    padding:16px;
-    border:1px solid rgba(255,255,255,0.04);
-    box-shadow:0 18px 40px rgba(2,6,23,0.55);
-    z-index:30;
+  /* Bottom area (controls) */
+  .bottom-controls{
+    grid-column: 1 / 4;
+    grid-row: 3 / 4;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:12px;
   }
-  .weather-panel h3{margin:0 0 8px 0}
-  .close{position:absolute;right:8px;top:8px;border:none;background:none;color:var(--text);font-size:16px;cursor:pointer}
-  .weather-content p{margin:12px 0;color:rgba(230,238,248,0.9)}
-  .weather-row{display:flex;align-items:center;gap:12px}
-  .weather-temp{font-size:36px;font-weight:700}
-  .weather-desc{font-weight:500;color:rgba(230,238,248,0.85)}
-  .location-name{font-size:13px;color:rgba(230,238,248,0.75);margin-bottom:8px}
-
-  /* Trophy panel (top-right under level card) */
-  .trophy-panel{
-    width:260px;
-    background:var(--card);
-    border-radius:12px;
-    padding:12px;
-    backdrop-filter: blur(6px);
-    border:1px solid rgba(255,255,255,0.03);
-    margin-top:6px;
-  }
-  .trophy-panel h4{margin:0 0 8px 0;font-size:14px}
-  .trophy-list{display:flex;flex-direction:column;gap:8px}
-  .trophy{display:flex;gap:8px;align-items:center;padding:6px;border-radius:8px;background:rgba(255,255,255,0.01)}
-  .trophy.locked{opacity:0.45;filter:grayscale(40%)}
-  .trophy .icon{width:36px;height:36px;border-radius:8px;background:rgba(255,255,255,0.03);display:flex;align-items:center;justify-content:center;font-weight:700}
-  .trophy .meta{font-size:13px}
-  .trophy .meta .name{font-weight:700}
-  .trophy .meta .req{font-size:12px;color:rgba(230,238,248,0.65)}
-
-  /* Controls small */
   .controls{display:flex;gap:8px}
   .controls button{padding:8px 12px;border-radius:8px;border:none;background:rgba(255,255,255,0.04);color:var(--text);cursor:pointer}
 
   /* Toast & confetti */
-  .toast{
-    position:fixed;right:18px;bottom:18px;padding:10px 14px;border-radius:10px;color:#fff;z-index:9999;
-    box-shadow:0 8px 30px rgba(2,6,23,0.6);
-  }
-  .confetti{
-    position:fixed;left:50%;top:30%;width:10px;height:10px;border-radius:2px;opacity:0.95;z-index:9998;pointer-events:none;
-    animation: confetti-fall 1200ms linear forwards;
-  }
-  @keyframes confetti-fall {
-    0% { transform: translate3d(0,0,0) rotate(0deg); opacity:1; }
-    100% { transform: translate3d(var(--dx, 0px), 700px, 0) rotate(720deg); opacity:0; }
-  }
-
-  /* small animations */
-  #levelCard.flash { box-shadow: 0 0 0 6px rgba(124,92,255,0.12), 0 12px 30px rgba(2,6,23,0.6); transform:translateY(-6px); transition:transform .25s ease; }
-  #levelCard { transition: transform .2s ease, box-shadow .3s ease; }
+  .toast{position:fixed;right:18px;bottom:18px;padding:10px 14px;border-radius:10px;color:#fff;z-index:9999;box-shadow:0 8px 30px rgba(2,6,23,0.6)}
+  .confetti{position:fixed;left:50%;top:30%;width:10px;height:10px;border-radius:2px;opacity:0.95;z-index:9998;pointer-events:none;animation: confetti-fall 1200ms linear forwards}
+  @keyframes confetti-fall {0% { transform: translate3d(0,0,0) rotate(0deg); opacity:1; } 100% { transform: translate3d(var(--dx, 0px), 700px, 0) rotate(720deg); opacity:0; }}
 
   @media (max-width:900px){
-    .app{padding:18px}
-    .trophy-panel{display:none}
-    .weather-panel{position:relative;left:unset;top:unset;margin-bottom:12px}
+    .app{grid-template-columns: 1fr;grid-template-rows: auto auto 1fr auto;gap:12px}
+    .weather-panel{grid-column:1/2;grid-row:1/2}
+    .level-card{grid-column:1/2;grid-row:2/3}
+    .trophy-panel{grid-column:1/2;grid-row:3/4}
+    .clock-card{grid-column:1/2;grid-row:4/5;width:100%;height:260px}
+    .bottom-controls{grid-column:1/2;grid-row:5/6}
   }
   </style>
 </head>
 <body>
-  <div class="app">
-    <header class="top" style="gap:12px;">
-      <div class="level-card" id="levelCard" role="status" aria-live="polite">
-        <div class="level-info">
-          <div id="levelText">Niveau 1</div>
-          <div id="xpText">XP: 0 / 100</div>
-          <div id="totalXPText">Total XP : 0</div>
-        </div>
-        <div class="xp-bar" aria-hidden="true">
-          <div id="xpFill" class="xp-fill"></div>
-        </div>
-      </div>
-
-      <div class="trophy-panel" id="trophyPanel" aria-live="polite">
-        <h4>Trophées</h4>
-        <div class="trophy-list" id="trophyList"></div>
-        <div class="small-hint" style="margin-top:8px;">Astuce : clique 7x sur l'heure pour un easter-egg.</div>
-      </div>
-
-      <!-- Theme & Format toggles -->
-      <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end;">
-        <div>
-          <label style="font-size:12px;color:rgba(230,238,248,0.7);margin-right:6px">Format</label>
-          <select id="formatToggle" style="background:rgba(255,255,255,0.03);color:var(--text);border-radius:8px;padding:6px;border:none;">
-            <option value="24">24h</option>
-            <option value="12">12h</option>
-          </select>
-        </div>
-        <div>
-          <label style="font-size:12px;color:rgba(230,238,248,0.7);margin-right:6px">Thème</label>
-          <select id="themeToggle" style="background:rgba(255,255,255,0.03);color:var(--text);border-radius:8px;padding:6px;border:none;">
-            <option value="dark">Sombre</option>
-            <option value="light">Clair</option>
-          </select>
-        </div>
-      </div>
-    </header>
-
-    <main class="main">
-      <div class="clock-card" title="Clique 7 fois sur l'heure pour l'easter-egg">
-        <div id="time" class="time hint">--:--:--</div>
-        <div id="date" class="date">--</div>
-        <div class="small-hint" id="info12h">Info: 12h = 12 000 XP</div>
-      </div>
-    </main>
-
-    <aside id="weatherPanel" class="weather-panel" aria-hidden="false">
-      <button id="closeWeather" class="close" aria-label="Fermer panneau météo">✕</button>
+  <div class="app" id="app">
+    <!-- Weather -->
+    <aside class="weather-panel" id="weatherPanel" aria-hidden="false">
       <h3>Météo locale</h3>
-      <div id="locationName" class="location-name" aria-hidden="true"></div>
-      <div id="weatherContent" class="weather-content">
-        <p>Chargement météo...</p>
+      <div id="locationName" class="location-name">...</div>
+      <div id="weatherContent">
+        <p>Chargement...</p>
       </div>
-      <div style="margin-top:12px;display:flex;gap:8px;">
+      <div class="weather-actions">
         <button id="forceLocation">Rafraîchir</button>
         <button id="fallbackCity">Entrer une ville</button>
       </div>
     </aside>
 
-    <footer class="footer" style="position:absolute;bottom:18px;left:28px;right:28px;display:flex;justify-content:space-between;align-items:center">
+    <!-- Center clock -->
+    <main class="clock-card" id="clockCard">
+      <div id="time" class="time">--:--:--</div>
+    </main>
+
+    <!-- Level (top-right) -->
+    <div class="level-card" id="levelCard" role="status" aria-live="polite">
+      <div id="levelText">Niveau 1</div>
+      <div id="xpText">XP: 0 / 100</div>
+      <div id="totalXPText">Total XP : 0</div>
+      <div class="xp-bar" aria-hidden="true" style="margin-top:10px">
+        <div id="xpFill" class="xp-fill"></div>
+      </div>
+    </div>
+
+    <!-- Trophies (under level) -->
+    <div class="trophy-panel" id="trophyPanel" aria-live="polite">
+      <h4>Trophées</h4>
+      <div class="trophy-list" id="trophyList"></div>
+    </div>
+
+    <!-- Bottom controls -->
+    <div class="bottom-controls">
       <div class="controls">
         <button id="addXP">+ XP (test +25)</button>
         <button id="resetXP">Réinitialiser</button>
       </div>
-      <div class="credit" style="font-size:13px;color:rgba(230,238,248,0.65)">Fait pour le kiffe — Horloge & XP</div>
-    </footer>
+      <div style="color:var(--muted);font-size:13px">Info rapide : 1 min = 10 XP • 10 min = 100 XP • 1 h = 1000 XP • 12 h = 12 000 XP</div>
+    </div>
   </div>
 
   <script>
   // Config XP
   const XP_PER_MINUTE = 10;     // +10 toutes les minutes
   const HOURLY_BONUS = 400;     // bonus chaque heure complète => 1h = 60*10 + 400 = 1000
-  const STORAGE_KEY = "mini_clock_xp_v3";
+  const STORAGE_KEY = "mini_clock_xp_v4";
 
   function xpToNextLevel(level){
     return Math.floor(100 * Math.pow(1.5, level-1));
   }
 
   // State stocké
-  let state = {
-    xp: 0,         // current XP in level
-    level: 1,
-    totalXP: 0,    // cumul de tous les XP gagnés (pour trophées)
-    prefs: { format: "24", theme: "dark" }
-  };
+  let state = { xp:0, level:1, totalXP:0 };
 
   function loadState(){
     try{
       const raw = localStorage.getItem(STORAGE_KEY);
       if(raw){
         const parsed = JSON.parse(raw);
-        if(typeof parsed.xp === "number" && typeof parsed.level === "number" && typeof parsed.totalXP === "number"){
-          state = Object.assign(state, parsed);
+        if(typeof parsed.xp==='number' && typeof parsed.level==='number' && typeof parsed.totalXP==='number'){
+          state = parsed;
         }
-      }
-      const prefRaw = localStorage.getItem(STORAGE_KEY + "_prefs");
-      if(prefRaw){
-        const p = JSON.parse(prefRaw);
-        state.prefs = Object.assign(state.prefs || {}, p);
       }
     }catch(e){ console.warn("loadState:", e) }
   }
-  function saveState(){ try{ localStorage.setItem(STORAGE_KEY, JSON.stringify({xp:state.xp, level:state.level, totalXP:state.totalXP})); localStorage.setItem(STORAGE_KEY + "_prefs", JSON.stringify(state.prefs)); } catch(e){ console.warn(e) } }
+  function saveState(){ try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e){ console.warn(e) } }
 
   // Clock
   const timeEl = document.getElementById("time");
-  const dateEl = document.getElementById("date");
-  const info12El = document.getElementById("info12h");
   function pad(n){ return n < 10 ? "0"+n : n; }
-
-  function formatTime(date){
-    if(state.prefs.format === "12"){
-      let h = date.getHours();
-      const ampm = h >= 12 ? "PM" : "AM";
-      h = h % 12; if(h===0) h = 12;
-      return `${pad(h)}:${pad(date.getMinutes())}:${pad(date.getSeconds())} ${ampm}`;
-    } else {
-      return `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
-    }
-  }
-
   function updateClock(){
     const now = new Date();
-    timeEl.textContent = formatTime(now);
-    dateEl.textContent = now.toLocaleDateString(undefined, {weekday:'long', day:'numeric', month:'long'});
+    timeEl.textContent = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
   }
   loadState();
   updateClock();
@@ -356,7 +291,7 @@
 
   renderXP();
 
-  // Align ticks to start of minute
+  // schedule XP aligned to minute
   function scheduleXP(){
     const now = new Date();
     const msToNextMinute = (60 - now.getSeconds())*1000 - now.getMilliseconds() + 50;
@@ -365,7 +300,6 @@
       setInterval(minuteTick, 60_000);
     }, msToNextMinute);
   }
-
   function minuteTick(){
     addXP(XP_PER_MINUTE, "minute écoulée");
     const now = new Date();
@@ -377,7 +311,7 @@
   document.getElementById("addXP").addEventListener("click", ()=> addXP(25, "test manuel"));
   document.getElementById("resetXP").addEventListener("click", ()=>{
     if(confirm("Réinitialiser l'XP, niveau et trophées ?")){
-      state = {xp:0, level:1, totalXP:0, prefs: state.prefs || {format:'24', theme:'dark'}};
+      state = {xp:0, level:1, totalXP:0};
       saveState();
       renderXP();
       resetTrophies();
@@ -385,10 +319,7 @@
     }
   });
 
-  /* ===========================
-     Trophées / Achievements
-     =========================== */
-
+  /* Trophées */
   const trophyDefs = [
     { id: "novice", name: "Novice", desc: "Atteins 100 XP", req: 100, emoji: "🌱" },
     { id: "apprenti", name: "Apprenti", desc: "Atteins 1 000 XP", req: 1000, emoji: "🏅" },
@@ -396,35 +327,25 @@
     { id: "veteran", name: "Vétéran", desc: "Atteins 10 000 XP", req: 10000, emoji: "🥈" },
     { id: "insomnia", name: "Insomnia", desc: "12 heures = 12 000 XP (easter egg)", req: 12000, emoji: "🌙" },
     { id: "collector", name: "Collectionneur", desc: "Atteins 50 000 XP", req: 50000, emoji: "🏆" },
-    { id: "curious", name: "Curieux", desc: "Clique 7x sur l'heure", req: 0, emoji: "🔍" }
+    // easter-egg trophy (no req) — NOT shown in the list, unlocked by interactions
+    { id: "curious", name: "Curieux", desc: "Easter egg caché", req: 0, emoji: "🔍", hidden:true }
   ];
 
   let trophies = {}; // id -> unlocked info
-
-  function loadTrophies(){
-    try{
-      const raw = localStorage.getItem(STORAGE_KEY + "_trophies");
-      if(raw) trophies = JSON.parse(raw);
-    }catch(e){ trophies = {}; }
-  }
-  function saveTrophies(){ try{ localStorage.setItem(STORAGE_KEY + "_trophies", JSON.stringify(trophies)); } catch(e){ console.warn(e); } }
+  function loadTrophies(){ try{ const raw = localStorage.getItem(STORAGE_KEY + "_trophies"); if(raw) trophies = JSON.parse(raw); }catch(e){ trophies = {}; } }
+  function saveTrophies(){ try{ localStorage.setItem(STORAGE_KEY + "_trophies", JSON.stringify(trophies)); }catch(e){ console.warn(e) } }
   function resetTrophies(){ trophies = {}; saveTrophies(); renderTrophies(); }
 
   function checkTrophies(){
     loadTrophies();
     let changed = false;
     for(const t of trophyDefs){
-      if(!trophies[t.id]){
-        if(t.id === 'curious'){
-          // curious unlocked separately by clicks
-          continue;
-        }
-        if(state.totalXP >= t.req && t.req > 0){
-          trophies[t.id] = { unlockedAt: Date.now() };
-          changed = true;
-          showToast(`Trophée débloqué : ${t.name} ${t.emoji}`);
-          spawnConfetti();
-        }
+      if(t.hidden) continue; // don't auto-show hidden trophies
+      if(!trophies[t.id] && state.totalXP >= t.req && t.req > 0){
+        trophies[t.id] = { unlockedAt: Date.now() };
+        changed = true;
+        showToast(`Trophée débloqué : ${t.name} ${t.emoji}`);
+        spawnConfetti();
       }
     }
     if(changed) saveTrophies();
@@ -437,7 +358,8 @@
       trophies[id] = { unlockedAt: Date.now() };
       saveTrophies();
       renderTrophies();
-      showToast(`Trophée débloqué : ${trophyDefs.find(t=>t.id===id).name}`);
+      const t = trophyDefs.find(x=>x.id===id);
+      showToast(`Trophée débloqué : ${t ? t.name : id}`);
       spawnConfetti();
     }
   }
@@ -446,12 +368,14 @@
   function renderTrophies(){
     loadTrophies();
     trophyListEl.innerHTML = "";
-    for(const t of trophyDefs){
+    // Only show trophies that require XP (req > 0). Hidden trophies (req==0 && hidden) are not displayed.
+    const visible = trophyDefs.filter(t => t.req > 0);
+    for(const t of visible){
       const unlocked = !!trophies[t.id];
       const tr = document.createElement("div");
       tr.className = "trophy" + (unlocked ? "" : " locked");
       tr.innerHTML = `<div class="icon">${t.emoji}</div>
-                      <div class="meta"><div class="name">${t.name}</div><div class="req">${t.desc} • ${t.req ? t.req.toLocaleString() + ' XP' : ''}</div></div>`;
+                      <div class="meta"><div class="name">${t.name}</div><div class="req">${t.desc} • ${t.req.toLocaleString()} XP</div></div>`;
       trophyListEl.appendChild(tr);
     }
   }
@@ -460,31 +384,18 @@
   renderTrophies();
   checkTrophies();
 
-  /* ===========================
-     Météo (auto au chargement)
-     =========================== */
-
+  /* Météo auto (réduite) */
   const weatherContent = document.getElementById("weatherContent");
-  const closeWeather = document.getElementById("closeWeather");
-  const forceLocation = document.getElementById("forceLocation");
-  const fallbackCity = document.getElementById("fallbackCity");
   const locationNameEl = document.getElementById("locationName");
-
   const DEFAULT_CITY = { latitude: 48.8566, longitude: 2.3522, pretty: "Paris, France (fallback)" };
 
-  closeWeather.addEventListener("click", ()=> {
-    document.getElementById("weatherPanel").style.display = 'none';
-  });
-  forceLocation.addEventListener("click", async ()=> await showWeather({force:true}));
-  fallbackCity.addEventListener("click", async ()=>{
+  document.getElementById("forceLocation").addEventListener("click", async ()=> await showWeather({force:true}));
+  document.getElementById("fallbackCity").addEventListener("click", async ()=>{
     const city = prompt("Entrez le nom d'une ville (ex: Paris) :");
     if(city) await fetchWeatherByCity(city);
   });
 
-  (async function initWeather(){
-    document.getElementById("weatherPanel").style.display = 'block';
-    await showWeather();
-  })();
+  (async function initWeather(){ await showWeather(); })();
 
   async function showWeather(opts = {}) {
     const { force=false } = opts;
@@ -495,11 +406,9 @@
 
     if(navigator.geolocation && !force){
       try{
-        const pos = await new Promise((resolve, reject) => navigator.geolocation.getCurrentPosition(resolve, reject, {timeout:8000}));
+        const pos = await new Promise((resolve, reject) => navigator.geolocation.getCurrentPosition(resolve, reject, {timeout:7000}));
         used = { latitude: pos.coords.latitude, longitude: pos.coords.longitude };
-      }catch(err){
-        console.warn("Geoloc failed:", err);
-      }
+      }catch(err){ console.warn("Geoloc failed:", err); }
     }
 
     if(!used){
@@ -507,7 +416,7 @@
         const res = await fetch('https://ipapi.co/json/');
         if(res.ok){
           const ip = await res.json();
-          if(ip && typeof ip.latitude !== 'undefined' && typeof ip.longitude !== 'undefined'){
+          if(ip && typeof ip.latitude!=='undefined' && typeof ip.longitude!=='undefined'){
             const cityLower = (ip.city || "").toLowerCase();
             const postal = ip.postal || "";
             if(cityLower.includes("amiens") || postal.startsWith("80")){
@@ -517,14 +426,10 @@
             }
           }
         }
-      }catch(e){
-        console.warn("IP lookup failed:", e);
-      }
+      }catch(e){ console.warn("IP lookup failed:", e); }
     }
 
-    if(!used){
-      used = { latitude: DEFAULT_CITY.latitude, longitude: DEFAULT_CITY.longitude, pretty: DEFAULT_CITY.pretty };
-    }
+    if(!used) used = { latitude: DEFAULT_CITY.latitude, longitude: DEFAULT_CITY.longitude, pretty: DEFAULT_CITY.pretty };
 
     await fetchWeather(used.latitude, used.longitude, used.pretty || null, used.note || null);
   }
@@ -554,27 +459,18 @@
         }catch(e){}
       }
 
-      if(knownLocationName) {
-        locationNameEl.textContent = knownLocationName + (note ? " • " + note : "");
-        locationNameEl.setAttribute('aria-hidden','false');
-      } else {
-        locationNameEl.textContent = note || "";
-        locationNameEl.setAttribute('aria-hidden', knownLocationName ? 'false' : 'true');
-      }
+      if(knownLocationName) locationNameEl.textContent = knownLocationName + (note ? " • " + note : "");
+      else locationNameEl.textContent = note || "";
 
       const temp = cw.temperature;
       const wind = cw.windspeed;
       const code = cw.weathercode;
       const desc = weatherCodeToText(code);
       weatherContent.innerHTML = `
-        <div class="weather-row" style="align-items:flex-start;">
-          <div>
-            <div class="weather-temp">${Math.round(temp)}°C</div>
-            <div class="weather-desc">${desc}</div>
-          </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="flex:0 0 auto"><div class="weather-temp">${Math.round(temp)}°C</div></div>
+          <div style="flex:1"><div class="weather-desc">${desc}</div><div style="font-size:12px;color:var(--muted);margin-top:6px">Vent ${wind} km/h</div></div>
         </div>
-        <p>Vitesse du vent : ${wind} km/h</p>
-        <p>Rafraîchis: ${new Date().toLocaleTimeString()}</p>
       `;
     }catch(e){
       weatherContent.innerHTML = `<p>Erreur météo: ${e.message}</p>`;
@@ -603,7 +499,7 @@
 
   function weatherCodeToText(code){
     const map = {
-      0: "Ciel clair",1:"Principalement ensoleillé",2:"Partiellement nuageux",3:"Couvert",
+      0:"Ciel clair",1:"Principalement ensoleillé",2:"Partiellement nuageux",3:"Couvert",
       45:"Brouillard",48:"Brouillard givrant",51:"Bruine légère",53:"Bruine modérée",55:"Bruine dense",
       56:"Bruine verglaçante",57:"Bruine verglaçante dense",61:"Pluie légère",63:"Pluie modérée",65:"Pluie forte",
       66:"Pluie verglaçante légère",67:"Pluie verglaçante forte",71:"Neige légère",73:"Neige modérée",75:"Neige forte",
@@ -613,64 +509,19 @@
     return map[code] || "Temps inconnu";
   }
 
-  /* ===========================
-     Preferences (theme / format)
-     =========================== */
-
-  const themeToggle = document.getElementById("themeToggle");
-  const formatToggle = document.getElementById("formatToggle");
-
-  function applyTheme(){
-    if(state.prefs.theme === 'light'){
-      document.documentElement.style.setProperty('--bg','#f3f6fb');
-      document.documentElement.style.setProperty('--card','rgba(2,6,23,0.04)');
-      document.documentElement.style.setProperty('--text','#06121a');
-    } else {
-      document.documentElement.style.setProperty('--bg','#0f1724');
-      document.documentElement.style.setProperty('--card','rgba(255,255,255,0.06)');
-      document.documentElement.style.setProperty('--text','#e6eef8');
-    }
-  }
-
-  themeToggle.addEventListener("change", (e)=>{
-    state.prefs.theme = e.target.value;
-    applyTheme();
-    saveState();
-  });
-  formatToggle.addEventListener("change", (e)=>{
-    state.prefs.format = e.target.value;
-    saveState();
-    updateClock();
-  });
-
-  // initialize selects from prefs
-  themeToggle.value = state.prefs.theme || 'dark';
-  formatToggle.value = state.prefs.format || '24';
-  applyTheme();
-
-  /* ===========================
-     Easter-egg: click on time 7x
-     =========================== */
-
+  /* Easter-egg: hidden (no hint). Clicking time may unlock hidden trophy(s). */
   let clickCount = 0;
   timeEl.addEventListener("click", ()=>{
     clickCount++;
-    if(clickCount === 1) {
-      showToast("Tu as commencé à fouiller..."); // petit retour immédiat
-    }
     if(clickCount >= 7){
-      unlockTrophyById('curious');
+      unlockTrophyById('curious'); // hidden trophy
       clickCount = 0;
     }
-    // reset counter after 4s of inactivity
     clearTimeout(timeEl._clickTimeout);
     timeEl._clickTimeout = setTimeout(()=> clickCount = 0, 4000);
   });
 
-  /* ===========================
-     Confetti on trophy unlock
-     =========================== */
-
+  /* Confetti */
   function spawnConfetti(){
     const colors = ['#ffd166','#7c5cff','#00d4ff','#ff6b6b','#9be15d'];
     for(let i=0;i<18;i++){
@@ -688,19 +539,12 @@
     }
   }
 
-  /* ===========================
-     Final helpers & notes
-     =========================== */
-
-  // affiche l'info 12h calculée
-  info12El.textContent = "Info: 1 min = 10 XP • 10 min = 100 XP • 1 h = 1000 XP • 12 h = 12 000 XP";
-
-  // run initial trophy check (in case prefs loaded changed totals)
+  // initial checks
   checkTrophies();
+  renderXP();
 
-  // Friendly console note
-  console.log("Horloge & XP initialisé — 12h = 12 000 XP.");
-
+  // quick console note
+  console.log("Horloge & XP prêtes — 12h = 12 000 XP.");
   </script>
 </body>
 </html>
