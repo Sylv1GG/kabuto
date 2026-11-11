@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#090d0a">
-  <meta name="description" content="Encyclopédie fan The Last of Us : personnages, infectés, lieux et arsenal.">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Encyclopédie fan The Last of Us : personnages, infectés, factions, carte, arsenal et lore." />
+  <meta name="theme-color" content="#090d0a" />
   <title>THE LAST OF US — ARCHIVES</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -12,643 +12,467 @@
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700;800;900&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 
   <style>
-    :root {
-      --bg: #090d0a;
-      --panel: #111811;
-      --green: #a8c68c;
-      --white: #eef0e8;
-      --muted: #9da89a;
-      --line: rgba(255,255,255,.12);
+    :root{
+      --bg:#090d0a;
+      --panel:#111811;
+      --panel-2:#171f18;
+      --green:#a8c68c;
+      --green-2:#dce9bf;
+      --white:#eef0e8;
+      --muted:#9da89a;
+      --line:rgba(255,255,255,.12);
+      --bronze:#d4b98a;
+      --shadow:rgba(0,0,0,.32);
+      --danger:#d38b5c;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scroll-behavior: smooth; scroll-padding-top: 85px; }
-    body {
-      background: var(--bg);
-      color: var(--white);
-      font-family: "DM Sans", sans-serif;
-      overflow-x: hidden;
+    *{box-sizing:border-box;margin:0;padding:0}
+    html{scroll-behavior:smooth;scroll-padding-top:90px}
+    body{
+      background:var(--bg);
+      color:var(--white);
+      font-family:"DM Sans",sans-serif;
+      overflow-x:hidden;
     }
-    a { color: inherit; text-decoration: none; }
-    button, input { font: inherit; }
-    button { color: inherit; }
-
-    .grain {
-      position: fixed;
-      inset: 0;
-      z-index: 30;
-      pointer-events: none;
-      opacity: .035;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.6'/%3E%3C/svg%3E");
+    a{text-decoration:none;color:inherit}
+    img{display:block;max-width:100%}
+    button,input{font:inherit}
+    .grain{
+      position:fixed;inset:0;pointer-events:none;z-index:30;opacity:.035;
+      background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.6'/%3E%3C/svg%3E");
     }
 
-    header {
-      position: fixed;
-      z-index: 25;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 76px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 6.5%;
-      background: #090d0ae8;
-      backdrop-filter: blur(16px);
-      border-bottom: 1px solid var(--line);
+    header{
+      position:fixed;top:0;left:0;right:0;height:76px;z-index:25;
+      display:flex;align-items:center;justify-content:space-between;
+      padding:0 6.5%;
+      background:rgba(9,13,10,.9);
+      backdrop-filter:blur(18px);
+      border-bottom:1px solid var(--line);
+    }
+    .logo{
+      font-family:"Barlow Condensed",sans-serif;
+      font-weight:900;font-size:23px;letter-spacing:2px;text-transform:uppercase;
+    }
+    .logo span{color:var(--green)}
+    nav{display:flex;align-items:center;gap:22px}
+    nav a{
+      color:#c1cabf;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;
+      transition:.2s ease;
+    }
+    nav a:hover{color:var(--green)}
+    .menu-btn{
+      display:none;background:none;border:0;color:var(--white);font-size:26px;cursor:pointer;
     }
 
-    .logo {
-      font-family: "Barlow Condensed", sans-serif;
-      font-weight: 900;
-      font-size: 23px;
-      letter-spacing: 2px;
+    section{padding:105px 10%}
+    .intro, .infected-section, .map-section, .gallery-section{background:var(--panel)}
+    .section-head{
+      display:flex;justify-content:space-between;align-items:end;gap:35px;margin-bottom:42px;
     }
-    .logo span { color: var(--green); }
-
-    nav { display: flex; gap: 20px; }
-    nav a {
-      color: #b7c0b4;
-      font-size: 9px;
-      font-weight: 700;
-      letter-spacing: 1.4px;
-      text-transform: uppercase;
+    .section-head h2{
+      font-family:"Barlow Condensed",sans-serif;font-size:clamp(48px,7vw,82px);line-height:.9;text-transform:uppercase;
     }
-    nav a:hover { color: var(--green); }
-
-    .menu-btn {
-      display: none;
-      background: none;
-      border: 0;
-      color: white;
-      font-size: 25px;
-      cursor: pointer;
+    .section-summary{
+      max-width:370px;color:var(--muted);font-size:11px;line-height:1.9;
+    }
+    .kicker{
+      color:var(--green);font-size:9px;font-weight:700;letter-spacing:3px;text-transform:uppercase;margin-bottom:18px;
     }
 
-    .hero {
-      min-height: 760px;
-      height: 100vh;
-      max-height: 1000px;
-      position: relative;
-      display: flex;
-      align-items: center;
-      padding: 110px 10% 80px;
-      overflow: hidden;
+    .hero{
+      position:relative;min-height:760px;height:100vh;max-height:1050px;
+      display:flex;align-items:center;padding:115px 10% 80px;overflow:hidden;
     }
-    .hero-bg {
-      position: absolute;
-      inset: 0;
+    .hero-bg{
+      position:absolute;inset:0;
       background:
-        linear-gradient(90deg, #080d0a 0%, #080d0acc 45%, #080d0a22 100%),
-        linear-gradient(0deg, var(--bg), transparent 40%),
-        url("https://images.unsplash.com/photo-1511497584788-876760111969?auto=format&fit=crop&w=2200&q=85") center/cover;
-      animation: forest-drift 24s ease-in-out infinite alternate;
+        linear-gradient(90deg,#080d0a 0%,#080d0acc 45%,#080d0a22 100%),
+        linear-gradient(0deg,#090d0a,transparent 42%),
+        url("https://images.unsplash.com/photo-1511497584788-876760111969?auto=format&fit=crop&w=2200&q=85") center/cover no-repeat;
+      animation:forest-drift 26s ease-in-out infinite alternate;
+      transform:scale(1.02);
     }
-    @keyframes forest-drift {
-      from { transform: scale(1.02); }
-      to { transform: scale(1.1) translateX(-1%); }
-    }
-
-    .hero-content { position: relative; z-index: 1; max-width: 740px; }
-    .kicker {
-      color: var(--green);
-      font-size: 9px;
-      font-weight: 700;
-      letter-spacing: 3px;
-      text-transform: uppercase;
-      margin-bottom: 18px;
-    }
-    .hero h1 {
-      font-family: "Barlow Condensed", sans-serif;
-      font-size: clamp(76px, 12vw, 150px);
-      line-height: .78;
-      font-weight: 900;
-      letter-spacing: -2px;
-    }
-    .hero h1 em, .section-head h2 em, .closing h2 em {
-      color: var(--green);
-      font-style: normal;
-    }
-    .hero-copy {
-      max-width: 510px;
-      color: #c0c8bc;
-      font-size: 13px;
-      line-height: 2;
-      margin: 32px 0;
-    }
-    .actions { display: flex; gap: 12px; flex-wrap: wrap; }
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 16px;
-      padding: 15px 19px;
-      text-transform: uppercase;
-      letter-spacing: 1.5px;
-      font-size: 9px;
-      font-weight: 700;
-      border: 1px solid var(--green);
-      transition: .25s;
-    }
-    .btn.primary { background: var(--green); color: #10160e; }
-    .btn.secondary { border-color: #ffffff50; color: white; }
-    .btn:hover { transform: translateY(-3px); box-shadow: 0 12px 30px #0006; }
-    .hero-foot {
-      position: absolute;
-      bottom: 35px;
-      left: 10%;
-      right: 10%;
-      display: flex;
-      justify-content: space-between;
-      color: #a4afa0;
-      font-size: 8px;
-      letter-spacing: 2px;
+    @keyframes forest-drift{
+      from{transform:scale(1.02) translateX(0)}
+      to{transform:scale(1.12) translateX(-1%)}
     }
 
-    section { padding: 100px 10%; }
-    .intro, .infected-section, .map-section, .gallery-section { background: var(--panel); }
-    .section-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: end;
-      gap: 35px;
-      margin-bottom: 40px;
+    .hero-content{position:relative;z-index:1;max-width:760px}
+    .hero h1{
+      font-family:"Barlow Condensed",sans-serif;
+      font-size:clamp(76px,12vw,150px);line-height:.78;font-weight:900;letter-spacing:-2px;text-transform:uppercase;
     }
-    .section-head h2 {
-      font-family: "Barlow Condensed", sans-serif;
-      font-size: clamp(48px, 7vw, 82px);
-      line-height: .9;
-      text-transform: uppercase;
+    .hero h1 em, .section-head h2 em, .closing h2 em{color:var(--green);font-style:normal}
+    .hero-copy{
+      max-width:540px;color:#c0c8bc;font-size:13px;line-height:2;margin:32px 0;
     }
-    .section-summary {
-      max-width: 350px;
-      color: var(--muted);
-      font-size: 11px;
-      line-height: 1.9;
+    .actions{display:flex;gap:12px;flex-wrap:wrap}
+    .btn{
+      display:inline-flex;align-items:center;justify-content:center;gap:12px;
+      padding:15px 19px;text-transform:uppercase;letter-spacing:1.5px;font-size:9px;font-weight:700;
+      border:1px solid var(--green);transition:.25s ease;cursor:pointer;
     }
-
-    .intro-grid {
-      display: grid;
-      grid-template-columns: 1.2fr .8fr;
-      gap: 70px;
-      margin-top: 40px;
+    .btn.primary{background:var(--green);color:#10160e}
+    .btn.secondary{border-color:rgba(255,255,255,.35);color:var(--white)}
+    .btn:hover{
+      transform:translateY(-3px);
+      box-shadow:0 12px 28px rgba(0,0,0,.32);
     }
-    .intro-lead { font-size: 20px; line-height: 1.7; color: #e0e6db; }
-    .intro-note { border-left: 1px solid var(--green); padding: 10px 0 10px 25px; }
-    .intro-note p { font-size: 13px; line-height: 1.9; color: #b4bdb1; }
-    .intro-note small { color: var(--green); font-size: 8px; letter-spacing: 2px; }
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(4,1fr);
-      gap: 20px;
-      border-top: 1px solid var(--line);
-      margin-top: 55px;
-      padding-top: 25px;
-    }
-    .stats strong {
-      display: block;
-      font-family: "Barlow Condensed", sans-serif;
-      font-size: 40px;
-      color: var(--green);
-    }
-    .stats span { font-size: 9px; color: var(--muted); text-transform: uppercase; }
-
-    .toolbar {
-      display: flex;
-      justify-content: space-between;
-      gap: 15px;
-      align-items: center;
-      margin-bottom: 25px;
-      flex-wrap: wrap;
-    }
-    .search {
-      width: 100%;
-      max-width: 340px;
-      background: none;
-      border: 0;
-      border-bottom: 1px solid #ffffff40;
-      padding: 13px 0;
-      color: white;
-      outline: 0;
-      font-size: 11px;
-    }
-    .search:focus { border-color: var(--green); }
-    .chips { display: flex; gap: 7px; flex-wrap: wrap; }
-    .chip {
-      border: 1px solid #ffffff28;
-      background: transparent;
-      color: #aeb8aa;
-      padding: 9px 14px;
-      font-size: 8px;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      cursor: pointer;
-    }
-    .chip.active, .chip:hover {
-      background: var(--green);
-      color: #0b110b;
-      border-color: var(--green);
+    .hero-foot{
+      position:absolute;left:10%;right:10%;bottom:35px;z-index:1;
+      display:flex;justify-content:space-between;gap:20px;
+      color:#a4afa0;font-size:8px;letter-spacing:2px;
     }
 
-    .character-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; }
-    .character {
-      height: 350px;
-      position: relative;
-      overflow: hidden;
-      background: linear-gradient(145deg,#29372a,#111711);
-      border: 1px solid var(--line);
-      cursor: pointer;
-      transition: .3s;
+    .intro-grid{
+      display:grid;grid-template-columns:1.2fr .8fr;gap:70px;margin-top:40px;
     }
-    .character:hover { transform: translateY(-6px); border-color: var(--green); }
-    .character-bg {
-      position: absolute;
-      inset: 0;
-      background-size: cover;
-      background-position: center;
-      filter: saturate(.65);
-      transition: .5s;
+    .intro-lead{font-size:20px;line-height:1.7;color:#e0e6db}
+    .intro-note{border-left:1px solid var(--green);padding:10px 0 10px 25px}
+    .intro-note p{font-size:13px;line-height:1.9;color:#b4bdb1}
+    .intro-note small{color:var(--green);font-size:8px;letter-spacing:2px}
+    .stats{
+      display:grid;grid-template-columns:repeat(4,1fr);gap:20px;
+      border-top:1px solid var(--line);margin-top:55px;padding-top:25px;
     }
-    .character:hover .character-bg { transform: scale(1.06); }
-    .character-bg::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(0deg,#080d0a 0%,#080d0a9c 38%,transparent 100%);
+    .stats strong{
+      display:block;font-family:"Barlow Condensed",sans-serif;font-size:40px;color:var(--green);
     }
-    .character-info { position: absolute; bottom: 0; padding: 23px; z-index: 2; }
-    .character-info small { color: var(--green); font-size: 8px; letter-spacing: 2px; text-transform: uppercase; }
-    .character-info h3 {
-      font-family: "Barlow Condensed", sans-serif;
-      font-size: 37px;
-      text-transform: uppercase;
-      margin: 7px 0;
+    .stats span{font-size:9px;color:var(--muted);text-transform:uppercase}
+
+    .toolbar{
+      display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap;margin-bottom:25px;
     }
-    .character-info p { font-size: 10px; line-height: 1.7; color: #c1c9bd; }
-    .character-mark {
-      position: absolute;
-      top: 18px;
-      left: 20px;
-      font-family: "Barlow Condensed", sans-serif;
-      font-size: 55px;
-      color: #ffffff40;
+    .search{
+      width:100%;max-width:340px;background:transparent;border:0;border-bottom:1px solid rgba(255,255,255,.4);
+      padding:13px 0;color:var(--white);outline:0;font-size:11px;
     }
-    .card-open {
-      position: absolute;
-      top: 17px;
-      right: 17px;
-      border: 1px solid #ffffff70;
-      border-radius: 50%;
-      width: 30px;
-      height: 30px;
-      display: grid;
-      place-items: center;
-      z-index: 3;
+    .search::placeholder{color:rgba(255,255,255,.5)}
+    .search:focus{border-color:var(--green)}
+    .chips{display:flex;gap:7px;flex-wrap:wrap}
+    .chip{
+      border:1px solid rgba(255,255,255,.18);background:transparent;color:#aeb8aa;
+      padding:9px 14px;font-size:8px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;
+      transition:.2s ease;
+    }
+    .chip.active,.chip:hover{
+      background:var(--green);color:#0b110b;border-color:var(--green);
     }
 
-    .infected-layout { display: grid; grid-template-columns: .65fr 1.35fr; gap: 18px; }
-    .infected-list { display: flex; flex-direction: column; gap: 8px; }
-    .infected-choice {
-      display: flex;
-      justify-content: space-between;
-      padding: 15px;
-      background: #0b110c;
-      border: 1px solid var(--line);
-      cursor: pointer;
-      text-align: left;
+    .character-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+    .character{
+      position:relative;height:350px;overflow:hidden;border:1px solid var(--line);
+      background:linear-gradient(145deg,#29372a,#111711);cursor:pointer;transition:.26s ease;min-width:0;
     }
-    .infected-choice span:first-child {
-      font-family: "Barlow Condensed", sans-serif;
-      font-size: 21px;
-      text-transform: uppercase;
+    .character:hover{
+      transform:translateY(-6px);border-color:var(--green);box-shadow:0 18px 38px rgba(0,0,0,.24);
     }
-    .infected-choice.active, .infected-choice:hover {
-      border-color: var(--green);
-      background: #18231a;
+    .character-bg{
+      position:absolute;inset:0;background-size:cover;background-position:center;filter:saturate(.65);transition:.5s ease;
     }
-    .infected-detail {
-      min-height: 340px;
-      padding: 28px;
-      background: linear-gradient(135deg,#243326,#0b110c);
-      border: 1px solid var(--line);
-      display: grid;
-      grid-template-columns: 1fr .85fr;
-      gap: 20px;
-      align-items: center;
-      overflow: visible;
-      perspective: 900px;
+    .character:hover .character-bg{transform:scale(1.06)}
+    .character-bg::after{
+      content:"";position:absolute;inset:0;background:linear-gradient(0deg,#080d0a 0%,#080d0a9c 38%,transparent 100%);
     }
-    .infected-copy { position: relative; z-index: 2; }
-    .infected-detail small { color: var(--green); font-size: 9px; letter-spacing: 2px; }
-    .infected-detail h3 {
-      font-family: "Barlow Condensed", sans-serif;
-      font-size: 50px;
-      text-transform: uppercase;
-      margin: 10px 0;
+    .character-info{
+      position:absolute;left:0;right:0;bottom:0;padding:23px;z-index:2;
     }
-    .infected-detail p { color: #bac4b6; font-size: 12px; line-height: 2; }
-    .infected-visual {
-      min-height: 260px;
-      display: grid;
-      place-items: center;
-      perspective: 900px;
+    .character-info small{color:var(--green);font-size:8px;letter-spacing:2px;text-transform:uppercase}
+    .character-info h3{
+      font-family:"Barlow Condensed",sans-serif;font-size:37px;text-transform:uppercase;margin:7px 0;
     }
-    .infected-visual img {
-      width: 100%;
-      max-height: 330px;
-      object-fit: contain;
-      transform: translateZ(35px) scale(1.08);
-      filter: drop-shadow(0 20px 20px #0009);
-      transition: transform .45s, filter .45s;
+    .character-info p{font-size:10px;line-height:1.7;color:#c1c9bd}
+    .character-mark{
+      position:absolute;top:18px;left:20px;z-index:2;
+      font-family:"Barlow Condensed",sans-serif;font-size:55px;color:rgba(255,255,255,.42);
     }
-    .infected-detail:hover .infected-visual img {
-      transform: translateZ(65px) scale(1.16) rotateY(-5deg);
-      filter: drop-shadow(0 28px 25px #000b);
-    }
-    .tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 15px; }
-    .tags span { font-size: 8px; color: #c3d1b9; border: 1px solid #a8c68c4c; padding: 7px 10px; }
-
-    .warning {
-      background: #2a2114;
-      border: 1px solid #8f6a32;
-      color: #e9c58c;
-      padding: 13px 16px;
-      font-size: 9px;
-      margin-bottom: 35px;
-    }
-    .timeline { border-left: 1px solid #627d52; margin-left: 10px; padding-left: 35px; }
-    .event { position: relative; padding: 0 0 35px; max-width: 750px; }
-    .event::before {
-      content: "";
-      position: absolute;
-      left: -41px;
-      top: 5px;
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: var(--green);
-      box-shadow: 0 0 15px #a8c68c66;
-    }
-    .event small { font-size: 9px; letter-spacing: 2px; color: var(--green); }
-    .event h3 {
-      font-family: "Barlow Condensed", sans-serif;
-      font-size: 30px;
-      text-transform: uppercase;
-      margin: 9px 0;
-    }
-    .event p { font-size: 11px; line-height: 1.9; color: #aab4a7; }
-
-    .map-layout { display: grid; grid-template-columns: 1.4fr .6fr; gap: 15px; }
-    .map {
-      height: 450px;
-      position: relative;
-      overflow: hidden;
-      isolation: isolate;
-      background: radial-gradient(ellipse at 40% 45%,#354733,#1d2c20 50%,#101b14);
-      border: 1px solid var(--line);
-    }
-    .map::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      opacity: .2;
-      background-image:
-        linear-gradient(#ffffff18 1px,transparent 1px),
-        linear-gradient(90deg,#ffffff18 1px,transparent 1px);
-      background-size: 40px 40px;
-    }
-    .map-route {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 1;
-      pointer-events: none;
-      opacity: .8;
-    }
-    .map-compass {
-      position: absolute;
-      top: 16px;
-      right: 18px;
-      z-index: 2;
-      color: var(--green);
-      font-size: 10px;
-      letter-spacing: 2px;
-    }
-    .map-caption {
-      position: absolute;
-      left: 12px;
-      bottom: 10px;
-      z-index: 2;
-      background: #090d0acc;
-      padding: 7px 9px;
-      font-size: 7px;
-      letter-spacing: 1px;
-      color: #c4cebf;
-    }
-    .pin {
-      position: absolute;
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      z-index: 3;
-      background: #0a100de8;
-      border: 1px solid #ffffff40;
-      color: white;
-      padding: 8px 10px;
-      font-size: 8px;
-      letter-spacing: 1px;
-      cursor: pointer;
-    }
-    .pin::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--green); }
-    .pin.active, .pin:hover { background: var(--green); color: #10160e; }
-    .pin.active::before, .pin:hover::before { background: #10160e; }
-    .boston { left: 10%; top: 68%; }
-    .jackson { left: 43%; top: 47%; }
-    .saltlake { left: 29%; top: 78%; }
-    .seattle { left: 17%; top: 26%; }
-    .santa { left: 55%; top: 84%; }
-
-    .map-panel {
-      background: #0a100c;
-      border: 1px solid var(--line);
-      padding: 28px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-    }
-    .map-panel > small { color: var(--green); font-size: 8px; letter-spacing: 2px; }
-    .map-panel h3 {
-      font-family: "Barlow Condensed", sans-serif;
-      font-size: 38px;
-      text-transform: uppercase;
-      margin: 12px 0;
-    }
-    .map-panel p { font-size: 11px; line-height: 1.9; color: #aeb9aa; }
-    .map-facts { display: grid; gap: 10px; margin-top: 20px; }
-    .map-facts div { padding-top: 10px; border-top: 1px solid var(--line); font-size: 10px; color: #c4cebf; }
-    .map-facts small { display: block; color: var(--green); font-size: 8px; letter-spacing: 1px; margin-bottom: 4px; }
-
-    .arsenal-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 13px; }
-    .arsenal-card {
-      background: #121a13;
-      border: 1px solid var(--line);
-      overflow: hidden;
-      transition: .25s;
-    }
-    .arsenal-card:hover { border-color: var(--green); transform: translateY(-4px); }
-    .arsenal-image {
-      height: 180px;
-      display: grid;
-      place-items: center;
-      overflow: hidden;
-      background: radial-gradient(ellipse,#29372a,#101710 72%);
-      border-bottom: 1px solid var(--line);
-    }
-    .arsenal-image img {
-      width: 88%;
-      height: 88%;
-      object-fit: contain;
-      filter: drop-shadow(0 12px 12px #0008);
-      transition: transform .35s;
-    }
-    .arsenal-card:hover .arsenal-image img { transform: scale(1.1) rotate(-2deg); }
-    .arsenal-card small, .arsenal-card h3, .arsenal-card p { margin-left: 22px; margin-right: 22px; }
-    .arsenal-card small { display: block; color: var(--green); font-size: 8px; letter-spacing: 2px; margin-top: 17px; }
-    .arsenal-card h3 {
-      font-family: "Barlow Condensed", sans-serif;
-      font-size: 27px;
-      text-transform: uppercase;
-      margin-top: 7px;
-      margin-bottom: 7px;
-    }
-    .arsenal-card p { font-size: 10px; line-height: 1.8; color: #aab4a7; margin-bottom: 22px; }
-
-    .gallery-grid { display: grid; grid-template-columns: repeat(3,1fr); grid-auto-rows: 190px; gap: 12px; }
-    .gallery-item { position: relative; overflow: hidden; border: 1px solid var(--line); cursor: pointer; background: #18231a; }
-    .gallery-item img { width: 100%; height: 100%; object-fit: cover; filter: brightness(.72) saturate(.65); transition: .4s; }
-    .gallery-item:hover img { transform: scale(1.06); filter: brightness(.95); }
-    .gallery-item span { position: absolute; bottom: 14px; left: 15px; font-size: 8px; letter-spacing: 2px; text-transform: uppercase; text-shadow: 0 2px 10px black; }
-    .gallery-note { font-size: 9px; color: #879386; line-height: 1.8; margin-top: 18px; }
-
-    .closing {
-      text-align: center;
-      padding: 120px 20px;
-      background:
-        linear-gradient(#090d0aeb,#090d0aeb),
-        url("https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=1800&q=85") center/cover;
-    }
-    .closing h2 {
-      font-family: "Barlow Condensed", sans-serif;
-      font-size: clamp(60px,10vw,110px);
-      line-height: .9;
-      margin: 20px 0 35px;
-    }
-    footer {
-      padding: 35px 7%;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 20px;
-      border-top: 1px solid var(--line);
-      color: #849081;
-    }
-    footer p { max-width: 530px; font-size: 9px; line-height: 1.8; }
-    footer small { font-size: 8px; letter-spacing: 2px; }
-
-    dialog {
-      width: min(700px,calc(100% - 30px));
-      max-height: 85vh;
-      overflow: auto;
-      background: #111a13;
-      color: white;
-      border: 1px solid #a8c68c66;
-      padding: 32px;
-      margin: auto;
-    }
-    dialog::backdrop { background: #020503dc; backdrop-filter: blur(8px); }
-    .close {
-      float: right;
-      background: #0b110c;
-      border: 1px solid #ffffff50;
-      width: 35px;
-      height: 35px;
-      font-size: 22px;
-      cursor: pointer;
-    }
-    dialog h2 {
-      font-family: "Barlow Condensed", sans-serif;
-      font-size: 52px;
-      text-transform: uppercase;
-      margin: 18px 0;
-    }
-    dialog p { font-size: 12px; line-height: 2; color: #b7c1b2; }
-    .facts { display: grid; grid-template-columns: repeat(2,1fr); gap: 10px; margin-top: 22px; }
-    .facts div { padding: 14px; background: #0a100c; border: 1px solid var(--line); }
-    .facts small { display: block; color: var(--green); font-size: 8px; letter-spacing: 1px; margin-bottom: 5px; }
-    .facts strong { font-size: 11px; }
-
-    .reveal { opacity: 0; transform: translateY(22px); transition: opacity .7s ease, transform .7s ease; }
-    .reveal.visible { opacity: 1; transform: translateY(0); }
-    .empty { grid-column: 1/-1; color: var(--muted); padding: 25px; border: 1px dashed var(--line); }
-
-    @media (max-width: 900px) {
-      header { padding: 0 5%; }
-      nav { gap: 10px; }
-      nav a { font-size: 8px; }
-      section { padding: 85px 6%; }
-      .character-grid, .arsenal-grid { grid-template-columns: repeat(2,1fr); }
-      .map-layout { grid-template-columns: 1fr; }
+    .card-open{
+      position:absolute;top:17px;right:17px;z-index:3;
+      border:1px solid rgba(255,255,255,.7);border-radius:50%;
+      width:30px;height:30px;display:grid;place-items:center;
     }
 
-    @media (max-width: 700px) {
-      .menu-btn { display: block; }
-      nav {
-        display: none;
-        position: absolute;
-        top: 76px;
-        left: 0;
-        right: 0;
-        padding: 25px;
-        background: #090d0a;
-        flex-direction: column;
-        border-bottom: 1px solid var(--line);
+    .faction-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+    .faction-card{
+      background:linear-gradient(180deg,#171f18,#0e120e);
+      border:1px solid var(--line);padding:24px;min-height:220px;position:relative;overflow:hidden;transition:.25s ease;
+    }
+    .faction-card:hover{transform:translateY(-6px);border-color:var(--green)}
+    .faction-card .tag{
+      display:inline-block;padding:7px 10px;border:1px solid rgba(168,198,140,.45);
+      color:var(--green);font-size:8px;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:18px;
+    }
+    .faction-card h3{
+      font-family:"Barlow Condensed",sans-serif;font-size:30px;text-transform:uppercase;margin-bottom:10px;
+    }
+    .faction-card p{font-size:11px;line-height:1.8;color:#b7c0b4}
+    .faction-card .pill{
+      position:absolute;right:18px;bottom:18px;padding:8px 10px;
+      border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.02);font-size:8px;letter-spacing:1.5px;
+    }
+
+    .random-block{
+      margin-top:28px;
+      background:linear-gradient(135deg,#1a261c,#0d120d);
+      border:1px solid var(--line);padding:18px 22px;
+      display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;
+    }
+    .random-meta small{color:var(--green);font-size:8px;letter-spacing:2px;text-transform:uppercase}
+    .random-meta h3{font-family:"Barlow Condensed",sans-serif;font-size:30px;text-transform:uppercase;margin:8px 0}
+    .random-meta p{font-size:11px;color:#b7c0b4;line-height:1.8}
+
+    .infected-layout{display:grid;grid-template-columns:.65fr 1.35fr;gap:18px}
+    .infected-list{display:flex;flex-direction:column;gap:8px}
+    .infected-choice{
+      display:flex;justify-content:space-between;align-items:center;padding:17px;background:#0b110c;border:1px solid var(--line);
+      cursor:pointer;text-align:left;transition:.2s ease;
+    }
+    .infected-choice span:first-child{
+      font-family:"Barlow Condensed",sans-serif;font-size:22px;text-transform:uppercase;
+    }
+    .infected-choice.active,.infected-choice:hover{border-color:var(--green);background:#18231a}
+    .infected-detail{
+      min-height:360px;padding:28px;background:linear-gradient(135deg,#243326,#0b110c);border:1px solid var(--line);
+      display:grid;grid-template-columns:1fr .85fr;align-items:center;gap:20px;overflow:visible;perspective:900px;
+    }
+    .infected-copy{position:relative;z-index:2}
+    .infected-detail small{color:var(--green);font-size:9px;letter-spacing:2px}
+    .infected-detail h3{
+      font-family:"Barlow Condensed",sans-serif;font-size:50px;text-transform:uppercase;margin:10px 0;
+    }
+    .infected-detail p{color:#bac4b6;font-size:12px;line-height:2}
+    .infected-visual{min-height:260px;display:grid;place-items:center;perspective:900px}
+    .infected-visual img{
+      width:100%;max-height:330px;object-fit:contain;transform:translateZ(35px) scale(1.08);
+      filter:drop-shadow(0 20px 20px rgba(0,0,0,.55));transition:transform .45s ease,filter .45s ease;
+    }
+    .infected-detail:hover .infected-visual img{
+      transform:translateZ(65px) scale(1.16) rotateY(-5deg);
+      filter:drop-shadow(0 28px 25px rgba(0,0,0,.7));
+    }
+    .tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:15px}
+    .tags span{font-size:8px;color:#c3d1b9;border:1px solid rgba(168,198,140,.3);padding:7px 10px}
+
+    .warning{
+      background:#2a2114;border:1px solid #8f6a32;color:#e9c58c;padding:13px 16px;font-size:9px;margin-bottom:35px;
+    }
+    .timeline{border-left:1px solid #627d52;margin-left:10px;padding-left:35px}
+    .event{position:relative;padding:0 0 38px;max-width:750px}
+    .event::before{
+      content:"";position:absolute;left:-41px;top:5px;width:10px;height:10px;border-radius:50%;background:var(--green);
+      box-shadow:0 0 15px rgba(168,198,140,.5);
+    }
+    .event small{font-size:9px;letter-spacing:2px;color:var(--green)}
+    .event h3{
+      font-family:"Barlow Condensed",sans-serif;font-size:30px;text-transform:uppercase;margin:9px 0;
+    }
+    .event p{font-size:11px;line-height:1.9;color:#aab4a7}
+
+    .map-layout{display:grid;grid-template-columns:1.5fr .5fr;gap:15px}
+    .map{
+      height:450px;position:relative;overflow:hidden;isolation:isolate;
+      background:radial-gradient(ellipse at 40% 45%,#354733,#1d2c20 50%,#101b14);
+      border:1px solid var(--line);
+    }
+    .map::before{
+      content:"";position:absolute;inset:0;opacity:.2;
+      background-image:linear-gradient(rgba(255,255,255,.12) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.12) 1px,transparent 1px);
+      background-size:40px 40px;
+    }
+    .map-route{
+      position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none;opacity:.8;
+    }
+    .map-compass{
+      position:absolute;top:16px;right:18px;z-index:2;color:var(--green);font-size:10px;letter-spacing:2px;
+    }
+    .map-caption{
+      position:absolute;left:12px;bottom:10px;z-index:2;background:rgba(9,13,10,.75);padding:7px 9px;
+      font-size:7px;letter-spacing:1.2px;color:#c4cebf;
+    }
+    .pin{
+      position:absolute;display:flex;align-items:center;gap:7px;z-index:3;
+      background:rgba(10,16,13,.9);border:1px solid rgba(255,255,255,.35);color:var(--white);
+      padding:8px 10px;font-size:8px;letter-spacing:1px;cursor:pointer;
+    }
+    .pin::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--green)}
+    .pin.active,.pin:hover{background:var(--green);color:#10160e}
+    .pin.active::before,.pin:hover::before{background:#10160e}
+    .boston{left:10%;top:68%}.jackson{left:43%;top:47%}.saltlake{left:29%;top:78%}.seattle{left:17%;top:26%}.santa{left:55%;top:84%}
+
+    .map-panel{
+      background:#0a100c;border:1px solid var(--line);padding:28px;display:flex;flex-direction:column;justify-content:center;
+    }
+    .map-panel small{color:var(--green);font-size:8px;letter-spacing:2px}
+    .map-panel h3{
+      font-family:"Barlow Condensed",sans-serif;font-size:38px;text-transform:uppercase;margin:12px 0;
+    }
+    .map-panel p{font-size:11px;line-height:1.9;color:#aeb9aa}
+    .map-facts{display:grid;gap:10px;margin-top:20px}
+    .map-facts div{padding-top:10px;border-top:1px solid var(--line);font-size:10px;color:#c4cebf}
+    .map-facts small{display:block;color:var(--green);font-size:8px;letter-spacing:1px;margin-bottom:4px}
+
+    .arsenal-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:13px}
+    .arsenal-card{
+      background:#121a13;border:1px solid var(--line);overflow:hidden;transition:.25s ease;
+    }
+    .arsenal-card:hover{border-color:var(--green);transform:translateY(-4px)}
+    .arsenal-image{
+      height:180px;display:grid;place-items:center;overflow:hidden;
+      background:radial-gradient(ellipse,#29372a,#101710 72%);border-bottom:1px solid var(--line);
+    }
+    .arsenal-image img{
+      width:88%;height:88%;object-fit:contain;filter:drop-shadow(0 12px 12px rgba(0,0,0,.5));
+      transition:transform .35s ease;
+    }
+    .arsenal-card:hover .arsenal-image img{transform:scale(1.1) rotate(-2deg)}
+    .arsenal-card small,.arsenal-card h3,.arsenal-card p{margin-left:22px;margin-right:22px}
+    .arsenal-card small{
+      display:block;color:var(--green);font-size:8px;letter-spacing:2px;margin-top:17px;
+    }
+    .arsenal-card h3{
+      font-family:"Barlow Condensed",sans-serif;font-size:27px;text-transform:uppercase;margin-top:7px;margin-bottom:7px;
+    }
+    .arsenal-card p{font-size:10px;line-height:1.8;color:#aab4a7;margin-bottom:22px}
+
+    .gallery-grid{
+      display:grid;grid-template-columns:repeat(3,1fr);grid-auto-rows:190px;gap:12px;
+    }
+    .gallery-item{
+      position:relative;overflow:hidden;border:1px solid var(--line);cursor:pointer;background:#18231a;
+    }
+    .gallery-item img{
+      width:100%;height:100%;object-fit:cover;filter:brightness(.72) saturate(.65);transition:.4s ease;
+    }
+    .gallery-item:hover img{transform:scale(1.06);filter:brightness(.95)}
+    .gallery-item span{
+      position:absolute;left:15px;bottom:14px;z-index:2;
+      font-size:8px;letter-spacing:2px;text-transform:uppercase;text-shadow:0 2px 10px rgba(0,0,0,.8);
+    }
+    .gallery-note{font-size:9px;color:#879386;line-height:1.8;margin-top:18px}
+
+    .lore-grid{
+      display:grid;grid-template-columns:repeat(3,1fr);gap:14px;
+    }
+    .lore-card{
+      background:linear-gradient(180deg,#1a261c,#101811);
+      border:1px solid var(--line);padding:22px;min-height:240px;position:relative;overflow:hidden;transition:.25s ease;
+    }
+    .lore-card:hover{transform:translateY(-5px);border-color:var(--green)}
+    .lore-card small{color:var(--green);font-size:8px;letter-spacing:2px;text-transform:uppercase}
+    .lore-card h3{
+      font-family:"Barlow Condensed",sans-serif;font-size:30px;text-transform:uppercase;margin:12px 0 10px;
+    }
+    .lore-card p{font-size:11px;line-height:1.9;color:#becbbd}
+    .lore-card .mini{
+      position:absolute;right:16px;bottom:14px;color:var(--green);font-size:9px;letter-spacing:2px;text-transform:uppercase;
+    }
+
+    .survival-grid{
+      display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:18px;
+    }
+    .survival-card{
+      padding:22px;background:linear-gradient(180deg,#182219,#0d120d);border:1px solid var(--line);min-height:200px;
+      transition:.25s ease;
+    }
+    .survival-card:hover{transform:translateY(-4px);border-color:var(--green)}
+    .survival-card .icon{
+      width:38px;height:38px;border-radius:50%;display:grid;place-items:center;
+      background:rgba(168,198,140,.1);border:1px solid rgba(168,198,140,.4);color:var(--green);font-size:18px;margin-bottom:18px;
+    }
+    .survival-card h3{
+      font-family:"Barlow Condensed",sans-serif;font-size:26px;text-transform:uppercase;margin-bottom:8px;
+    }
+    .survival-card p{font-size:10px;line-height:1.8;color:#b7c0b4}
+
+    .closing{
+      text-align:center;padding:120px 20px;
+      background:linear-gradient(rgba(9,13,10,.9),rgba(9,13,10,.9)),url("https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=1800&q=85") center/cover no-repeat;
+    }
+    .closing h2{
+      font-family:"Barlow Condensed",sans-serif;font-size:clamp(60px,10vw,110px);line-height:.9;margin:20px 0 35px;
+    }
+
+    footer{
+      padding:35px 7%;display:flex;justify-content:space-between;align-items:center;gap:20px;border-top:1px solid var(--line);color:#849081;
+    }
+    footer p{max-width:530px;font-size:9px;line-height:1.8}
+    footer small{font-size:8px;letter-spacing:2px}
+
+    dialog{
+      width:min(700px,calc(100% - 30px));max-height:85vh;overflow:auto;background:#111a13;color:var(--white);
+      border:1px solid rgba(168,198,140,.45);padding:32px;box-shadow:0 30px 100px rgba(0,0,0,.72);
+    }
+    dialog::backdrop{background:rgba(2,5,3,.8);backdrop-filter:blur(8px)}
+    .close{
+      float:right;background:#0b110c;color:var(--white);border:1px solid rgba(255,255,255,.35);
+      width:35px;height:35px;font-size:22px;cursor:pointer;
+    }
+    dialog h2{
+      font-family:"Barlow Condensed",sans-serif;font-size:52px;text-transform:uppercase;margin:18px 0;
+    }
+    dialog p{font-size:12px;line-height:2;color:#b7c1b2}
+    .facts{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:22px}
+    .facts div{padding:14px;background:#0a100c;border:1px solid var(--line)}
+    .facts small{display:block;color:var(--green);font-size:8px;letter-spacing:1px;margin-bottom:5px}
+    .facts strong{font-size:11px}
+    #lightbox{text-align:center}
+    #lightbox img{width:100%;max-height:65vh;object-fit:contain}
+    #lightbox p{color:var(--green);margin-top:15px}
+
+    .reveal{opacity:0;transform:translateY(22px);transition:opacity .7s ease,transform .7s cubic-bezier(.2,.7,.2,1)}
+    .reveal.visible{opacity:1;transform:translateY(0)}
+    .empty{grid-column:1/-1;color:var(--muted);padding:25px;border:1px dashed var(--line);text-align:center}
+
+    @media(max-width:900px){
+      header{padding:0 5%}
+      nav{gap:12px}
+      nav a{font-size:8px}
+      section{padding:85px 6%}
+      .character-grid,.faction-grid,.arsenal-grid,.survival-grid,.lore-grid{grid-template-columns:repeat(2,1fr)}
+      .map-layout{grid-template-columns:1fr}
+    }
+
+    @media(max-width:700px){
+      .menu-btn{display:block}
+      nav{
+        display:none;position:absolute;top:76px;left:0;right:0;padding:25px;background:#090d0a;flex-direction:column;border-bottom:1px solid var(--line);
       }
-      nav.open { display: flex; }
-      nav a { font-size: 10px; }
-      .hero { min-height: 700px; padding: 110px 7% 90px; }
-      .hero h1 { font-size: clamp(76px,18vw,115px); }
-      .hero-foot { left: 7%; right: 7%; }
-      .section-head { display: block; }
-      .section-summary { margin-top: 18px; }
-      .intro-grid { grid-template-columns: 1fr; gap: 30px; }
-      .stats { grid-template-columns: repeat(2,1fr); }
-      .infected-layout { grid-template-columns: 1fr; }
-      .infected-list { display: grid; grid-template-columns: repeat(2,1fr); }
-      .infected-detail { grid-template-columns: 1fr; }
-      .infected-visual { min-height: 190px; }
-      .infected-visual img { max-height: 250px; }
-      .map { height: 370px; }
-      .gallery-grid { grid-template-columns: repeat(2,1fr); grid-auto-rows: 150px; }
-      footer { align-items: flex-start; flex-direction: column; }
+      nav.open{display:flex}
+      nav a{font-size:10px}
+      .hero{min-height:700px;padding:110px 7% 90px}
+      .hero h1{font-size:clamp(76px,18vw,115px)}
+      .hero-foot{left:7%;right:7%}
+      .section-head{display:block}
+      .section-summary{margin-top:18px}
+      .intro-grid{grid-template-columns:1fr;gap:30px}
+      .stats{grid-template-columns:repeat(2,1fr)}
+      .infected-layout{grid-template-columns:1fr}
+      .infected-list{display:grid;grid-template-columns:repeat(2,1fr)}
+      .infected-detail{grid-template-columns:1fr}
+      .infected-visual{min-height:190px}
+      .infected-visual img{max-height:250px}
+      .map{height:370px}
+      .gallery-grid{grid-template-columns:repeat(2,1fr);grid-auto-rows:150px}
+      .survival-grid{grid-template-columns:repeat(2,1fr)}
+      footer{align-items:flex-start;flex-direction:column}
     }
 
-    @media (max-width: 460px) {
-      .character-grid, .arsenal-grid { grid-template-columns: 1fr; }
-      .character { height: 320px; }
-      .actions { flex-direction: column; align-items: stretch; max-width: 280px; }
-      .btn { justify-content: space-between; }
-      .toolbar { align-items: stretch; }
-      .infected-detail { padding: 22px; }
-      .facts { grid-template-columns: 1fr; }
-      .map-caption { max-width: 180px; line-height: 1.5; }
+    @media(max-width:460px){
+      .character-grid,.faction-grid,.arsenal-grid,.survival-grid,.lore-grid{grid-template-columns:1fr}
+      .character{height:320px}
+      .actions{flex-direction:column;align-items:stretch;max-width:280px}
+      .btn{justify-content:space-between}
+      .toolbar{align-items:stretch}
+      .infected-detail{padding:22px}
+      .facts{grid-template-columns:1fr}
+      .map-caption{max-width:180px;line-height:1.5}
     }
 
-    @media (prefers-reduced-motion: reduce) {
-      html { scroll-behavior: auto; }
-      *, *::before, *::after {
-        animation-duration: .01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: .01ms !important;
+    @media (prefers-reduced-motion: reduce){
+      html{scroll-behavior:auto}
+      *,*::before,*::after{
+        animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important;
       }
     }
   </style>
@@ -662,11 +486,13 @@
     <button class="menu-btn" id="menuBtn" aria-label="Ouvrir le menu">☰</button>
     <nav id="nav">
       <a href="#personnages">Personnages</a>
+      <a href="#factions">Factions</a>
       <a href="#infectes">Infectés</a>
       <a href="#histoire">Histoire</a>
       <a href="#carte">Carte</a>
       <a href="#arsenal">Arsenal</a>
       <a href="#galerie">Galerie</a>
+      <a href="#lore">Lore</a>
     </nav>
   </header>
 
@@ -676,7 +502,7 @@
       <div class="hero-content reveal">
         <p class="kicker">— ARCHIVES D'UN MONDE OUBLIÉ</p>
         <h1>THE LAST<br><em>OF US.</em></h1>
-        <p class="hero-copy">Explorez les survivants, les infectés, les factions et les lieux d'un monde où l'humanité s'accroche à ce qu'il lui reste.</p>
+        <p class="hero-copy">Explorez les survivants, les infectés, les factions, les lieux et les armes d'un monde où l'humanité s'accroche à ce qu'il lui reste.</p>
         <div class="actions">
           <a class="btn primary" href="#personnages">Explorer les archives ↗</a>
           <a class="btn secondary" href="#histoire">Découvrir l'histoire</a>
@@ -715,18 +541,34 @@
       <div class="toolbar">
         <input class="search" id="search" placeholder="Rechercher un personnage..." type="search" aria-label="Rechercher un personnage">
         <div class="chips" id="characterFilters">
-          <button class="chip active" data-filter="all">Tous</button>
-          <button class="chip" data-filter="part1">Part I</button>
-          <button class="chip" data-filter="part2">Part II</button>
+          <button type="button" class="chip active" data-filter="all">Tous</button>
+          <button type="button" class="chip" data-filter="part1">Part I</button>
+          <button type="button" class="chip" data-filter="part2">Part II</button>
         </div>
       </div>
       <div class="character-grid" id="characterGrid"></div>
     </section>
 
+    <section id="factions">
+      <div class="section-head">
+        <div><p class="kicker">02 — GROUPES & ORGANISATIONS</p><h2>LES <em>FACTIONS</em></h2></div>
+        <p class="section-summary">Les communautés, armées et croyances qui construisent les règles du monde après la chute.</p>
+      </div>
+      <div class="faction-grid" id="factionGrid"></div>
+
+      <div class="random-block">
+        <div class="random-meta">
+          <small>PERSONNAGE AU HASARD</small>
+          <h3 id="randomTitle">Découvrir un profil</h3>
+        </div>
+        <button class="btn primary" id="randomCharacterBtn" type="button">Choisir un personnage</button>
+      </div>
+    </section>
+
     <section class="infected-section" id="infectes">
       <div class="section-head">
-        <div><p class="kicker">02 — DOSSIERS BIOLOGIQUES</p><h2>LES <em>INFECTÉS</em></h2></div>
-        <p class="section-summary">Sélectionne un dossier pour découvrir son stade d'infection, son comportement et son visuel.</p>
+        <div><p class="kicker">03 — DOSSIERS BIOLOGIQUES</p><h2>LES <em>INFECTÉS</em></h2></div>
+        <p class="section-summary">Les différentes étapes de l'infection par le Cordyceps et leurs comportements.</p>
       </div>
       <div class="infected-layout">
         <div class="infected-list" id="infectedList"></div>
@@ -736,8 +578,8 @@
 
     <section id="histoire">
       <div class="section-head">
-        <div><p class="kicker">03 — CHRONOLOGIE</p><h2>UNE HISTOIRE<br><em>EN PLUSIEURS ACTES</em></h2></div>
-        <p class="section-summary">Chronologie indicative des événements majeurs. Attention, spoilers sur les jeux.</p>
+        <div><p class="kicker">04 — CHRONOLOGIE</p><h2>UNE HISTOIRE<br><em>EN PLUSIEURS ACTES</em></h2></div>
+        <p class="section-summary">Chronologie indicative des événements majeurs; spoilers présents dans les résumés.</p>
       </div>
       <div class="warning">⚠ SPOILERS — Les résumés ci-dessous évoquent des événements clés de la saga.</div>
       <div class="timeline" id="timeline"></div>
@@ -745,22 +587,21 @@
 
     <section class="map-section" id="carte">
       <div class="section-head">
-        <div><p class="kicker">04 — ATLAS DES TERRITOIRES</p><h2>LE MONDE <em>CONNU</em></h2></div>
-        <p class="section-summary">Carte narrative schématique : sélectionne une ville pour découvrir ses repères, groupes et ambiance.</p>
+        <div><p class="kicker">05 — ATLAS DES TERRITOIRES</p><h2>LE MONDE <em>CONNU</em></h2></div>
+        <p class="section-summary">Carte narrative schématique des grandes régions évoquées dans les jeux, non officielle et non à l'échelle.</p>
       </div>
       <div class="map-layout">
         <div class="map">
           <svg class="map-route" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-            <path d="M17 30 C24 42 35 45 45 49 S57 67 33 79 S65 83 72 88"
-              fill="none" stroke="#a8c68c" stroke-width=".7" stroke-dasharray="2 2"/>
+            <path d="M17 30 C24 42 35 45 45 49 S57 67 33 79 S65 83 72 88" fill="none" stroke="#a8c68c" stroke-width=".7" stroke-dasharray="2 2"></path>
           </svg>
           <span class="map-compass" aria-hidden="true">N ↑</span>
           <span class="map-caption">TRAJET SCHÉMATIQUE — CARTE NON À L’ÉCHELLE</span>
-          <button class="pin seattle" data-place="seattle">SEATTLE</button>
-          <button class="pin boston active" data-place="boston">BOSTON</button>
-          <button class="pin jackson" data-place="jackson">JACKSON</button>
-          <button class="pin saltlake" data-place="saltlake">SALT LAKE</button>
-          <button class="pin santa" data-place="santa">SANTA BARBARA</button>
+          <button type="button" class="pin seattle" data-place="seattle">SEATTLE</button>
+          <button type="button" class="pin boston active" data-place="boston">BOSTON</button>
+          <button type="button" class="pin jackson" data-place="jackson">JACKSON</button>
+          <button type="button" class="pin saltlake" data-place="saltlake">SALT LAKE</button>
+          <button type="button" class="pin santa" data-place="santa">SANTA BARBARA</button>
         </div>
         <aside class="map-panel" id="mapPanel"></aside>
       </div>
@@ -768,25 +609,41 @@
 
     <section id="arsenal">
       <div class="section-head">
-        <div><p class="kicker">05 — ÉQUIPEMENT & SURVIE</p><h2>L'<em>ARSENAL</em></h2></div>
-        <p class="section-summary">Quelques équipements emblématiques de l'univers fictif du jeu.</p>
+        <div><p class="kicker">06 — ÉQUIPEMENT & SURVIE</p><h2>L'<em>ARSENAL</em></h2></div>
+        <p class="section-summary">Quelques armes et objets essentiels pour tenir dans un monde sans pitié.</p>
       </div>
       <div class="chips" id="arsenalFilters" style="margin-bottom:25px">
-        <button class="chip active" data-filter="all">Tout</button>
-        <button class="chip" data-filter="armes">Armes</button>
-        <button class="chip" data-filter="survie">Survie</button>
-        <button class="chip" data-filter="outils">Outils</button>
+        <button type="button" class="chip active" data-filter="all">Tout</button>
+        <button type="button" class="chip" data-filter="armes">Armes</button>
+        <button type="button" class="chip" data-filter="survie">Survie</button>
+        <button type="button" class="chip" data-filter="outils">Outils</button>
       </div>
       <div class="arsenal-grid" id="arsenalGrid"></div>
     </section>
 
     <section class="gallery-section" id="galerie">
       <div class="section-head">
-        <div><p class="kicker">06 — FRAGMENTS DU MONDE</p><h2>GALERIE <em>VISUELLE</em></h2></div>
-        <p class="section-summary">Photos d'ambiance illustratives, non officielles et non issues des jeux.</p>
+        <div><p class="kicker">07 — FRAGMENTS DU MONDE</p><h2>GALERIE <em>VISUELLE</em></h2></div>
+        <p class="section-summary">Une sélection d'ambiances post-apocalyptiques. Les images sont des photos d'illustration, pas des captures officielles.</p>
       </div>
       <div class="gallery-grid" id="galleryGrid"></div>
-      <p class="gallery-note">Les images de cette galerie sont des photos d'illustration. Remplace-les par des visuels que tu as le droit de publier.</p>
+      <p class="gallery-note">Les images peuvent être remplacées par des captures ou visuels que tu as le droit de publier.</p>
+    </section>
+
+    <section id="lore">
+      <div class="section-head">
+        <div><p class="kicker">08 — LORE & CULTURE</p><h2>LES <em>THÈMES</em></h2></div>
+        <p class="section-summary">Les idées qui donnent au monde de TLOU sa profondeur émotionnelle et sa puissance narrative.</p>
+      </div>
+      <div class="lore-grid" id="loreGrid"></div>
+    </section>
+
+    <section id="survie-guide">
+      <div class="section-head">
+        <div><p class="kicker">09 — GUIDE DE SURVIE</p><h2>COMMENT <em>RESISTER</em></h2></div>
+        <p class="section-summary">Une mini-lecture sur les règles de survie qui régissent la vie dans ce monde.</p>
+      </div>
+      <div class="survival-grid" id="survivalGrid"></div>
     </section>
 
     <section class="closing">
@@ -807,21 +664,27 @@
     <div id="characterContent"></div>
   </dialog>
 
+  <dialog id="lightbox">
+    <button class="close" id="closeLightbox" aria-label="Fermer">×</button>
+    <img id="lightboxImage" alt="" />
+    <p id="lightboxTitle"></p>
+  </dialog>
+
   <script>
     const characters = [
       {
         id:"joel", name:"Joel Miller", role:"Le survivant",
         games:["part1","part2"], years:"2013–2038", origin:"Texas, États-Unis",
         group:"Jackson", summary:"Un homme marqué par son passé, prêt à tout pour protéger ceux qu'il aime.",
-        bio:"Avant l'épidémie, Joel est père de Sarah. Après le Jour de l'épidémie, il traverse vingt années de survie, de contrebande et de compromis moraux. Sa rencontre avec Ellie devient le centre d'une relation complexe.",
+        bio:"Avant l'épidémie, Joel est père de Sarah. Après le Jour de l'épidémie, il traversera des années de survie et de compromis. Sa relation avec Ellie devient l'axe émotionnel du récit.",
         relations:"Sarah, Tommy, Ellie, Tess", traits:"Pragmatique · Protecteur · Méfiant",
         image:"https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=900&q=85"
       },
       {
         id:"ellie", name:"Ellie Williams", role:"L'immunisée",
         games:["part1","part2"], years:"2013–2039", origin:"Boston",
-        group:"Jackson", summary:"Une jeune survivante dont l'immunité pourrait changer le destin de l'humanité.",
-        bio:"Née après le début de l'épidémie, Ellie grandit dans une zone de quarantaine. Son immunité apparente au Cordyceps fait d'elle un espoir pour les Lucioles. Son histoire explore l'identité, l'amour et le prix de la vengeance.",
+        group:"Jackson", summary:"Jeune survivante immunisée, espoir unique au cœur d'un monde qui cherche une issue.",
+        bio:"Née après le début de l'épidémie, Ellie grandit en marge de la civilisation. Son immunité fait d'elle un espoir, mais aussi une cible. Son histoire explore l'amour, la vengeance et la perte.",
         relations:"Riley, Marlene, Joel, Dina, Tommy", traits:"Déterminée · Sarcastique · Courageuse",
         image:"https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=900&q=85"
       },
@@ -829,7 +692,7 @@
         id:"abby", name:"Abby Anderson", role:"La combattante",
         games:["part2"], years:"Seattle · 2038", origin:"Seattle",
         group:"WLF", summary:"Soldate du WLF, Abby est guidée par un passé douloureux et une quête personnelle.",
-        bio:"Abby a grandi au sein des Lucioles. Un événement traumatique façonne sa vie et la conduit à rejoindre le WLF à Seattle. Son récit propose une autre perspective sur les conflits et les cycles de violence.",
+        bio:"Fille d'un ancien membre du système militaire, Abby traverse des événements traumatisants qui la conduisent à rejoindre le WLF. Son parcours met en lumière le coût de la violence et les cycles de vengeance.",
         relations:"Jerry, Owen, Mel, Lev, Yara", traits:"Disciplinée · Puissante · Complexe",
         image:"https://images.unsplash.com/photo-1531123897727-8f129e1688ce?auto=format&fit=crop&w=900&q=85"
       },
@@ -837,26 +700,43 @@
         id:"tommy", name:"Tommy Miller", role:"Le frère",
         games:["part1","part2"], years:"2013–2039", origin:"Jackson",
         group:"Jackson", summary:"Le frère de Joel tente de bâtir une communauté durable dans un monde hostile.",
-        bio:"Tommy accompagne Joel au début de l'épidémie avant que leurs chemins ne divergent. Il rejoint ensuite les Lucioles, puis s'installe à Jackson avec Maria.",
+        bio:"Tommy incarne une manière différente de survivre : construire plutôt que seulement supporter. Il tente de rendre la vie stable à Jackson, tout en gardant sa loyauté et son attachement à Joel.",
         relations:"Joel, Maria, Ellie", traits:"Loyal · Idéaliste · Tenace",
         image:"https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=900&q=85"
       },
       {
         id:"dina", name:"Dina", role:"La survivante",
         games:["part2"], years:"Jackson · 2038", origin:"Jackson",
-        group:"Jackson", summary:"Proche d'Ellie, Dina apporte humour, affection et courage au cœur d'un monde brutal.",
-        bio:"Dina vit à Jackson et partage avec Ellie une relation profonde. Elle accompagne Ellie dans une partie de son voyage et doit constamment évaluer le prix de la vengeance et de la sécurité.",
+        group:"Jackson", summary:"Proche d'Ellie, Dina apporte humour, affection et courage dans un monde brutal.",
+        bio:"Dina est une figure de chaleur dans un monde froid. Malgré les dangers, elle garde la capacité de vivre, d'aimer et de s'accrocher à l'humanité même au pire des moments.",
         relations:"Ellie, Jesse, JJ", traits:"Vive · Loyale · Résiliente",
         image:"https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=900&q=85"
       },
       {
         id:"tess", name:"Tess", role:"La partenaire",
         games:["part1"], years:"Boston · 2033", origin:"Boston",
-        group:"Contrebande", summary:"Partenaire de Joel dans les activités de contrebande, elle connaît les règles de la zone.",
-        bio:"Tess est une contrebandière expérimentée de Boston. Elle travaille avec Joel et sait négocier dans un environnement où la confiance est rare.",
+        group:"Contrebande", summary:"Partenaire de Joel dans le monde du commerce de survie et du risque.",
+        bio:"Tess est une femme de terrain, dure et lucide. Elle comprend que la confiance est rare et que la peur peut être utilisée comme monnaie d'échange. Son voyage aux côtés de Joel aide à déclencher la mission qui les lie à Ellie.",
         relations:"Joel, Marlene", traits:"Pragmatique · Ferme · Lucide",
         image:"https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=900&q=85"
+      },
+      {
+        id:"lev", name:"Lev", role:"Le fugitif",
+        games:["part2"], years:"Seattle · 2038", origin:"Île des Séraphites",
+        group:"Ancien Séraphite", summary:"Jeune fugitif séraphite, Lev cherche sa place au-delà du dogme et de la tradition.",
+        bio:"Lev quitte sa communauté avec sa sœur Yara pour fuir les règles de son monde. Son parcours met en lumière les thèmes de la liberté, de la foi et de la rébellion.",
+        relations:"Yara, Abby", traits:"Agile · Courageux · Réfléchi",
+        image:"https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=900&q=85"
       }
+    ];
+
+    const factions = [
+      {name:"Lucioles",tag:"Résistance",desc:"Organisation centrée sur la protection d'Ellie et la recherche d'un remède face à la menace du Cordyceps.",status:"Mission · science · survie"},
+      {name:"WLF",tag:"Armée",desc:"La Washington Liberation Front cherche contrôler Seattle et sécuriser les territoires. Son mode opératoire repose sur la discipline et la force.",status:"Contrôle · sécurité · guerre"},
+      {name:"Séraphites",tag:"Doctrine",desc:"Groupe structuré autour d'une forte identité religieuse et d'une morale rigide. Leur combat est autant moral que militaire.",status:"Ordre · foi · guerre"},
+      {name:"Jackson",tag:"Communauté",desc:"Une communauté de survie structurée qui représente l'espoir d'une vie stable, organisée et collective.",status:"Village · sécurité · union"},
+      {name:"Contrebande",tag:"Marchands",desc:"Des survivants pragmatiques qui vivent du commerce, du risque et de l'échange. Ils se fondent dans l'ennui de la survie.",status:"Risque · trafic · utilité"},
+      {name:"Rangers / Patrouilles",tag:"Protection",desc:"Des groupes de sécurité qui font la garde des frontières et surveillent les zones fragiles du monde post-apocalyptique.",status:"Patrouilles · vigilance · sécurité"}
     ];
 
     const infected = [
@@ -864,37 +744,37 @@
         id:"runner", name:"Coureur", stage:"Stade précoce", danger:"Élevé",
         desc:"Au début de l'infection, l'hôte conserve une apparence relativement humaine. Les Coureurs se déplacent vite et attaquent souvent en groupe.",
         tags:["Vision fonctionnelle","Attaque en groupe","Mobilité élevée"],
-        image:"assets/infected/coureur.webp"
+        image:"https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=900&q=85"
       },
       {
         id:"stalker", name:"Rôdeur", stage:"Stade intermédiaire", danger:"Très élevé",
         desc:"Le Rôdeur se développe dans des environnements sombres et confinés. Il alterne entre immobilité, observation et attaques soudaines.",
         tags:["Embuscade","Zones sombres","Déplacement furtif"],
-        image:"assets/infected/rodeur.webp"
+        image:"https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=900&q=85"
       },
       {
         id:"clicker", name:"Claqueur", stage:"Stade avancé", danger:"Extrême",
         desc:"Le champignon a profondément déformé le crâne du Claqueur. Aveugle, il utilise des sons et des claquements pour localiser ses proies.",
         tags:["Aveugle","Écholocalisation","Force importante"],
-        image:"assets/infected/claqueur.webp"
+        image:"https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=900&q=85"
       },
       {
         id:"bloater", name:"Colosse", stage:"Infection avancée", danger:"Extrême",
         desc:"Après une très longue période d'infection, le champignon forme une épaisse couche protectrice. Le Colosse est puissant et résistant.",
         tags:["Très résistant","Lent","Force élevée"],
-        image:"assets/infected/colosse.webp"
+        image:"https://images.unsplash.com/photo-1504593811423-6dd665756598?auto=format&fit=crop&w=900&q=85"
       },
       {
         id:"shambler", name:"Puant", stage:"Variante avancée", danger:"Très élevé",
-        desc:"Rencontré notamment dans les environnements humides de Seattle, le Puant libère un nuage de substances irritantes.",
+        desc:"Rencontré notamment dans les environnements humides de Seattle, le Puant libère un nuage de substances irritantes et corrosives.",
         tags:["Nuage toxique","Zones humides","Contact dangereux"],
-        image:"assets/infected/puant.webp"
+        image:"https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=900&q=85"
       },
       {
         id:"ratking", name:"Roi des rats", stage:"Cas exceptionnel", danger:"Catastrophique",
         desc:"Une masse d'infectés fusionnés après des années de confinement. Cette créature exceptionnelle est l'une des menaces les plus impressionnantes de la saga.",
         tags:["Cas unique","Extrêmement dangereux","Seattle"],
-        image:"assets/infected/roi-des-rats.webp"
+        image:"https://images.unsplash.com/photo-1517849845537-4d257902454a?auto=format&fit=crop&w=900&q=85"
       }
     ];
 
@@ -904,19 +784,19 @@
       ["2033","LA MISSION DE BOSTON","Joel et Tess rencontrent Ellie. Une mission de transport se transforme en traversée d'un pays dévasté."],
       ["2033–2034","À TRAVERS LES ÉTATS-UNIS","Le voyage conduit le trio à travers plusieurs régions, communautés et dangers."],
       ["2038","JACKSON & SEATTLE","Des événements tragiques déclenchent une quête qui mène Ellie et d'autres survivants à Seattle."],
-      ["2038–2039","PLUSIEURS PERSPECTIVES","Le récit explore les conséquences de la vengeance et les trajectoires croisées de plusieurs personnages."]
+      ["2038–2039","PLUSIEURS PERSPECTIVES","Le récit de Part II explore les conséquences de la vengeance et les trajectoires croisées de plusieurs personnages."]
     ];
 
     const places = {
-      boston: {
+      boston:{
         name:"Boston", region:"Massachusetts · Côte Est",
-        text:"Zone de quarantaine sous contrôle militaire. Joel et Tess y travaillent comme contrebandiers et y rencontrent Ellie.",
+        text:"Zone de quarantaine sous contrôle militaire. C'est ici que Joel et Tess travaillent comme contrebandiers et rencontrent Ellie.",
         status:"ZONE DE QUARANTAINE · PART I",
         landmarks:"Zone de quarantaine · Capitole",
         groups:"Armée · Contrebandiers · Lucioles",
         atmosphere:"Urbaine · Contrôlée · Dangereuse"
       },
-      jackson: {
+      jackson:{
         name:"Jackson", region:"Wyoming · Ouest américain",
         text:"Communauté organisée autour de ressources partagées. Jackson représente une tentative de reconstruire une vie collective et relativement stable.",
         status:"COMMUNAUTÉ · PART I & PART II",
@@ -924,7 +804,7 @@
         groups:"Communauté de Jackson",
         atmosphere:"Montagneuse · Rurale · Accueillante"
       },
-      saltlake: {
+      saltlake:{
         name:"Salt Lake City", region:"Utah · Ouest américain",
         text:"Ville associée à la recherche des Lucioles et à un moment décisif du parcours de Joel et Ellie.",
         status:"DESTINATION DES LUCIOLES · PART I",
@@ -932,7 +812,7 @@
         groups:"Lucioles · Survivants",
         atmosphere:"Urbaine · Silencieuse · Dévastée"
       },
-      seattle: {
+      seattle:{
         name:"Seattle", region:"Washington · Nord-Ouest",
         text:"Une ville divisée par un conflit entre le WLF et les Séraphites. La végétation a repris de nombreux bâtiments.",
         status:"ZONE DE CONFLIT · PART II",
@@ -940,7 +820,7 @@
         groups:"WLF · Séraphites",
         atmosphere:"Humide · Végétalisée · Instable"
       },
-      santa: {
+      santa:{
         name:"Santa Barbara", region:"Californie · Côte Pacifique",
         text:"Région côtière qui apparaît dans la dernière partie du récit, avec un environnement et des factions distincts.",
         status:"CÔTE PACIFIQUE · PART II",
@@ -951,12 +831,12 @@
     };
 
     const arsenal = [
-      {name:"Revolver",type:"armes",tag:"Arme de poing",desc:"Une arme compacte présente dans l'équipement de plusieurs survivants.",image:"assets/arsenal/revolver.webp"},
-      {name:"Arc",type:"armes",tag:"Silencieux",desc:"Un outil de chasse et de combat apprécié pour sa discrétion.",image:"assets/arsenal/arc.webp"},
-      {name:"Fusil à pompe",type:"armes",tag:"Courte portée",desc:"Une arme puissante à courte distance, mais particulièrement bruyante.",image:"assets/arsenal/fusil-a-pompe.webp"},
-      {name:"Kit de soin",type:"survie",tag:"Soin",desc:"Un équipement de survie qui permet au personnage de récupérer de la santé dans le jeu.",image:"assets/arsenal/kit-de-soin.webp"},
-      {name:"Sac à dos",type:"survie",tag:"Équipement",desc:"Un compagnon de voyage utile pour transporter les ressources et objets récupérés.",image:"assets/arsenal/sac-a-dos.webp"},
-      {name:"Lampe torche",type:"outils",tag:"Exploration",desc:"Indispensable pour explorer les bâtiments sombres, tunnels et espaces abandonnés.",image:"assets/arsenal/lampe-torche.webp"}
+      {name:"Revolver",type:"armes",tag:"Arme de poing",desc:"Une arme compacte utile pour les situations rapides et les distances courtes.",image:"https://images.unsplash.com/photo-1517849845537-4d257902454a?auto=format&fit=crop&w=900&q=85"},
+      {name:"Arc",type:"armes",tag:"Silencieux",desc:"Un outil de chasse et d'assaut apprécié pour son faible bruit et son efficacité.",image:"https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=900&q=85"},
+      {name:"Fusil à pompe",type:"armes",tag:"Courte portée",desc:"Puissant et brutal, il s'avère décisif lors des affrontements rapprochés.",image:"https://images.unsplash.com/photo-1537884944318-2a1a4dd6f67a?auto=format&fit=crop&w=900&q=85"},
+      {name:"Kit de soin",type:"survie",tag:"Soin",desc:"Un équipement de survie essentiel pour stabiliser la santé en conditions difficiles.",image:"https://images.unsplash.com/photo-1584515933487-779824d29309?auto=format&fit=crop&w=900&q=85"},
+      {name:"Sac à dos",type:"survie",tag:"Équipement",desc:"Un compagnon de voyage pour transporter les ressources, outils et objets utiles.",image:"https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=900&q=85"},
+      {name:"Lampe torche",type:"outils",tag:"Exploration",desc:"Indispensable pour traverser les sous-sols, entrepôts et zones sombres.",image:"https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=900&q=85"}
     ];
 
     const gallery = [
@@ -968,6 +848,22 @@
       {title:"Nature silencieuse",url:"https://images.unsplash.com/photo-1511497584788-876760111969?auto=format&fit=crop&w=1200&q=85"}
     ];
 
+    const loreThemes = [
+      {title:"Le coût de la survie", tag:"Moralité", text:"Le monde de TLOU ne raconte pas seulement des combats. Il met l'accent sur les sacrifices, les demi-vérités et les compromis nécessaires pour vivre."},
+      {title:"La nature reprend le terrain", tag:"Environnement", text:"Le Cordyceps transforme la nature en menace, mais aussi en miroir du passé humain. La végétation réinvestit les villes, les routes et les souvenirs."},
+      {title:"Les liens comme ultime arme", tag:"Relations", text:"Au-delà des fusils et des collisions, la vraie tension du jeu réside dans le lien entre les personnages : amour, trahison, loyauté, espoir."},
+      {title:"La violence est un cycle", tag:"Thème central", text:"Part II montre que la vengeance ne fait pas seulement des victimes ; elle modèle des générations et fait tomber les gens dans les mêmes erreurs."},
+      {title:"La peur du vide", tag:"Atmosphère", text:"Le monde post-apocalyptique est fait de silences, de traces et d'absence. Les lieux racontent le passé plus que l'avenir."},
+      {title:"Le choix du compromis", tag:"Psychologie", text:"Chaque personnage cherche une manière de survivre, mais le prix de cette survie est presque toujours moral et personnel."}
+    ];
+
+    const survivalTips = [
+      {icon:"⚑", title:"Rester discret", text:"Le bruit attire les menaces. Le silence est souvent plus utile qu'un combat inutile."},
+      {icon:"✦", title:"Gérer les ressources", text:"Chaque munition, chaque outil, chaque kit compte. Les villes deviennent des mémoires plus qu'un simple approvisionnement."},
+      {icon:"◌", title:"Garder du lien", text:"Les gens nourrissent aussi la survie. L'espoir, la confiance et l'amour sont parfois plus puissants que la force brute."},
+      {icon:"⟡", title:"Se méfier des frontières", text:"Les territoires ne sont pas sûrs. Les groupes, les factions et les lieux n'ont jamais une seule vérité."}
+    ];
+
     const $ = selector => document.querySelector(selector);
     const $$ = selector => [...document.querySelectorAll(selector)];
 
@@ -975,16 +871,17 @@
 
     const revealObserver = new IntersectionObserver(entries => {
       entries.forEach(entry => {
-        if (!entry.isIntersecting) return;
-        entry.target.classList.add("visible");
-        revealObserver.unobserve(entry.target);
+        if (entry.isIntersecting) {
+          entry.target.classList.add("visible");
+          revealObserver.unobserve(entry.target);
+        }
       });
     }, { threshold: .08 });
 
     function observeReveals() {
-      $$(".reveal, section, .character, .arsenal-card").forEach(element => {
-        element.classList.add("reveal");
-        revealObserver.observe(element);
+      $$(".reveal, section, .character, .faction-card, .lore-card, .survival-card, .arsenal-card").forEach(el => {
+        el.classList.add("reveal");
+        revealObserver.observe(el);
       });
     }
 
@@ -996,7 +893,7 @@
       );
 
       $("#characterGrid").innerHTML = list.length ? list.map(character => `
-        <article class="character" data-id="${character.id}" tabindex="0" role="button" aria-label="Voir le dossier de ${character.name}">
+        <article class="character" data-id="${character.id}" tabindex="0" role="button" aria-label="Voir le profil de ${character.name}">
           <div class="character-bg" style="background-image:url('${character.image}')"></div>
           <span class="character-mark">${character.name.split(" ").map(part => part[0]).join("")}</span>
           <span class="card-open" aria-hidden="true">↗</span>
@@ -1018,13 +915,13 @@
           }
         });
       });
+
       observeReveals();
     }
 
     function showCharacter(id) {
       const character = characters.find(item => item.id === id);
       if (!character) return;
-
       $("#characterContent").innerHTML = `
         <small style="color:var(--green);letter-spacing:2px">${character.role.toUpperCase()}</small>
         <h2>${character.name}</h2>
@@ -1054,11 +951,34 @@
       renderCharacters();
     });
 
-    function renderInfected(id = "runner") {
-      const selected = infected.find(item => item.id === id) || infected[0];
+    function renderFactions() {
+      $("#factionGrid").innerHTML = factions.map(faction => `
+        <article class="faction-card">
+          <div class="tag">${faction.tag}</div>
+          <h3>${faction.name}</h3>
+          <p>${faction.desc}</p>
+          <div class="pill">${faction.status}</div>
+        </article>
+      `).join("");
+      observeReveals();
+    }
 
+    function randomCharacter() {
+      const random = characters[Math.floor(Math.random() * characters.length)];
+      $("#randomTitle").textContent = random.name;
+      $("#randomTitle").setAttribute("title", random.role);
+      return random;
+    }
+
+    $("#randomCharacterBtn").addEventListener("click", () => {
+      const chosen = randomCharacter();
+      showCharacter(chosen.id);
+    });
+
+    function renderInfected(selectedId = "runner") {
+      const selected = infected.find(item => item.id === selectedId) || infected[0];
       $("#infectedList").innerHTML = infected.map(item => `
-        <button class="infected-choice ${item.id === selected.id ? "active" : ""}" data-id="${item.id}">
+        <button type="button" class="infected-choice ${item.id === selected.id ? "active" : ""}" data-id="${item.id}">
           <span>${item.name}</span><span aria-hidden="true">↗</span>
         </button>
       `).join("");
@@ -1071,8 +991,7 @@
           <div class="tags">${selected.tags.map(tag => `<span>${tag}</span>`).join("")}</div>
         </div>
         <div class="infected-visual">
-          <img src="${selected.image}" alt="Illustration : ${selected.name}" loading="lazy"
-               onerror="this.style.display='none'">
+          <img src="${selected.image}" alt="Illustration : ${selected.name}" loading="lazy">
         </div>
       `;
 
@@ -1092,7 +1011,6 @@
     function showPlace(id) {
       const place = places[id];
       if (!place) return;
-
       $("#mapPanel").innerHTML = `
         <small>${place.region.toUpperCase()}</small>
         <h3>${place.name}</h3>
@@ -1104,29 +1022,23 @@
         </div>
         <div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--line);font-size:9px;color:var(--green)">${place.status}</div>
       `;
-
       $$(".pin").forEach(button => button.classList.toggle("active", button.dataset.place === id));
     }
 
-    $$(".pin").forEach(button => {
-      button.addEventListener("click", () => showPlace(button.dataset.place));
-    });
+    $$(".pin").forEach(button => button.addEventListener("click", () => showPlace(button.dataset.place)));
 
     function renderArsenal(filter = "all") {
       const list = arsenal.filter(item => filter === "all" || item.type === filter);
-
       $("#arsenalGrid").innerHTML = list.map(item => `
         <article class="arsenal-card">
           <div class="arsenal-image">
-            <img src="${item.image}" alt="Illustration : ${item.name}" loading="lazy"
-                 onerror="this.style.display='none'">
+            <img src="${item.image}" alt="Illustration : ${item.name}" loading="lazy">
           </div>
           <small>${item.tag}</small>
           <h3>${item.name}</h3>
           <p>${item.desc}</p>
         </article>
       `).join("");
-
       observeReveals();
     }
 
@@ -1138,10 +1050,41 @@
     });
 
     $("#galleryGrid").innerHTML = gallery.map(item => `
-      <div class="gallery-item">
+      <button type="button" class="gallery-item" data-url="${item.url}" data-title="${item.title}" aria-label="Voir l'image ${item.title}">
         <img loading="lazy" src="${item.url}" alt="${item.title}">
         <span>${item.title}</span>
-      </div>
+      </button>
+    `).join("");
+
+    $$(".gallery-item").forEach(item => {
+      item.addEventListener("click", () => {
+        $("#lightboxImage").src = item.dataset.url;
+        $("#lightboxImage").alt = item.dataset.title;
+        $("#lightboxTitle").textContent = item.dataset.title;
+        $("#lightbox").showModal();
+      });
+    });
+
+    $("#closeLightbox").addEventListener("click", () => $("#lightbox").close());
+    $("#lightbox").addEventListener("click", event => {
+      if (event.target === $("#lightbox")) $("#lightbox").close();
+    });
+
+    $("#loreGrid").innerHTML = loreThemes.map(theme => `
+      <article class="lore-card">
+        <small>${theme.tag}</small>
+        <h3>${theme.title}</h3>
+        <p>${theme.text}</p>
+        <div class="mini">TLOU</div>
+      </article>
+    `).join("");
+
+    $("#survivalGrid").innerHTML = survivalTips.map(tip => `
+      <article class="survival-card">
+        <div class="icon">${tip.icon}</div>
+        <h3>${tip.title}</h3>
+        <p>${tip.text}</p>
+      </article>
     `).join("");
 
     $("#menuBtn").addEventListener("click", () => {
@@ -1157,9 +1100,11 @@
     }));
 
     renderCharacters();
+    renderFactions();
     renderInfected();
     renderArsenal();
     showPlace("boston");
+    randomCharacter();
     observeReveals();
   </script>
 </body>
