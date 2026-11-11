@@ -1,550 +1,828 @@
-<!doctype html>
+
+<!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Horloge & XP — Mini site</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#080d0a">
+<meta name="description" content="Découvrez l'univers de The Last of Us : personnages, histoire, infectés, factions et jeux.">
+<title>THE LAST OF US — Beyond Survival</title>
 
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
-  <style>
-  :root{
-    --bg:#0f1724;
-    --card: rgba(255,255,255,0.06);
-    --accent: #7c5cff;
-    --accent-2: #00d4ff;
-    --text: #e6eef8;
-    --muted: rgba(230,238,248,0.65);
-  }
+<style>
+:root {
+  --bg: #080d0a;
+  --panel: #101812;
+  --green: #a5c58a;
+  --green2: #718c5e;
+  --white: #f0f1e9;
+  --muted: #9ba59a;
+  --line: rgba(255,255,255,.10);
+}
 
-  *{box-sizing:border-box}
-  html,body{height:100%;margin:0;font-family:'Poppins',system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;}
-  body{
-    background: radial-gradient(1200px 600px at 10% 10%, rgba(124,92,255,0.12), transparent),
-                radial-gradient(900px 400px at 90% 90%, rgba(0,212,255,0.06), transparent),
-                var(--bg);
-    color:var(--text);
-    -webkit-font-smoothing:antialiased;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    padding:24px;
-  }
+* { margin:0; padding:0; box-sizing:border-box; }
 
-  /* App container with room around center */
-  .app{
+html { scroll-behavior:smooth; scroll-padding-top:85px; }
+
+body {
+  background:var(--bg);
+  color:var(--white);
+  font-family:'Inter',sans-serif;
+  overflow-x:hidden;
+}
+
+a { color:inherit; text-decoration:none; }
+button { font:inherit; }
+
+.noise {
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:10;
+  opacity:.045;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E");
+}
+
+header {
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:76px;
+  z-index:20;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 7%;
+  background:rgba(8,13,10,.82);
+  backdrop-filter:blur(18px);
+  border-bottom:1px solid var(--line);
+}
+
+.logo {
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:25px;
+  font-weight:800;
+  letter-spacing:3px;
+}
+
+.logo span { color:var(--green); }
+
+nav { display:flex; gap:28px; }
+
+nav a {
+  color:#c5ccc2;
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:1.5px;
+  transition:.3s;
+}
+
+nav a:hover { color:var(--green); }
+
+.menu-btn {
+  display:none;
+  background:none;
+  color:white;
+  border:0;
+  font-size:25px;
+  cursor:pointer;
+}
+
+.hero {
+  min-height:760px;
+  height:100vh;
+  max-height:1000px;
+  position:relative;
+  display:flex;
+  align-items:center;
+  padding:100px 10% 50px;
+  overflow:hidden;
+  background:
+    linear-gradient(90deg,rgba(5,10,7,.96) 0%,rgba(5,10,7,.75) 45%,rgba(5,10,7,.2) 100%),
+    linear-gradient(0deg,var(--bg),transparent 40%),
+    url('https://images.unsplash.com/photo-1511497584788-876760111969?auto=format&fit=crop&w=2200&q=85') center/cover;
+}
+
+.hero-content { max-width:700px; position:relative; z-index:2; }
+
+.eyebrow {
+  display:flex;
+  align-items:center;
+  gap:12px;
+  color:var(--green);
+  font-size:10px;
+  letter-spacing:4px;
+  font-weight:700;
+  margin-bottom:25px;
+}
+
+.eyebrow:before {
+  content:'';
+  width:35px;
+  height:1px;
+  background:var(--green);
+}
+
+.hero h1 {
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:clamp(65px,10vw,130px);
+  line-height:.83;
+  font-weight:800;
+  letter-spacing:-3px;
+  text-transform:uppercase;
+}
+
+.hero h1 span {
+  color:var(--green);
+  display:block;
+}
+
+.hero p {
+  color:#c3c9c0;
+  font-size:14px;
+  line-height:2;
+  max-width:490px;
+  margin:32px 0;
+}
+
+.actions { display:flex; gap:14px; flex-wrap:wrap; }
+
+.btn {
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:16px 25px;
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  transition:.3s;
+  border:1px solid var(--green);
+}
+
+.btn.primary { background:var(--green); color:#0a100a; }
+.btn.secondary { color:white; border-color:rgba(255,255,255,.3); }
+.btn:hover { transform:translateY(-4px); box-shadow:0 10px 30px #0008; }
+
+.hero-index {
+  position:absolute;
+  right:8%;
+  bottom:12%;
+  color:rgba(255,255,255,.5);
+  font-size:10px;
+  letter-spacing:3px;
+}
+
+section { padding:110px 10%; }
+
+.section-top {
+  display:flex;
+  justify-content:space-between;
+  align-items:end;
+  gap:20px;
+  margin-bottom:48px;
+}
+
+.section-label {
+  color:var(--green);
+  font-size:10px;
+  letter-spacing:4px;
+  font-weight:800;
+  margin-bottom:12px;
+}
+
+h2 {
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:clamp(45px,6vw,75px);
+  line-height:.95;
+  text-transform:uppercase;
+}
+
+.section-desc {
+  color:var(--muted);
+  max-width:350px;
+  font-size:12px;
+  line-height:1.9;
+}
+
+.intro {
+  background:var(--panel);
+  display:grid;
+  grid-template-columns:1.1fr .9fr;
+  gap:70px;
+  align-items:center;
+}
+
+.intro-text p {
+  margin-top:25px;
+  color:var(--muted);
+  font-size:14px;
+  line-height:2.1;
+}
+
+.intro-visual {
+  min-height:360px;
+  position:relative;
+  background:
+    linear-gradient(0deg,#0b120c 0%,transparent 70%),
+    url('https://images.unsplash.com/photo-1472396961693-142e6e269027?auto=format&fit=crop&w=1000&q=85') center/cover;
+  border:1px solid var(--line);
+}
+
+.visual-caption {
+  position:absolute;
+  bottom:25px;
+  left:25px;
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:25px;
+  letter-spacing:2px;
+}
+
+.characters { background:#080d0a; }
+
+.search-wrap {
+  margin-bottom:30px;
+}
+
+.search-wrap input {
+  width:100%;
+  max-width:400px;
+  padding:15px 18px;
+  background:#111a13;
+  color:white;
+  border:1px solid var(--line);
+  outline:none;
+  font-size:12px;
+}
+
+.search-wrap input:focus { border-color:var(--green); }
+
+.character-grid {
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:18px;
+}
+
+.character {
+  min-height:330px;
+  position:relative;
+  overflow:hidden;
+  background:linear-gradient(145deg,#253527,#111811 65%);
+  border:1px solid var(--line);
+  transition:.4s;
+}
+
+.character:hover {
+  transform:translateY(-8px);
+  border-color:var(--green2);
+}
+
+.character-art {
+  position:absolute;
+  inset:0;
+  background:radial-gradient(ellipse at 50% 25%,#72875b55,transparent 55%);
+  transition:.4s;
+}
+
+.character:hover .character-art {
+  background:radial-gradient(ellipse at 50% 25%,#9bbd7766,transparent 65%);
+}
+
+.character-content {
+  position:absolute;
+  bottom:0;
+  width:100%;
+  padding:25px;
+  background:linear-gradient(0deg,#080d0a 5%,transparent);
+}
+
+.character-content small {
+  color:var(--green);
+  font-size:9px;
+  letter-spacing:3px;
+  font-weight:800;
+}
+
+.character h3 {
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:36px;
+  text-transform:uppercase;
+  margin:8px 0;
+}
+
+.character p {
+  color:#aeb7ac;
+  font-size:11px;
+  line-height:1.8;
+}
+
+.timeline {
+  background:var(--panel);
+}
+
+.timeline-list {
+  border-left:1px solid var(--green2);
+  margin-left:12px;
+  padding-left:35px;
+}
+
+.event {
+  position:relative;
+  padding:0 0 48px;
+}
+
+.event:before {
+  content:'';
+  position:absolute;
+  width:9px;
+  height:9px;
+  border-radius:50%;
+  background:var(--green);
+  left:-40px;
+  top:5px;
+  box-shadow:0 0 15px var(--green);
+}
+
+.event small {
+  color:var(--green);
+  letter-spacing:2px;
+  font-size:10px;
+  font-weight:700;
+}
+
+.event h3 {
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:32px;
+  margin:10px 0;
+  text-transform:uppercase;
+}
+
+.event p {
+  color:var(--muted);
+  font-size:12px;
+  line-height:1.9;
+  max-width:650px;
+}
+
+.world-grid {
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:18px;
+}
+
+.world-card {
+  min-height:240px;
+  padding:32px;
+  background:linear-gradient(135deg,#18241a,#0e150f);
+  border:1px solid var(--line);
+  transition:.3s;
+}
+
+.world-card:hover { border-color:var(--green2); }
+
+.world-card .number {
+  color:var(--green);
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:45px;
+}
+
+.world-card h3 {
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:30px;
+  margin:12px 0;
+  text-transform:uppercase;
+}
+
+.world-card p {
+  color:var(--muted);
+  font-size:12px;
+  line-height:1.9;
+}
+
+.games { background:var(--panel); }
+
+.game-grid {
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:18px;
+}
+
+.game {
+  border:1px solid var(--line);
+  padding:30px;
+  background:#0b110c;
+  transition:.3s;
+}
+
+.game:hover { transform:translateY(-5px); border-color:var(--green); }
+
+.game small {
+  color:var(--green);
+  letter-spacing:2px;
+  font-size:9px;
+}
+
+.game h3 {
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:32px;
+  margin:18px 0 10px;
+}
+
+.game p {
+  color:var(--muted);
+  font-size:12px;
+  line-height:1.9;
+}
+
+.quote {
+  text-align:center;
+  padding:140px 12%;
+  background:
+    linear-gradient(#080d0add,#080d0add),
+    url('https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=1800&q=85') center/cover;
+}
+
+.quote blockquote {
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:clamp(32px,5vw,60px);
+  line-height:1.1;
+  text-transform:uppercase;
+}
+
+.quote blockquote span { color:var(--green); }
+
+.quote small {
+  display:block;
+  margin-top:25px;
+  color:var(--muted);
+  font-size:10px;
+  letter-spacing:3px;
+}
+
+footer {
+  padding:45px 10%;
+  display:flex;
+  justify-content:space-between;
+  gap:20px;
+  flex-wrap:wrap;
+  border-top:1px solid var(--line);
+  color:var(--muted);
+  font-size:10px;
+  line-height:2;
+}
+
+footer strong { color:var(--green); }
+
+.reveal {
+  opacity:0;
+  transform:translateY(25px);
+  transition:opacity .7s ease,transform .7s ease;
+}
+
+.reveal.visible {
+  opacity:1;
+  transform:translateY(0);
+}
+
+@media(max-width:850px) {
+  header { padding:0 5%; }
+  nav {
+    display:none;
+    position:absolute;
+    top:76px;
+    left:0;
     width:100%;
-    max-width:1000px;
-    min-height:720px;
-    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-    border-radius:16px;
-    padding:24px;
-    position:relative;
-    box-shadow: 0 10px 40px rgba(2,6,23,0.6);
-    overflow:hidden;
-    display:grid;
-    grid-template-columns: 320px 1fr 260px;
-    grid-template-rows: 160px 1fr 120px;
-    gap:16px;
+    padding:25px;
+    background:#0a100b;
+    flex-direction:column;
+    gap:24px;
+    border-bottom:1px solid var(--line);
   }
+  nav.open { display:flex; }
+  .menu-btn { display:block; }
+  section { padding:80px 6%; }
+  .intro { grid-template-columns:1fr; gap:35px; }
+  .character-grid { grid-template-columns:repeat(2,1fr); }
+  .game-grid { grid-template-columns:1fr; }
+}
 
-  /* Weather (top-left) */
-  .weather-panel{
-    grid-column: 1 / 2;
-    grid-row: 1 / 3;
-    align-self:start;
-    width:100%;
-    background:var(--card);
-    border-radius:12px;
-    padding:12px;
-    border:1px solid rgba(255,255,255,0.03);
-    box-shadow:0 8px 30px rgba(2,6,23,0.45);
-    overflow:hidden;
-  }
-  .weather-panel h3{margin:0 0 8px 0;font-size:16px}
-  .location-name{font-size:13px;color:var(--muted);margin-bottom:6px}
-  .weather-temp{font-size:36px;font-weight:700}
-  .weather-desc{font-weight:500;color:var(--muted)}
-  .weather-actions{margin-top:12px;display:flex;gap:8px}
-
-  /* Level card (top-right area) */
-  .level-card{
-    grid-column: 3 / 4;
-    grid-row: 1 / 2;
-    background:var(--card);
-    border-radius:12px;
-    padding:12px;
-    border:1px solid rgba(255,255,255,0.03);
-    box-shadow:0 8px 30px rgba(2,6,23,0.2);
-  }
-  #levelText{font-weight:700;font-size:18px}
-  #xpText{font-size:13px;color:var(--muted)}
-  #totalXPText{font-size:12px;color:var(--muted);margin-top:6px}
-  .xp-bar{height:12px;background:rgba(255,255,255,0.03);border-radius:8px;margin-top:10px;overflow:hidden}
-  .xp-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--accent),var(--accent-2));transition:width .8s}
-
-  /* Trophy panel (under level card) */
-  .trophy-panel{
-    grid-column: 3 / 4;
-    grid-row: 2 / 3;
-    background:var(--card);
-    border-radius:12px;
-    padding:12px;
-    border:1px solid rgba(255,255,255,0.03);
-    overflow:auto;
-    max-height:420px;
-  }
-  .trophy-list{display:flex;flex-direction:column;gap:8px}
-  .trophy{display:flex;gap:8px;align-items:center;padding:8px;border-radius:8px;background:rgba(255,255,255,0.01)}
-  .trophy.locked{opacity:0.45;filter:grayscale(40%)}
-  .trophy .icon{width:40px;height:40px;border-radius:8px;background:rgba(255,255,255,0.03);display:flex;align-items:center;justify-content:center;font-weight:700}
-  .trophy .meta .name{font-weight:700}
-  .trophy .meta .req{font-size:12px;color:var(--muted)}
-
-  /* Clock in center (only the time) */
-  .clock-card{
-    grid-column: 2 / 3;
-    grid-row: 1 / 4;
-    align-self:center;
-    justify-self:center;
-    width:420px;
-    height:360px;
-    background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-    border-radius:16px;
-    padding:36px 24px;
-    border:1px solid rgba(255,255,255,0.03);
-    box-shadow: 0 12px 40px rgba(2,6,23,0.45);
-    display:flex;
-    align-items:center;
-    justify-content:center;
-  }
-  .time{
-    font-size:96px;
-    font-weight:800;
-    line-height:1;
-    color:transparent;
-    background:linear-gradient(90deg,var(--accent),var(--accent-2));
-    -webkit-background-clip:text;
-    background-clip:text;
-    -webkit-text-fill-color:transparent;
-    text-fill-color:transparent;
-    user-select:none;
-    cursor:pointer;
-  }
-
-  /* Bottom area (controls) */
-  .bottom-controls{
-    grid-column: 1 / 4;
-    grid-row: 3 / 4;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    gap:12px;
-  }
-  .controls{display:flex;gap:8px}
-  .controls button{padding:8px 12px;border-radius:8px;border:none;background:rgba(255,255,255,0.04);color:var(--text);cursor:pointer}
-
-  /* Toast & confetti */
-  .toast{position:fixed;right:18px;bottom:18px;padding:10px 14px;border-radius:10px;color:#fff;z-index:9999;box-shadow:0 8px 30px rgba(2,6,23,0.6)}
-  .confetti{position:fixed;left:50%;top:30%;width:10px;height:10px;border-radius:2px;opacity:0.95;z-index:9998;pointer-events:none;animation: confetti-fall 1200ms linear forwards}
-  @keyframes confetti-fall {0% { transform: translate3d(0,0,0) rotate(0deg); opacity:1; } 100% { transform: translate3d(var(--dx, 0px), 700px, 0) rotate(720deg); opacity:0; }}
-
-  @media (max-width:900px){
-    .app{grid-template-columns: 1fr;grid-template-rows: auto auto 1fr auto;gap:12px}
-    .weather-panel{grid-column:1/2;grid-row:1/2}
-    .level-card{grid-column:1/2;grid-row:2/3}
-    .trophy-panel{grid-column:1/2;grid-row:3/4}
-    .clock-card{grid-column:1/2;grid-row:4/5;width:100%;height:260px}
-    .bottom-controls{grid-column:1/2;grid-row:5/6}
-  }
-  </style>
+@media(max-width:550px) {
+  .hero { min-height:700px; padding:100px 7% 50px; }
+  .hero h1 { font-size:72px; }
+  .section-top { display:block; }
+  .section-desc { margin-top:20px; }
+  .character-grid,.world-grid { grid-template-columns:1fr; }
+  .character { min-height:300px; }
+  .hero-index { display:none; }
+  .quote { padding:100px 7%; }
+}
+</style>
 </head>
+
 <body>
-  <div class="app" id="app">
-    <!-- Weather -->
-    <aside class="weather-panel" id="weatherPanel" aria-hidden="false">
-      <h3>Météo locale</h3>
-      <div id="locationName" class="location-name">...</div>
-      <div id="weatherContent">
-        <p>Chargement...</p>
-      </div>
-      <div class="weather-actions">
-        <button id="forceLocation">Rafraîchir</button>
-        <button id="fallbackCity">Entrer une ville</button>
-      </div>
-    </aside>
+<div class="noise"></div>
 
-    <!-- Center clock -->
-    <main class="clock-card" id="clockCard">
-      <div id="time" class="time">--:--:--</div>
-    </main>
+<header>
+  <a class="logo" href="#home">TLOU<span>.</span></a>
 
-    <!-- Level (top-right) -->
-    <div class="level-card" id="levelCard" role="status" aria-live="polite">
-      <div id="levelText">Niveau 1</div>
-      <div id="xpText">XP: 0 / 100</div>
-      <div id="totalXPText">Total XP : 0</div>
-      <div class="xp-bar" aria-hidden="true" style="margin-top:10px">
-        <div id="xpFill" class="xp-fill"></div>
+  <nav id="nav">
+    <a href="#home">ACCUEIL</a>
+    <a href="#univers">UNIVERS</a>
+    <a href="#personnages">PERSONNAGES</a>
+    <a href="#histoire">HISTOIRE</a>
+    <a href="#jeux">LES JEUX</a>
+  </nav>
+
+  <button class="menu-btn" id="menuBtn" aria-label="Ouvrir le menu">☰</button>
+</header>
+
+<main>
+  <section class="hero" id="home">
+    <div class="hero-content reveal">
+      <div class="eyebrow">UNE HUMANITÉ AU BORD DU CHAOS</div>
+      <h1>THE LAST <span>OF US.</span></h1>
+      <p>
+        Quand le monde s'effondre, que reste-t-il de notre humanité ?
+        Explorez un univers où chaque rencontre, chaque décision et
+        chaque sacrifice peut tout changer.
+      </p>
+      <div class="actions">
+        <a class="btn primary" href="#univers">EXPLORER L'UNIVERS ↗</a>
+        <a class="btn secondary" href="#personnages">DÉCOUVRIR LES PERSONNAGES</a>
       </div>
     </div>
+    <div class="hero-index">BEYOND SURVIVAL — FAN WEBSITE</div>
+  </section>
 
-    <!-- Trophies (under level) -->
-    <div class="trophy-panel" id="trophyPanel" aria-live="polite">
-      <h4>Trophées</h4>
-      <div class="trophy-list" id="trophyList"></div>
+  <section class="intro" id="univers">
+    <div class="intro-text reveal">
+      <div class="section-label">01 — L'UNIVERS</div>
+      <h2>UN MONDE<br>À RECONSTRUIRE.</h2>
+      <p>
+        En 2013, une pandémie provoquée par le champignon Cordyceps
+        transforme une grande partie de l'humanité en créatures
+        infectées. Les villes tombent, les gouvernements s'effondrent
+        et les survivants tentent de s'organiser.
+      </p>
+      <p>
+        Vingt ans plus tard, la civilisation n'est plus qu'un souvenir.
+        Entre zones de quarantaine, communautés isolées et territoires
+        abandonnés, la survie est devenue la seule règle.
+      </p>
     </div>
+    <div class="intro-visual reveal">
+      <div class="visual-caption">LA NATURE REPREND SES DROITS.</div>
+    </div>
+  </section>
 
-    <!-- Bottom controls -->
-    <div class="bottom-controls">
-      <div class="controls">
-        <button id="addXP">+ XP (test +25)</button>
-        <button id="resetXP">Réinitialiser</button>
+  <section class="characters" id="personnages">
+    <div class="section-top reveal">
+      <div>
+        <div class="section-label">02 — LES VISAGES DE CE MONDE</div>
+        <h2>PERSONNAGES.</h2>
       </div>
-      <div style="color:var(--muted);font-size:13px">Info rapide : 1 min = 10 XP • 10 min = 100 XP • 1 h = 1000 XP • 12 h = 12 000 XP</div>
+      <p class="section-desc">
+        Des destins liés par la survie, la perte, la vengeance et l'espoir.
+      </p>
     </div>
-  </div>
 
-  <script>
-  // Config XP
-  const XP_PER_MINUTE = 10;     // +10 toutes les minutes
-  const HOURLY_BONUS = 400;     // bonus chaque heure complète => 1h = 60*10 + 400 = 1000
-  const STORAGE_KEY = "mini_clock_xp_v4";
+    <div class="search-wrap reveal">
+      <input id="characterSearch" type="search"
+        placeholder="Rechercher un personnage...">
+    </div>
 
-  function xpToNextLevel(level){
-    return Math.floor(100 * Math.pow(1.5, level-1));
-  }
+    <div class="character-grid" id="characterGrid">
 
-  // State stocké
-  let state = { xp:0, level:1, totalXP:0 };
-
-  function loadState(){
-    try{
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if(raw){
-        const parsed = JSON.parse(raw);
-        if(typeof parsed.xp==='number' && typeof parsed.level==='number' && typeof parsed.totalXP==='number'){
-          state = parsed;
-        }
-      }
-    }catch(e){ console.warn("loadState:", e) }
-  }
-  function saveState(){ try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e){ console.warn(e) } }
-
-  // Clock
-  const timeEl = document.getElementById("time");
-  function pad(n){ return n < 10 ? "0"+n : n; }
-  function updateClock(){
-    const now = new Date();
-    timeEl.textContent = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
-  }
-  loadState();
-  updateClock();
-  setInterval(updateClock, 1000);
-
-  // XP UI
-  const levelText = document.getElementById("levelText");
-  const xpText = document.getElementById("xpText");
-  const totalXPText = document.getElementById("totalXPText");
-  const xpFill = document.getElementById("xpFill");
-  const levelCardEl = document.getElementById("levelCard");
-
-  function renderXP(){
-    const next = xpToNextLevel(state.level);
-    const pct = Math.min(100, Math.round(100 * state.xp / next));
-    levelText.textContent = `Niveau ${state.level}`;
-    xpText.textContent = `XP: ${state.xp} / ${next}`;
-    totalXPText.textContent = `Total XP : ${state.totalXP.toLocaleString()}`;
-    xpFill.style.width = pct + "%";
-  }
-
-  function addXP(amount, reason){
-    if(typeof amount !== "number" || amount <= 0) return;
-    state.totalXP += amount;
-    state.xp += amount;
-    while(state.xp >= xpToNextLevel(state.level)){
-      state.xp -= xpToNextLevel(state.level);
-      state.level++;
-      flashLevel();
-    }
-    saveState();
-    renderXP();
-    checkTrophies();
-    if(reason) showToast(`+${amount} XP — ${reason}`);
-  }
-
-  function flashLevel(){
-    levelCardEl.classList.add("flash");
-    setTimeout(()=>levelCardEl.classList.remove("flash"), 900);
-  }
-
-  // Toast
-  function showToast(text, color){
-    const t = document.createElement("div");
-    t.className = "toast";
-    t.textContent = text;
-    t.style.background = color || "linear-gradient(90deg,var(--accent),var(--accent-2))";
-    document.body.appendChild(t);
-    setTimeout(()=>{ t.style.opacity = '0'; t.style.transform='translateY(8px)'; }, 2400);
-    setTimeout(()=>t.remove(), 3000);
-  }
-
-  renderXP();
-
-  // schedule XP aligned to minute
-  function scheduleXP(){
-    const now = new Date();
-    const msToNextMinute = (60 - now.getSeconds())*1000 - now.getMilliseconds() + 50;
-    setTimeout(()=> {
-      minuteTick();
-      setInterval(minuteTick, 60_000);
-    }, msToNextMinute);
-  }
-  function minuteTick(){
-    addXP(XP_PER_MINUTE, "minute écoulée");
-    const now = new Date();
-    if(now.getMinutes() === 0) addXP(HOURLY_BONUS, "bonus horaire");
-  }
-  scheduleXP();
-
-  // Controls
-  document.getElementById("addXP").addEventListener("click", ()=> addXP(25, "test manuel"));
-  document.getElementById("resetXP").addEventListener("click", ()=>{
-    if(confirm("Réinitialiser l'XP, niveau et trophées ?")){
-      state = {xp:0, level:1, totalXP:0};
-      saveState();
-      renderXP();
-      resetTrophies();
-      showToast("Réinitialisé", "linear-gradient(90deg,#666,#999)");
-    }
-  });
-
-  /* Trophées */
-  const trophyDefs = [
-    { id: "novice", name: "Novice", desc: "Atteins 100 XP", req: 100, emoji: "🌱" },
-    { id: "apprenti", name: "Apprenti", desc: "Atteins 1 000 XP", req: 1000, emoji: "🏅" },
-    { id: "heureux", name: "Heureux", desc: "Atteins 1 heure (1 000 XP)", req: 1000, emoji: "⏱️" },
-    { id: "veteran", name: "Vétéran", desc: "Atteins 10 000 XP", req: 10000, emoji: "🥈" },
-    { id: "insomnia", name: "Insomnia", desc: "12 heures = 12 000 XP (easter egg)", req: 12000, emoji: "🌙" },
-    { id: "collector", name: "Collectionneur", desc: "Atteins 50 000 XP", req: 50000, emoji: "🏆" },
-    // easter-egg trophy (no req) — NOT shown in the list, unlocked by interactions
-    { id: "curious", name: "Curieux", desc: "Easter egg caché", req: 0, emoji: "🔍", hidden:true }
-  ];
-
-  let trophies = {}; // id -> unlocked info
-  function loadTrophies(){ try{ const raw = localStorage.getItem(STORAGE_KEY + "_trophies"); if(raw) trophies = JSON.parse(raw); }catch(e){ trophies = {}; } }
-  function saveTrophies(){ try{ localStorage.setItem(STORAGE_KEY + "_trophies", JSON.stringify(trophies)); }catch(e){ console.warn(e) } }
-  function resetTrophies(){ trophies = {}; saveTrophies(); renderTrophies(); }
-
-  function checkTrophies(){
-    loadTrophies();
-    let changed = false;
-    for(const t of trophyDefs){
-      if(t.hidden) continue; // don't auto-show hidden trophies
-      if(!trophies[t.id] && state.totalXP >= t.req && t.req > 0){
-        trophies[t.id] = { unlockedAt: Date.now() };
-        changed = true;
-        showToast(`Trophée débloqué : ${t.name} ${t.emoji}`);
-        spawnConfetti();
-      }
-    }
-    if(changed) saveTrophies();
-    renderTrophies();
-  }
-
-  function unlockTrophyById(id){
-    loadTrophies();
-    if(!trophies[id]){
-      trophies[id] = { unlockedAt: Date.now() };
-      saveTrophies();
-      renderTrophies();
-      const t = trophyDefs.find(x=>x.id===id);
-      showToast(`Trophée débloqué : ${t ? t.name : id}`);
-      spawnConfetti();
-    }
-  }
-
-  const trophyListEl = document.getElementById("trophyList");
-  function renderTrophies(){
-    loadTrophies();
-    trophyListEl.innerHTML = "";
-    // Only show trophies that require XP (req > 0). Hidden trophies (req==0 && hidden) are not displayed.
-    const visible = trophyDefs.filter(t => t.req > 0);
-    for(const t of visible){
-      const unlocked = !!trophies[t.id];
-      const tr = document.createElement("div");
-      tr.className = "trophy" + (unlocked ? "" : " locked");
-      tr.innerHTML = `<div class="icon">${t.emoji}</div>
-                      <div class="meta"><div class="name">${t.name}</div><div class="req">${t.desc} • ${t.req.toLocaleString()} XP</div></div>`;
-      trophyListEl.appendChild(tr);
-    }
-  }
-
-  loadTrophies();
-  renderTrophies();
-  checkTrophies();
-
-  /* Météo auto (réduite) */
-  const weatherContent = document.getElementById("weatherContent");
-  const locationNameEl = document.getElementById("locationName");
-  const DEFAULT_CITY = { latitude: 48.8566, longitude: 2.3522, pretty: "Paris, France (fallback)" };
-
-  document.getElementById("forceLocation").addEventListener("click", async ()=> await showWeather({force:true}));
-  document.getElementById("fallbackCity").addEventListener("click", async ()=>{
-    const city = prompt("Entrez le nom d'une ville (ex: Paris) :");
-    if(city) await fetchWeatherByCity(city);
-  });
-
-  (async function initWeather(){ await showWeather(); })();
-
-  async function showWeather(opts = {}) {
-    const { force=false } = opts;
-    locationNameEl.textContent = "";
-    weatherContent.innerHTML = "<p>Récupération de la position...</p>";
-
-    let used = null;
-
-    if(navigator.geolocation && !force){
-      try{
-        const pos = await new Promise((resolve, reject) => navigator.geolocation.getCurrentPosition(resolve, reject, {timeout:7000}));
-        used = { latitude: pos.coords.latitude, longitude: pos.coords.longitude };
-      }catch(err){ console.warn("Geoloc failed:", err); }
-    }
-
-    if(!used){
-      try{
-        const res = await fetch('https://ipapi.co/json/');
-        if(res.ok){
-          const ip = await res.json();
-          if(ip && typeof ip.latitude!=='undefined' && typeof ip.longitude!=='undefined'){
-            const cityLower = (ip.city || "").toLowerCase();
-            const postal = ip.postal || "";
-            if(cityLower.includes("amiens") || postal.startsWith("80")){
-              used = { latitude: DEFAULT_CITY.latitude, longitude: DEFAULT_CITY.longitude, note: "fallback to Paris (override Amiens)" };
-            } else {
-              used = { latitude: ip.latitude, longitude: ip.longitude, pretty: (ip.city ? ip.city + (ip.region ? ", "+ip.region : "") + (ip.country_name ? ", " + ip.country_name : "") : null) };
-            }
-          }
-        }
-      }catch(e){ console.warn("IP lookup failed:", e); }
-    }
-
-    if(!used) used = { latitude: DEFAULT_CITY.latitude, longitude: DEFAULT_CITY.longitude, pretty: DEFAULT_CITY.pretty };
-
-    await fetchWeather(used.latitude, used.longitude, used.pretty || null, used.note || null);
-  }
-
-  async function fetchWeather(lat, lon, knownLocationName = null, note = null){
-    locationNameEl.textContent = "";
-    weatherContent.innerHTML = "<p>Chargement météo...</p>";
-    try{
-      const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&timezone=auto`;
-      const res = await fetch(url);
-      if(!res.ok) throw new Error(res.statusText);
-      const data = await res.json();
-      const cw = data.current_weather;
-      if(!cw){ weatherContent.innerHTML = "<p>Météo indisponible.</p>"; return; }
-
-      if(!knownLocationName){
-        try{
-          const revUrl = `https://geocoding-api.open-meteo.com/v1/reverse?latitude=${lat}&longitude=${lon}&count=1&language=fr`;
-          const rres = await fetch(revUrl);
-          if(rres.ok){
-            const rdata = await rres.json();
-            if(rdata.results && rdata.results.length > 0){
-              const r = rdata.results[0];
-              knownLocationName = `${r.name}${r.admin1 ? ', '+r.admin1 : ''}${r.country ? ', '+r.country : ''}${r.postal_code ? ' ('+r.postal_code+')' : ''}`;
-            }
-          }
-        }catch(e){}
-      }
-
-      if(knownLocationName) locationNameEl.textContent = knownLocationName + (note ? " • " + note : "");
-      else locationNameEl.textContent = note || "";
-
-      const temp = cw.temperature;
-      const wind = cw.windspeed;
-      const code = cw.weathercode;
-      const desc = weatherCodeToText(code);
-      weatherContent.innerHTML = `
-        <div style="display:flex;align-items:center;gap:10px">
-          <div style="flex:0 0 auto"><div class="weather-temp">${Math.round(temp)}°C</div></div>
-          <div style="flex:1"><div class="weather-desc">${desc}</div><div style="font-size:12px;color:var(--muted);margin-top:6px">Vent ${wind} km/h</div></div>
+      <article class="character reveal" data-name="joel miller">
+        <div class="character-art"></div>
+        <div class="character-content">
+          <small>LE SURVIVANT</small>
+          <h3>JOEL MILLER</h3>
+          <p>Un homme marqué par son passé, prêt à tout pour protéger ceux qu'il aime.</p>
         </div>
-      `;
-    }catch(e){
-      weatherContent.innerHTML = `<p>Erreur météo: ${e.message}</p>`;
-    }
-  }
+      </article>
 
-  async function fetchWeatherByCity(city){
-    locationNameEl.textContent = "";
-    weatherContent.innerHTML = "<p>Recherche de la ville...</p>";
-    try{
-      const gurl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=fr`;
-      const gres = await fetch(gurl);
-      if(!gres.ok) throw new Error(gres.statusText);
-      const gdata = await gres.json();
-      if(!gdata.results || gdata.results.length === 0){
-        weatherContent.innerHTML = `<p>Ville introuvable: ${city}</p>`;
-        return;
-      }
-      const r = gdata.results[0];
-      const pretty = `${r.name}${r.admin1 ? ', '+r.admin1 : ''}${r.country ? ', '+r.country : ''}${r.postal_code ? ' ('+r.postal_code+')' : ''}`;
-      await fetchWeather(r.latitude, r.longitude, pretty);
-    }catch(e){
-      weatherContent.innerHTML = `<p>Erreur géocodage: ${e.message}</p>`;
-    }
-  }
+      <article class="character reveal" data-name="ellie williams">
+        <div class="character-art"></div>
+        <div class="character-content">
+          <small>L'IMMUNE</small>
+          <h3>ELLIE WILLIAMS</h3>
+          <p>Une jeune survivante dont l'immunité pourrait changer le destin de l'humanité.</p>
+        </div>
+      </article>
 
-  function weatherCodeToText(code){
-    const map = {
-      0:"Ciel clair",1:"Principalement ensoleillé",2:"Partiellement nuageux",3:"Couvert",
-      45:"Brouillard",48:"Brouillard givrant",51:"Bruine légère",53:"Bruine modérée",55:"Bruine dense",
-      56:"Bruine verglaçante",57:"Bruine verglaçante dense",61:"Pluie légère",63:"Pluie modérée",65:"Pluie forte",
-      66:"Pluie verglaçante légère",67:"Pluie verglaçante forte",71:"Neige légère",73:"Neige modérée",75:"Neige forte",
-      77:"Grains de neige",80:"Averses légères",81:"Averses modérées",82:"Averses violentes",85:"Averses de neige légères",
-      86:"Averses de neige fortes",95:"Orage",96:"Orage avec grêle légère",99:"Orage avec grêle forte"
-    };
-    return map[code] || "Temps inconnu";
-  }
+      <article class="character reveal" data-name="abby anderson">
+        <div class="character-art"></div>
+        <div class="character-content">
+          <small>LA SOLDATE</small>
+          <h3>ABBY ANDERSON</h3>
+          <p>Une combattante déterminée, confrontée aux conséquences de ses choix.</p>
+        </div>
+      </article>
 
-  /* Easter-egg: hidden (no hint). Clicking time may unlock hidden trophy(s). */
-  let clickCount = 0;
-  timeEl.addEventListener("click", ()=>{
-    clickCount++;
-    if(clickCount >= 7){
-      unlockTrophyById('curious'); // hidden trophy
-      clickCount = 0;
-    }
-    clearTimeout(timeEl._clickTimeout);
-    timeEl._clickTimeout = setTimeout(()=> clickCount = 0, 4000);
+      <article class="character reveal" data-name="tommy miller">
+        <div class="character-art"></div>
+        <div class="character-content">
+          <small>LE FRÈRE</small>
+          <h3>TOMMY MILLER</h3>
+          <p>Un ancien membre des Lucioles qui cherche à construire une vie stable.</p>
+        </div>
+      </article>
+
+      <article class="character reveal" data-name="dina">
+        <div class="character-art"></div>
+        <div class="character-content">
+          <small>LA SURVIVANTE</small>
+          <h3>DINA</h3>
+          <p>Une survivante attachante, courageuse et profondément loyale.</p>
+        </div>
+      </article>
+
+      <article class="character reveal" data-name="tess">
+        <div class="character-art"></div>
+        <div class="character-content">
+          <small>LA PARTENAIRE</small>
+          <h3>TESS</h3>
+          <p>Une contrebandière expérimentée qui connaît les dangers du monde extérieur.</p>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <section class="timeline" id="histoire">
+    <div class="section-top reveal">
+      <div>
+        <div class="section-label">03 — CHRONOLOGIE</div>
+        <h2>UNE HISTOIRE<br>DE SURVIE.</h2>
+      </div>
+      <p class="section-desc">
+        Les grandes étapes d'un monde bouleversé par l'épidémie.
+        Attention : cette section contient des révélations sur l'histoire.
+      </p>
+    </div>
+
+    <div class="timeline-list">
+      <article class="event reveal">
+        <small>2013 — LE JOUR DE L'ÉPIDÉMIE</small>
+        <h3>LA CHUTE DU MONDE</h3>
+        <p>Une épidémie de Cordyceps se propage rapidement. Les premières villes sombrent dans le chaos et les institutions s'effondrent.</p>
+      </article>
+
+      <article class="event reveal">
+        <small>2033 — THE LAST OF US PART I</small>
+        <h3>UN VOYAGE INATTENDU</h3>
+        <p>Joel accepte d'accompagner Ellie à travers les États-Unis. Leur voyage va progressivement transformer leur relation.</p>
+      </article>
+
+      <article class="event reveal">
+        <small>2034 — LEFT BEHIND</small>
+        <h3>UN SOUVENIR DU PASSÉ</h3>
+        <p>Une histoire centrée sur Ellie et Riley, qui explore un moment important de la vie d'Ellie.</p>
+      </article>
+
+      <article class="event reveal">
+        <small>ENVIRON 4 ANS PLUS TARD</small>
+        <h3>THE LAST OF US PART II</h3>
+        <p>Une nouvelle histoire de vengeance, de deuil et de choix difficiles, racontée à travers plusieurs perspectives.</p>
+      </article>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-top reveal">
+      <div>
+        <div class="section-label">04 — COMPRENDRE CE MONDE</div>
+        <h2>MENACES & FACTIONS.</h2>
+      </div>
+    </div>
+
+    <div class="world-grid">
+      <article class="world-card reveal">
+        <div class="number">01</div>
+        <h3>LES INFECTÉS</h3>
+        <p>Rôdeurs, Coureurs, Claqueurs et Colosses : les différentes étapes de l'infection par le Cordyceps représentent des menaces redoutables.</p>
+      </article>
+
+      <article class="world-card reveal">
+        <div class="number">02</div>
+        <h3>LES LUCIOLES</h3>
+        <p>Un mouvement révolutionnaire qui lutte contre l'autorité militaire et cherche à trouver un moyen de combattre l'épidémie.</p>
+      </article>
+
+      <article class="world-card reveal">
+        <div class="number">03</div>
+        <h3>FEDRA</h3>
+        <p>Une organisation militaire qui contrôle plusieurs zones de quarantaine et impose ses propres règles aux survivants.</p>
+      </article>
+
+      <article class="world-card reveal">
+        <div class="number">04</div>
+        <h3>LES WLF & SÉRAphites</h3>
+        <p>Deux groupes opposés qui se disputent le contrôle de Seattle, chacun avec ses croyances, ses méthodes et ses ambitions.</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="games" id="jeux">
+    <div class="section-top reveal">
+      <div>
+        <div class="section-label">05 — LA FRANCHISE</div>
+        <h2>LES JEUX.</h2>
+      </div>
+      <p class="section-desc">
+        Découvrez les différents chapitres de la saga.
+      </p>
+    </div>
+
+    <div class="game-grid">
+      <article class="game reveal">
+        <small>2013 / REMAKE 2022</small>
+        <h3>THE LAST OF US PART I</h3>
+        <p>Le début d'un voyage à travers une Amérique dévastée, avec Joel et Ellie.</p>
+      </article>
+
+      <article class="game reveal">
+        <small>2014</small>
+        <h3>LEFT BEHIND</h3>
+        <p>Une extension qui raconte une partie du passé d'Ellie et sa relation avec Riley.</p>
+      </article>
+
+      <article class="game reveal">
+        <small>2020</small>
+        <h3>THE LAST OF US PART II</h3>
+        <p>Une suite plus sombre et complexe, qui explore les conséquences de la violence.</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="quote reveal">
+    <blockquote>
+      QUAND TOUT A ÉTÉ PERDU,<br>
+      <span>QUE RESTE-T-IL À SAUVER ?</span>
+    </blockquote>
+    <small>THE LAST OF US — BEYOND SURVIVAL</small>
+  </section>
+</main>
+
+<footer>
+  <div>
+    <strong>TLOU. — BEYOND SURVIVAL</strong><br>
+    Un site fan consacré à l'univers de The Last of Us.
+  </div>
+  <div>
+    Projet de fan non officiel.<br>
+    The Last of Us appartient à Naughty Dog / Sony Interactive Entertainment.
+  </div>
+</footer>
+
+<script>
+// Menu mobile
+const menuBtn = document.getElementById('menuBtn');
+const nav = document.getElementById('nav');
+
+menuBtn.addEventListener('click', () => {
+  nav.classList.toggle('open');
+  menuBtn.textContent = nav.classList.contains('open') ? '✕' : '☰';
+});
+
+nav.querySelectorAll('a').forEach(link => {
+  link.addEventListener('click', () => {
+    nav.classList.remove('open');
+    menuBtn.textContent = '☰';
   });
+});
 
-  /* Confetti */
-  function spawnConfetti(){
-    const colors = ['#ffd166','#7c5cff','#00d4ff','#ff6b6b','#9be15d'];
-    for(let i=0;i<18;i++){
-      const c = document.createElement('div');
-      c.className = 'confetti';
-      c.style.background = colors[Math.floor(Math.random()*colors.length)];
-      const dx = (Math.random()-0.5)*800 + (Math.random()<0.5?-100:100);
-      c.style.setProperty('--dx', dx + 'px');
-      c.style.left = (window.innerWidth/2 + (Math.random()-0.5)*200) + 'px';
-      c.style.top = (window.innerHeight*0.2 + (Math.random()-0.5)*200) + 'px';
-      c.style.width = (6 + Math.random()*8) + 'px';
-      c.style.height = (10 + Math.random()*8) + 'px';
-      document.body.appendChild(c);
-      setTimeout(()=> c.remove(), 1400);
+// Recherche de personnages
+const search = document.getElementById('characterSearch');
+const characters = document.querySelectorAll('.character');
+
+search.addEventListener('input', () => {
+  const value = search.value.toLowerCase().trim();
+
+  characters.forEach(character => {
+    const name = character.dataset.name;
+    character.style.display = name.includes(value) ? '' : 'none';
+  });
+});
+
+// Apparition progressive des éléments
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+      observer.unobserve(entry.target);
     }
-  }
+  });
+}, { threshold: 0.12 });
 
-  // initial checks
-  checkTrophies();
-  renderXP();
-
-  // quick console note
-  console.log("Horloge & XP prêtes — 12h = 12 000 XP.");
-  </script>
+document.querySelectorAll('.reveal').forEach(element => {
+  observer.observe(element);
+});
+</script>
 </body>
 </html>
