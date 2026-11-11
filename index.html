@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#090d0a">
-  <meta name="description" content="Archives de fan consacrées à The Last of Us : personnages, infectés, lieux et dossier spécial Ellie.">
+  <meta name="description" content="Archives de fan consacrées à The Last of Us et dossier spécial sur Ellie Williams.">
   <title>THE LAST OF US — ARCHIVES</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -44,7 +44,6 @@
     a { color: inherit; text-decoration: none; }
     button, input { font: inherit; }
     button { color: inherit; }
-    img { display: block; max-width: 100%; }
 
     .grain {
       position: fixed;
@@ -57,13 +56,14 @@
 
     .scroll-progress {
       position: fixed;
-      z-index: 50;
       top: 0;
       left: 0;
-      height: 2px;
+      z-index: 50;
       width: 0;
-      background: var(--red-light);
-      box-shadow: 0 0 12px #fa765eaa;
+      height: 2px;
+      background: var(--green);
+      box-shadow: 0 0 12px #a8c68caa;
+      pointer-events: none;
     }
 
     header {
@@ -76,7 +76,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 6.5%;
+      padding: 0 7%;
       background: #090d0ae8;
       backdrop-filter: blur(16px);
       border-bottom: 1px solid var(--line);
@@ -84,51 +84,36 @@
 
     .logo {
       font-family: "Barlow Condensed", sans-serif;
-      font-weight: 900;
       font-size: 23px;
+      font-weight: 900;
       letter-spacing: 2px;
+      text-transform: uppercase;
     }
 
     .logo span { color: var(--green); }
 
-    nav { display: flex; gap: 20px; }
-
-    nav a {
-      color: #b7c0b4;
-      font-size: 9px;
-      font-weight: 700;
-      letter-spacing: 1.4px;
+    .header-label {
+      color: #a4afa0;
+      font-size: 8px;
+      letter-spacing: 2px;
       text-transform: uppercase;
     }
 
-    nav a:hover { color: var(--green); }
-
-    .menu-btn {
-      display: none;
-      background: none;
-      border: 0;
-      color: white;
-      font-size: 25px;
-      cursor: pointer;
-    }
-
-    .hero {
-      min-height: 760px;
-      height: 100vh;
-      max-height: 1000px;
+    .home {
+      min-height: 100vh;
       position: relative;
       display: flex;
       align-items: center;
-      padding: 110px 10% 80px;
+      padding: 120px 10%;
       overflow: hidden;
     }
 
-    .hero-bg {
+    .home-bg {
       position: absolute;
       inset: 0;
       background:
-        linear-gradient(90deg, #080d0a 0%, #080d0acc 45%, #080d0a22 100%),
-        linear-gradient(0deg, var(--bg), transparent 40%),
+        linear-gradient(90deg, #080d0a 0%, #080d0acc 48%, #080d0a40 100%),
+        linear-gradient(0deg, var(--bg), transparent 45%),
         url("https://images.unsplash.com/photo-1511497584788-876760111969?auto=format&fit=crop&w=2200&q=85") center/cover;
       animation: forest-drift 28s ease-in-out infinite alternate;
     }
@@ -138,67 +123,48 @@
       to { transform: scale(1.1) translateX(-1%); }
     }
 
-    .hero-content { position: relative; z-index: 1; max-width: 760px; }
+    .home-content {
+      position: relative;
+      z-index: 1;
+      max-width: 760px;
+    }
 
     .kicker {
+      margin-bottom: 18px;
       color: var(--green);
       font-size: 9px;
       font-weight: 700;
       letter-spacing: 3px;
       text-transform: uppercase;
-      margin-bottom: 18px;
     }
 
-    .hero h1 {
+    .home h1 {
       font-family: "Barlow Condensed", sans-serif;
       font-size: clamp(76px, 12vw, 150px);
-      line-height: .78;
       font-weight: 900;
+      line-height: .78;
       letter-spacing: -2px;
     }
 
-    .hero h1 em,
-    .section-head h2 em,
-    .closing h2 em {
+    .home h1 em {
       color: var(--green);
       font-style: normal;
     }
 
-    .hero-copy {
-      max-width: 510px;
+    .home-copy {
+      max-width: 530px;
+      margin: 30px 0;
       color: #c0c8bc;
       font-size: 13px;
       line-height: 2;
-      margin: 32px 0;
     }
 
-    .actions { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
-
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 16px;
-      padding: 15px 19px;
-      text-transform: uppercase;
-      letter-spacing: 1.5px;
-      font-size: 9px;
-      font-weight: 700;
-      border: 1px solid var(--green);
-      transition: .25s;
-      cursor: pointer;
-    }
-
-    .btn.primary { background: var(--green); color: #10160e; }
-    .btn.secondary { border-color: #ffffff50; color: white; }
-    .btn:hover { transform: translateY(-3px); box-shadow: 0 12px 30px #0006; }
-
-    /* Bouton spécial du dossier Ellie */
     .red-portal-btn {
       display: inline-flex;
       align-items: center;
-      gap: 12px;
-      min-height: 58px;
-      padding: 9px 16px 9px 10px;
+      gap: 13px;
+      min-height: 62px;
+      padding: 10px 17px 10px 10px;
       position: relative;
       overflow: hidden;
       color: #fff1eb;
@@ -234,386 +200,58 @@
       50% { box-shadow: 0 0 26px #e342354c; }
     }
 
-    .red-portal-mark,
-    .red-portal-btn > span:not(.red-portal-mark) {
+    .portal-mark {
       position: relative;
       z-index: 1;
-    }
-
-    .red-portal-mark {
-      width: 37px;
-      height: 37px;
+      width: 38px;
+      height: 38px;
       display: grid;
       place-items: center;
       border: 1px solid #ff8068;
       color: #ff8068;
       font-family: "Barlow Condensed", sans-serif;
-      font-size: 23px;
+      font-size: 24px;
       font-weight: 900;
     }
 
-    .red-portal-btn small,
-    .red-portal-btn strong { display: block; }
+    .portal-copy, .portal-arrow {
+      position: relative;
+      z-index: 1;
+    }
 
-    .red-portal-btn small {
+    .portal-copy small, .portal-copy strong { display: block; }
+
+    .portal-copy small {
+      margin-bottom: 4px;
       color: #ffad9a;
       font-size: 7px;
       letter-spacing: 2px;
-      margin-bottom: 4px;
     }
 
-    .red-portal-btn strong {
+    .portal-copy strong {
       font-family: "Barlow Condensed", sans-serif;
-      font-size: 18px;
+      font-size: 19px;
       letter-spacing: 1px;
       text-transform: uppercase;
     }
 
-    .red-portal-arrow { color: #ff927d; }
+    .portal-arrow { color: #ff927d; }
 
-    .hero-foot {
+    .home-foot {
       position: absolute;
-      bottom: 35px;
-      left: 10%;
       right: 10%;
+      bottom: 32px;
+      left: 10%;
+      z-index: 1;
       display: flex;
       justify-content: space-between;
+      gap: 15px;
       color: #a4afa0;
       font-size: 8px;
       letter-spacing: 2px;
     }
 
-    section { padding: 100px 10%; }
-    .intro, .infected-section, .map-section, .gallery-section { background: var(--panel); }
-
-    .section-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: end;
-      gap: 35px;
-      margin-bottom: 40px;
-    }
-
-    .section-head h2 {
-      font-family: "Barlow Condensed", sans-serif;
-      font-size: clamp(48px, 7vw, 82px);
-      line-height: .9;
-      text-transform: uppercase;
-    }
-
-    .section-summary {
-      max-width: 350px;
-      color: var(--muted);
-      font-size: 11px;
-      line-height: 1.9;
-    }
-
-    .intro-grid {
-      display: grid;
-      grid-template-columns: 1.2fr .8fr;
-      gap: 70px;
-      margin-top: 40px;
-    }
-
-    .intro-lead { font-size: 20px; line-height: 1.7; color: #e0e6db; }
-    .intro-note { border-left: 1px solid var(--green); padding: 10px 0 10px 25px; }
-    .intro-note p { font-size: 13px; line-height: 1.9; color: #b4bdb1; }
-    .intro-note small { color: var(--green); font-size: 8px; letter-spacing: 2px; }
-
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 20px;
-      border-top: 1px solid var(--line);
-      margin-top: 55px;
-      padding-top: 25px;
-    }
-
-    .stats strong {
-      display: block;
-      font-family: "Barlow Condensed", sans-serif;
-      font-size: 40px;
-      color: var(--green);
-    }
-
-    .stats span { font-size: 9px; color: var(--muted); text-transform: uppercase; }
-
-    .toolbar {
-      display: flex;
-      justify-content: space-between;
-      gap: 15px;
-      align-items: center;
-      margin-bottom: 25px;
-      flex-wrap: wrap;
-    }
-
-    .search {
-      width: 100%;
-      max-width: 340px;
-      background: none;
-      border: 0;
-      border-bottom: 1px solid #ffffff40;
-      padding: 13px 0;
-      color: white;
-      outline: 0;
-      font-size: 11px;
-    }
-
-    .search:focus { border-color: var(--green); }
-
-    .chips { display: flex; gap: 7px; flex-wrap: wrap; }
-
-    .chip {
-      border: 1px solid #ffffff28;
-      background: transparent;
-      color: #aeb8aa;
-      padding: 9px 14px;
-      font-size: 8px;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      cursor: pointer;
-    }
-
-    .chip.active, .chip:hover {
-      background: var(--green);
-      color: #0b110b;
-      border-color: var(--green);
-    }
-
-    .character-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
-
-    .character {
-      height: 330px;
-      position: relative;
-      overflow: hidden;
-      background: #182118;
-      border: 1px solid var(--line);
-      cursor: pointer;
-      transition: .3s;
-    }
-
-    .character:hover { transform: translateY(-6px); border-color: var(--green); }
-
-    .character-bg {
-      position: absolute;
-      inset: 0;
-      background-size: cover;
-      background-position: center;
-      filter: saturate(.65);
-      transition: .5s;
-    }
-
-    .character:hover .character-bg { transform: scale(1.06); }
-
-    .character-bg::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(0deg, #080d0a 0%, #080d0a9c 40%, transparent 100%);
-    }
-
-    .character-info { position: absolute; bottom: 0; padding: 22px; z-index: 2; }
-    .character-info small { color: var(--green); font-size: 8px; letter-spacing: 2px; text-transform: uppercase; }
-    .character-info h3 { font-family: "Barlow Condensed", sans-serif; font-size: 34px; text-transform: uppercase; margin: 7px 0; }
-    .character-info p { font-size: 10px; line-height: 1.7; color: #c1c9bd; }
-
-    .infected-layout { display: grid; grid-template-columns: .65fr 1.35fr; gap: 18px; }
-    .infected-list { display: flex; flex-direction: column; gap: 8px; }
-
-    .infected-choice {
-      display: flex;
-      justify-content: space-between;
-      padding: 15px;
-      background: #0b110c;
-      border: 1px solid var(--line);
-      text-align: left;
-      cursor: pointer;
-    }
-
-    .infected-choice span:first-child {
-      font-family: "Barlow Condensed", sans-serif;
-      font-size: 21px;
-      text-transform: uppercase;
-    }
-
-    .infected-choice.active, .infected-choice:hover { border-color: var(--green); background: #18231a; }
-
-    .infected-detail {
-      min-height: 320px;
-      padding: 28px;
-      background: linear-gradient(135deg, #243326, #0b110c);
-      border: 1px solid var(--line);
-      display: grid;
-      grid-template-columns: 1fr .8fr;
-      align-items: center;
-      gap: 18px;
-      perspective: 900px;
-    }
-
-    .infected-detail small { color: var(--green); font-size: 9px; letter-spacing: 2px; }
-    .infected-detail h3 { font-family: "Barlow Condensed", sans-serif; font-size: 44px; text-transform: uppercase; margin: 10px 0; }
-    .infected-detail p { color: #bac4b6; font-size: 12px; line-height: 1.9; }
-    .infected-visual { display: grid; place-items: center; min-height: 220px; }
-    .infected-visual img {
-      width: 100%;
-      max-height: 280px;
-      object-fit: contain;
-      filter: drop-shadow(0 20px 20px #0009);
-      transform: translateZ(30px) scale(1.04);
-      transition: .4s ease;
-    }
-    .infected-detail:hover .infected-visual img { transform: translateZ(60px) scale(1.12) rotateY(-5deg); }
-    .tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 15px; }
-    .tags span { font-size: 8px; color: #c3d1b9; border: 1px solid #a8c68c4c; padding: 7px 10px; }
-
-    .warning {
-      background: #2a2114;
-      border: 1px solid #8f6a32;
-      color: #e9c58c;
-      padding: 13px 16px;
-      font-size: 9px;
-      margin-bottom: 35px;
-    }
-
-    .timeline { border-left: 1px solid #627d52; margin-left: 10px; padding-left: 35px; }
-    .event { position: relative; padding: 0 0 35px; max-width: 750px; }
-    .event::before {
-      content: "";
-      position: absolute;
-      left: -41px;
-      top: 5px;
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: var(--green);
-      box-shadow: 0 0 15px #a8c68c66;
-    }
-    .event small { color: var(--green); font-size: 9px; letter-spacing: 2px; }
-    .event h3 { font-family: "Barlow Condensed", sans-serif; font-size: 29px; text-transform: uppercase; margin: 9px 0; }
-    .event p { color: #aab4a7; font-size: 11px; line-height: 1.9; }
-
-    .map-layout { display: grid; grid-template-columns: 1.4fr .6fr; gap: 15px; }
-    .map {
-      height: 410px;
-      position: relative;
-      overflow: hidden;
-      background: radial-gradient(ellipse at 40% 45%, #354733, #1d2c20 50%, #101b14);
-      border: 1px solid var(--line);
-    }
-    .map::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      opacity: .2;
-      background-image: linear-gradient(#ffffff18 1px, transparent 1px), linear-gradient(90deg,#ffffff18 1px,transparent 1px);
-      background-size: 40px 40px;
-    }
-    .map-route { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
-    .pin {
-      position: absolute;
-      display: flex;
-      gap: 6px;
-      align-items: center;
-      background: #0a100de8;
-      border: 1px solid #ffffff40;
-      padding: 8px 10px;
-      font-size: 8px;
-      letter-spacing: 1px;
-      cursor: pointer;
-    }
-    .pin.active, .pin:hover { background: var(--green); color: #10160e; }
-    .boston { left: 10%; top: 68%; }
-    .jackson { left: 43%; top: 47%; }
-    .saltlake { left: 29%; top: 78%; }
-    .seattle { left: 17%; top: 26%; }
-    .santa { left: 55%; top: 84%; }
-
-    .map-panel {
-      background: #0a100c;
-      border: 1px solid var(--line);
-      padding: 25px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-    }
-    .map-panel small { color: var(--green); font-size: 8px; letter-spacing: 2px; }
-    .map-panel h3 { font-family: "Barlow Condensed", sans-serif; font-size: 35px; text-transform: uppercase; margin: 10px 0; }
-    .map-panel p { color: #aeb9aa; font-size: 11px; line-height: 1.9; }
-    .map-facts { margin-top: 15px; display: grid; gap: 8px; }
-    .map-facts div { border-top: 1px solid var(--line); padding-top: 8px; font-size: 10px; }
-    .map-facts small { display: block; margin-bottom: 4px; }
-
-    .arsenal-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 13px; }
-    .arsenal-card { background: #121a13; border: 1px solid var(--line); overflow: hidden; transition: .25s; }
-    .arsenal-card:hover { border-color: var(--green); transform: translateY(-4px); }
-    .arsenal-image {
-      height: 160px;
-      display: grid;
-      place-items: center;
-      overflow: hidden;
-      background: radial-gradient(ellipse,#29372a,#101710 72%);
-      border-bottom: 1px solid var(--line);
-    }
-    .arsenal-image img { width: 90%; height: 90%; object-fit: contain; transition: transform .35s ease; }
-    .arsenal-card:hover .arsenal-image img { transform: scale(1.08); }
-    .arsenal-card small, .arsenal-card h3, .arsenal-card p { margin-left: 20px; margin-right: 20px; }
-    .arsenal-card small { display: block; color: var(--green); font-size: 8px; letter-spacing: 2px; margin-top: 16px; }
-    .arsenal-card h3 { font-family: "Barlow Condensed", sans-serif; font-size: 25px; text-transform: uppercase; margin-top: 6px; }
-    .arsenal-card p { color: #aab4a7; font-size: 10px; line-height: 1.8; margin-top: 7px; margin-bottom: 20px; }
-
-    .gallery-grid { display: grid; grid-template-columns: repeat(3,1fr); grid-auto-rows: 180px; gap: 12px; }
-    .gallery-item { position: relative; overflow: hidden; border: 1px solid var(--line); background: #18231a; cursor: pointer; }
-    .gallery-item img { width: 100%; height: 100%; object-fit: cover; filter: brightness(.72) saturate(.65); transition: .4s; }
-    .gallery-item:hover img { transform: scale(1.06); filter: brightness(.95); }
-    .gallery-item span { position: absolute; bottom: 14px; left: 15px; font-size: 8px; letter-spacing: 2px; text-transform: uppercase; text-shadow: 0 2px 10px #000; }
-
-    .closing {
-      text-align: center;
-      padding: 115px 20px;
-      background: linear-gradient(#090d0aeb,#090d0aeb),url("https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=1800&q=85") center/cover;
-    }
-    .closing h2 { font-family: "Barlow Condensed", sans-serif; font-size: clamp(58px,10vw,110px); line-height: .9; margin: 20px 0 35px; }
-
-    footer {
-      padding: 35px 7%;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 20px;
-      border-top: 1px solid var(--line);
-      color: #849081;
-    }
-    footer p { max-width: 530px; font-size: 9px; line-height: 1.8; }
-    footer small { font-size: 8px; letter-spacing: 2px; }
-
-    dialog {
-      width: min(700px, calc(100% - 30px));
-      max-height: 85vh;
-      overflow: auto;
-      margin: auto;
-      padding: 30px;
-      background: #111a13;
-      color: white;
-      border: 1px solid #a8c68c66;
-    }
-    dialog::backdrop { background: #020503dc; backdrop-filter: blur(8px); }
-    .close {
-      float: right;
-      background: #0b110c;
-      border: 1px solid #ffffff50;
-      width: 35px;
-      height: 35px;
-      font-size: 22px;
-      cursor: pointer;
-    }
-    dialog h2 { font-family: "Barlow Condensed", sans-serif; font-size: 50px; text-transform: uppercase; margin: 18px 0; }
-    dialog p { color: #b7c1b2; font-size: 12px; line-height: 2; }
-    .facts { display: grid; grid-template-columns: repeat(2,1fr); gap: 10px; margin-top: 22px; }
-    .facts div { padding: 14px; background: #0a100c; border: 1px solid var(--line); }
-    .facts small { display: block; color: var(--green); font-size: 8px; letter-spacing: 1px; margin-bottom: 5px; }
-    .facts strong { font-size: 11px; }
-
-    /* Dossier Ellie plein écran */
+    /* Fenêtre plein écran du dossier */
     .ellie-page {
       position: fixed;
       inset: 0;
@@ -650,13 +288,12 @@
         url("https://images.unsplash.com/photo-1511497584788-876760111969?auto=format&fit=crop&w=2200&q=85") center/cover fixed;
     }
 
-    /* Lumière rouge, vignette et stries décoratives */
     .ellie-atmosphere {
       position: fixed;
       inset: 0;
       z-index: 1;
-      pointer-events: none;
       overflow: hidden;
+      pointer-events: none;
       opacity: .6;
       background:
         radial-gradient(ellipse at 85% 40%, #a4251d38, transparent 42%),
@@ -748,8 +385,8 @@
     .ellie-hero::before {
       content: "";
       position: absolute;
-      right: 5%;
       top: 12%;
+      right: 5%;
       width: min(38vw, 480px);
       height: 78%;
       opacity: .22;
@@ -832,12 +469,11 @@
       position: relative;
       z-index: 2;
       padding: 85px 10%;
-      background: rgba(16, 7, 7, .94);
+      background: rgba(16, 7, 7, .96);
       border-top: 1px solid #ffffff0b;
     }
 
-    .ellie-section:nth-of-type(even) { background: rgba(25, 10, 10, .95); }
-
+    .ellie-section:nth-of-type(even) { background: rgba(25, 10, 10, .97); }
     .ellie-section-heading { margin-bottom: 30px; }
 
     .ellie-section-heading small {
@@ -880,8 +516,7 @@
 
     .ellie-note {
       padding: 25px;
-      background:
-        linear-gradient(135deg, #451914, #250e0d);
+      background: linear-gradient(135deg, #451914, #250e0d);
       border-left: 2px solid #e35b45;
       box-shadow: 0 18px 45px #0004;
     }
@@ -902,36 +537,159 @@
       text-transform: uppercase;
     }
 
-    .ellie-timeline {
+    .ellie-record {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-top: 28px;
+    }
+
+    .ellie-record div {
+      padding: 16px;
+      background: #160b0b;
+      border: 1px solid #ffffff14;
+    }
+
+    .ellie-record small {
+      display: block;
+      margin-bottom: 7px;
+      color: #e87963;
+      font-size: 7px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+
+    .ellie-record strong {
+      color: #e8d9d3;
+      font-size: 10px;
+      font-weight: 600;
+    }
+
+    .ellie-chapter-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+
+    .ellie-chapter {
+      min-height: 205px;
+      padding: 24px;
+      position: relative;
+      background: linear-gradient(145deg, #211010, #120909);
+      border: 1px solid #ffffff14;
+      transition: transform .25s ease, border-color .25s ease;
+    }
+
+    .ellie-chapter:hover { transform: translateY(-4px); border-color: #b74939; }
+
+    .ellie-chapter small {
+      color: #e87963;
+      font-size: 8px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .ellie-chapter h4 {
+      margin: 12px 0 8px;
+      color: #f0e2dd;
+      font-family: "Barlow Condensed", sans-serif;
+      font-size: 27px;
+      text-transform: uppercase;
+    }
+
+    .ellie-chapter p {
+      color: #bcaea8;
+      font-size: 10px;
+      line-height: 1.9;
+    }
+
+    .ellie-chapter-number {
+      position: absolute;
+      top: 12px;
+      right: 16px;
+      color: #ffffff12;
+      font-family: "Barlow Condensed", sans-serif;
+      font-size: 48px;
+      font-weight: 900;
+    }
+
+    .ellie-relationship-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 12px;
     }
 
-    .ellie-event {
-      min-height: 180px;
+    .ellie-relationship {
       padding: 22px;
-      background: linear-gradient(150deg, #1e1010, #110909);
+      background: #160b0b;
       border: 1px solid #ffffff14;
-      border-top: 2px solid #96392d;
-      transition: transform .25s ease, border-color .25s ease;
     }
 
-    .ellie-event:hover { transform: translateY(-5px); border-top-color: #fa765e; }
-
-    .ellie-event small { color: #e87963; font-size: 8px; letter-spacing: 2px; }
-    .ellie-event h4 {
-      margin: 12px 0 8px;
+    .ellie-relationship h4 {
+      margin-bottom: 9px;
+      color: #ed8069;
       font-family: "Barlow Condensed", sans-serif;
-      font-size: 27px;
+      font-size: 24px;
       text-transform: uppercase;
     }
-    .ellie-event p { color: #bcaea8; font-size: 10px; line-height: 1.8; }
+
+    .ellie-relationship p {
+      color: #bcaea8;
+      font-size: 10px;
+      line-height: 1.9;
+    }
+
+    .ellie-file-note {
+      margin-top: 18px;
+      padding: 20px 22px;
+      color: #cbbab3;
+      background: #270f0e;
+      border-left: 2px solid #b74939;
+      font-size: 10px;
+      line-height: 1.9;
+    }
+
+    .ellie-file-note strong {
+      color: #f28a73;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .ellie-details { border-top: 1px solid #ffffff1a; }
+    .ellie-details details { border-bottom: 1px solid #ffffff1a; }
+
+    .ellie-details summary {
+      padding: 17px 4px;
+      color: #f0e2dd;
+      cursor: pointer;
+      font-family: "Barlow Condensed", sans-serif;
+      font-size: 23px;
+      letter-spacing: .5px;
+      list-style: none;
+      text-transform: uppercase;
+    }
+
+    .ellie-details summary::-webkit-details-marker { display: none; }
+    .ellie-details summary::after {
+      content: "+";
+      float: right;
+      color: #e87963;
+      font-family: "DM Sans", sans-serif;
+    }
+    .ellie-details details[open] summary::after { content: "−"; }
+
+    .ellie-details details p {
+      max-width: 850px;
+      padding: 0 28px 20px 4px;
+      color: #bcaea8;
+      font-size: 11px;
+      line-height: 2;
+    }
 
     .ellie-quote {
-      padding: 80px 10%;
       position: relative;
       z-index: 2;
+      padding: 80px 10%;
       text-align: center;
       background:
         linear-gradient(#120707df, #100707f2),
@@ -972,7 +730,7 @@
     }
 
     .ellie-ending h3 {
-      margin-bottom: 22px;
+      margin: 15px 0 22px;
       color: #e35b45;
       font-family: "Barlow Condensed", sans-serif;
       font-size: clamp(50px, 9vw, 100px);
@@ -981,15 +739,20 @@
       text-shadow: 0 0 35px #a9272044;
     }
 
-    .ellie-ending p { max-width: 660px; color: #d8c6bd; font-size: 12px; line-height: 2; }
+    .ellie-ending p {
+      max-width: 660px;
+      color: #d8c6bd;
+      font-size: 12px;
+      line-height: 2;
+    }
 
     .ellie-back-top {
       display: inline-block;
       margin-top: 28px;
       padding: 12px 16px;
-      border: 1px solid #a84235;
       color: #ffad95;
       background: #291311;
+      border: 1px solid #a84235;
       font-size: 8px;
       letter-spacing: 1.5px;
       text-transform: uppercase;
@@ -1002,64 +765,25 @@
     }
 
     .reveal.visible { opacity: 1; transform: translateY(0); }
-    .empty { grid-column: 1/-1; color: var(--muted); padding: 25px; border: 1px dashed var(--line); }
-
-    @media (max-width: 900px) {
-      header { padding: 0 5%; }
-      nav { gap: 12px; }
-      nav a { font-size: 8px; }
-      section { padding: 85px 6%; }
-      .character-grid, .arsenal-grid { grid-template-columns: repeat(2, 1fr); }
-      .map-layout { grid-template-columns: 1fr; }
-    }
 
     @media (max-width: 700px) {
-      .menu-btn { display: block; }
-      nav {
-        display: none;
-        position: absolute;
-        top: 76px;
-        left: 0;
-        right: 0;
-        padding: 25px;
-        background: #090d0a;
-        flex-direction: column;
-        border-bottom: 1px solid var(--line);
-      }
-      nav.open { display: flex; }
-      nav a { font-size: 10px; }
-      .hero { min-height: 700px; padding: 110px 7% 90px; }
-      .hero h1 { font-size: clamp(76px, 18vw, 115px); }
-      .hero-foot { left: 7%; right: 7%; }
-      .section-head { display: block; }
-      .section-summary { margin-top: 18px; }
-      .intro-grid { grid-template-columns: 1fr; gap: 30px; }
-      .stats { grid-template-columns: repeat(2, 1fr); }
-      .infected-layout { grid-template-columns: 1fr; }
-      .infected-list { display: grid; grid-template-columns: repeat(2, 1fr); }
-      .infected-detail { grid-template-columns: 1fr; }
-      .infected-visual { min-height: 180px; }
-      .infected-visual img { max-height: 230px; }
-      .map { height: 360px; }
-      .gallery-grid { grid-template-columns: repeat(2, 1fr); grid-auto-rows: 150px; }
-      footer { align-items: flex-start; flex-direction: column; }
+      .home { min-height: 720px; padding: 110px 7% 90px; }
+      .home h1 { font-size: clamp(76px, 18vw, 115px); }
+      .home-foot { left: 7%; right: 7%; }
       .ellie-topbar { padding: 0 5%; }
+      .ellie-topbar-label { max-width: 190px; line-height: 1.5; }
       .ellie-hero { min-height: 620px; padding: 95px 7% 70px; }
       .ellie-section { padding: 65px 7%; }
-      .ellie-story-grid, .ellie-timeline { grid-template-columns: 1fr; }
+      .ellie-story-grid, .ellie-relationship-grid, .ellie-chapter-grid { grid-template-columns: 1fr; }
+      .ellie-record { grid-template-columns: repeat(2, 1fr); }
       .ellie-quote { padding: 65px 7%; }
+      .ellie-ending { padding: 75px 7%; }
     }
 
-    @media (max-width: 460px) {
-      .character-grid, .arsenal-grid { grid-template-columns: 1fr; }
-      .character { height: 320px; }
-      .actions { flex-direction: column; align-items: stretch; max-width: 300px; }
-      .btn { justify-content: space-between; }
-      .red-portal-btn { width: 100%; justify-content: flex-start; }
-      .toolbar { align-items: stretch; }
-      .infected-detail { padding: 22px; }
-      .facts { grid-template-columns: 1fr; }
-      .ellie-topbar-label { max-width: 180px; line-height: 1.5; }
+    @media (max-width: 420px) {
+      .home-foot { font-size: 7px; }
+      .ellie-record { grid-template-columns: 1fr 1fr; }
+      .ellie-close { padding: 9px; font-size: 8px; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -1074,182 +798,45 @@
 </head>
 
 <body>
-  <div class="scroll-progress" id="scrollProgress" aria-hidden="true"></div>
+  <div class="scroll-progress" id="mainProgress" aria-hidden="true"></div>
   <div class="grain" aria-hidden="true"></div>
 
   <header>
     <a class="logo" href="#accueil">TLOU<span>.</span> ARCHIVES</a>
-    <button class="menu-btn" id="menuBtn" type="button" aria-label="Ouvrir le menu" aria-expanded="false">☰</button>
-    <nav id="nav">
-      <a href="#personnages">Personnages</a>
-      <a href="#infectes">Infectés</a>
-      <a href="#histoire">Histoire</a>
-      <a href="#carte">Carte</a>
-      <a href="#arsenal">Arsenal</a>
-      <a href="#galerie">Galerie</a>
-    </nav>
+    <span class="header-label">FAN DATABASE · FR</span>
   </header>
 
   <main>
-    <section class="hero" id="accueil">
-      <div class="hero-bg" aria-hidden="true"></div>
-      <div class="hero-content reveal">
+    <section class="home" id="accueil">
+      <div class="home-bg" aria-hidden="true"></div>
+      <div class="home-content reveal">
         <p class="kicker">— ARCHIVES D'UN MONDE OUBLIÉ</p>
         <h1>THE LAST<br><em>OF US.</em></h1>
-        <p class="hero-copy">
-          Explorez les survivants, les infectés, les factions et les lieux d'un monde
-          où l'humanité s'accroche à ce qu'il lui reste.
+        <p class="home-copy">
+          Des survivants, des choix impossibles et des histoires qui laissent des traces.
+          Certaines archives sont plus difficiles à ouvrir que d'autres.
         </p>
 
-        <div class="actions">
-          <a class="btn primary" href="#personnages">Explorer les archives ↗</a>
-          <a class="btn secondary" href="#histoire">Découvrir l'histoire</a>
-
-          <button class="red-portal-btn" id="openElliePage" type="button">
-            <span class="red-portal-mark" aria-hidden="true">!</span>
-            <span>
-              <small>ACCÈS RESTREINT</small>
-              <strong>Le dossier rouge</strong>
-            </span>
-            <span class="red-portal-arrow" aria-hidden="true">↗</span>
-          </button>
-        </div>
+        <button class="red-portal-btn" id="openElliePage" type="button" aria-haspopup="dialog">
+          <span class="portal-mark" aria-hidden="true">!</span>
+          <span class="portal-copy">
+            <small>ACCÈS RESTREINT · DOSSIER 02</small>
+            <strong>Ouvrir le dossier rouge</strong>
+          </span>
+          <span class="portal-arrow" aria-hidden="true">↗</span>
+        </button>
       </div>
-      <div class="hero-foot"><span>CORDYCEPS · SURVIVAL · HUMANITY</span><span>FAN DATABASE · FR</span></div>
-    </section>
-
-    <section class="intro">
-      <div class="section-head">
-        <div>
-          <p class="kicker">LE MONDE APRÈS LA CHUTE</p>
-          <h2>LA FIN DU MONDE.<br><em>LE DÉBUT DES HISTOIRES.</em></h2>
-        </div>
+      <div class="home-foot">
+        <span>CORDYCEPS · SURVIVAL · HUMANITY</span>
+        <span>ARCHIVE PERSONNELLE · ELLIE WILLIAMS</span>
       </div>
-      <div class="intro-grid">
-        <p class="intro-lead">
-          Une infection fongique a bouleversé la civilisation. Des décennies plus tard,
-          les survivants vivent entre zones de quarantaine, communautés isolées et territoires repris par la nature.
-        </p>
-        <div class="intro-note">
-          <p>Dans cet univers, la survie n'est jamais seulement une question de ressources. C'est aussi une question de choix, de liens et de conséquences.</p>
-          <small>— TLOU ARCHIVES</small>
-        </div>
-      </div>
-      <div class="stats">
-        <div><strong>2013</strong><span>Début de l'épidémie</span></div>
-        <div><strong>20+</strong><span>Années après la chute</span></div>
-        <div><strong>02</strong><span>Jeux principaux</span></div>
-        <div><strong>∞</strong><span>Histoires à découvrir</span></div>
-      </div>
-    </section>
-
-    <section id="personnages">
-      <div class="section-head">
-        <div><p class="kicker">01 — DOSSIERS INDIVIDUELS</p><h2>LES <em>SURVIVANTS</em></h2></div>
-        <p class="section-summary">Des destins qui se croisent, des alliances fragiles et des décisions qui laissent des traces.</p>
-      </div>
-      <div class="toolbar">
-        <input class="search" id="search" placeholder="Rechercher un personnage..." type="search" aria-label="Rechercher un personnage">
-        <div class="chips" id="characterFilters">
-          <button class="chip active" type="button" data-filter="all">Tous</button>
-          <button class="chip" type="button" data-filter="part1">Part I</button>
-          <button class="chip" type="button" data-filter="part2">Part II</button>
-        </div>
-      </div>
-      <div class="character-grid" id="characterGrid"></div>
-    </section>
-
-    <section class="infected-section" id="infectes">
-      <div class="section-head">
-        <div><p class="kicker">02 — DOSSIERS BIOLOGIQUES</p><h2>LES <em>INFECTÉS</em></h2></div>
-        <p class="section-summary">Sélectionnez un dossier pour découvrir les stades et comportements des infectés.</p>
-      </div>
-      <div class="infected-layout">
-        <div class="infected-list" id="infectedList"></div>
-        <article class="infected-detail" id="infectedDetail"></article>
-      </div>
-    </section>
-
-    <section id="histoire">
-      <div class="section-head">
-        <div><p class="kicker">03 — CHRONOLOGIE</p><h2>UNE HISTOIRE<br><em>EN PLUSIEURS ACTES</em></h2></div>
-        <p class="section-summary">Chronologie indicative des événements majeurs. Attention, spoilers sur les jeux.</p>
-      </div>
-      <div class="warning">⚠ SPOILERS — Les résumés ci-dessous évoquent des événements clés de la saga.</div>
-      <div class="timeline" id="timeline"></div>
-    </section>
-
-    <section class="map-section" id="carte">
-      <div class="section-head">
-        <div><p class="kicker">04 — ATLAS DES TERRITOIRES</p><h2>LE MONDE <em>CONNU</em></h2></div>
-        <p class="section-summary">Carte narrative schématique, non officielle et non à l'échelle. Sélectionnez une ville pour en savoir plus.</p>
-      </div>
-      <div class="map-layout">
-        <div class="map">
-          <svg class="map-route" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-            <path d="M17 30 C24 42 35 45 45 49 S57 67 33 79 S65 83 72 88"
-              fill="none" stroke="#a8c68c" stroke-width=".7" stroke-dasharray="2 2"/>
-          </svg>
-          <button class="pin seattle" type="button" data-place="seattle">● SEATTLE</button>
-          <button class="pin boston active" type="button" data-place="boston">● BOSTON</button>
-          <button class="pin jackson" type="button" data-place="jackson">● JACKSON</button>
-          <button class="pin saltlake" type="button" data-place="saltlake">● SALT LAKE</button>
-          <button class="pin santa" type="button" data-place="santa">● SANTA BARBARA</button>
-        </div>
-        <aside class="map-panel" id="mapPanel"></aside>
-      </div>
-    </section>
-
-    <section id="arsenal">
-      <div class="section-head">
-        <div><p class="kicker">05 — ÉQUIPEMENT & SURVIE</p><h2>L'<em>ARSENAL</em></h2></div>
-        <p class="section-summary">Objets et équipements emblématiques de l'univers fictif du jeu.</p>
-      </div>
-      <div class="chips" id="arsenalFilters" style="margin-bottom:25px">
-        <button class="chip active" type="button" data-filter="all">Tout</button>
-        <button class="chip" type="button" data-filter="armes">Armes</button>
-        <button class="chip" type="button" data-filter="survie">Survie</button>
-        <button class="chip" type="button" data-filter="outils">Outils</button>
-      </div>
-      <div class="arsenal-grid" id="arsenalGrid"></div>
-    </section>
-
-    <section class="gallery-section" id="galerie">
-      <div class="section-head">
-        <div><p class="kicker">06 — FRAGMENTS DU MONDE</p><h2>GALERIE <em>VISUELLE</em></h2></div>
-        <p class="section-summary">Photos d'ambiance illustratives, non officielles et non issues des jeux.</p>
-      </div>
-      <div class="gallery-grid" id="galleryGrid"></div>
-    </section>
-
-    <section class="closing">
-      <p class="kicker">FIN DES ARCHIVES — PAS DE FIN À L'HISTOIRE</p>
-      <h2>ENDURE<br><em>AND SURVIVE.</em></h2>
-      <a class="btn primary" href="#accueil">Retour en haut ↑</a>
     </section>
   </main>
 
-  <footer>
-    <a class="logo" href="#accueil">TLOU<span>.</span> ARCHIVES</a>
-    <p>Projet de fan non officiel. The Last of Us appartient à Naughty Dog et Sony Interactive Entertainment. Ce site n'est ni affilié à ni approuvé par ces sociétés.</p>
-    <small>FAN PROJECT · 2026</small>
-  </footer>
-
-  <dialog id="characterModal" aria-labelledby="characterModalTitle">
-    <button class="close" id="closeCharacter" type="button" aria-label="Fermer">×</button>
-    <div id="characterContent"></div>
-  </dialog>
-
-  <dialog id="lightbox" aria-label="Image agrandie">
-    <button class="close" id="closeLightbox" type="button" aria-label="Fermer">×</button>
-    <img id="lightboxImage" alt="" style="width:100%">
-    <p id="lightboxTitle"></p>
-  </dialog>
-
-  <!-- Dossier spécial Ellie, intégré dans ce même fichier -->
   <dialog class="ellie-page" id="elliePage" aria-labelledby="ellieTitle">
     <div class="ellie-page-inner">
       <div class="ellie-atmosphere" aria-hidden="true"></div>
+
       <div class="ellie-topbar">
         <span class="ellie-topbar-label">Archives — dossier personnel · accès restreint</span>
         <button class="ellie-close" id="closeElliePage" type="button">Fermer le dossier ×</button>
@@ -1257,77 +844,247 @@
 
       <section class="ellie-hero">
         <div class="ellie-hero-content">
-          <p class="ellie-eyebrow">Dossier 02 · Jackson → Seattle</p>
+          <p class="ellie-eyebrow">Dossier 02 · Jackson → Seattle → Santa Barbara</p>
           <h2 id="ellieTitle">Ellie<br><em>Williams.</em></h2>
           <p class="ellie-lead">
-            Une histoire de deuil, de colère et de choix. Ce dossier explore le parcours
-            d’Ellie dans The Last of Us Part II et les conséquences de sa quête.
+            Une survivante, une musicienne, une amie. Puis une personne happée par le deuil
+            et la vengeance. Ce dossier retrace son parcours, les liens qu’elle tente de
+            préserver et le prix de la route qu’elle choisit.
           </p>
-          <span class="ellie-spoiler">Attention : spoilers importants sur Part II</span>
+          <span class="ellie-spoiler">Avertissement : spoilers majeurs sur The Last of Us Part II</span>
           <span class="ellie-scroll-hint">↓ Descendre dans le dossier</span>
         </div>
       </section>
 
       <section class="ellie-section">
         <div class="ellie-section-heading">
-          <small>Le cœur du dossier</small>
-          <h3>La douleur <em>ne disparaît pas.</em></h3>
+          <small>Fiche d'archive · sujet E-02</small>
+          <h3>La survivante <em>derrière la colère.</em></h3>
         </div>
+
         <div class="ellie-story-grid">
           <article class="ellie-story-card">
             <p>
-              Après une perte qui bouleverse sa vie, Ellie quitte Jackson et part à Seattle.
-              Elle cherche des réponses, mais avance surtout portée par le chagrin et la colère.
+              Ellie a grandi dans un monde où la perte est devenue presque ordinaire.
+              Pourtant, cela ne la rend pas invulnérable. Son humour, sa musique et son
+              attachement aux autres sont autant de façons de maintenir une part d’elle-même
+              à l’abri de la brutalité ambiante.
             </p>
             <p>
-              Son voyage l’oblige à affronter les conséquences de ses actes. À chaque étape,
-              la vengeance semble promettre une forme de paix, sans jamais pouvoir effacer
-              ce qui a été perdu.
+              Dans Part II, cette protection se fissure. Le deuil prend toute la place et
+              transforme son objectif en obsession. Elle avance avec l’idée que retrouver
+              la personne qu’elle poursuit pourrait réparer quelque chose — même si le récit
+              montre peu à peu que la vengeance ne fonctionne pas comme une réparation.
             </p>
           </article>
+
           <aside class="ellie-note">
             <small>Note des archives</small>
-            <p>La vengeance promet une fin. Elle ne promet pas la guérison.</p>
+            <p>Elle avance pour ne pas rester seule face à ce qu’elle a perdu.</p>
           </aside>
+        </div>
+
+        <div class="ellie-record">
+          <div><small>Communauté</small><strong>Jackson</strong></div>
+          <div><small>Destination majeure</small><strong>Seattle</strong></div>
+          <div><small>Liens importants</small><strong>Dina · Joel · Tommy</strong></div>
+          <div><small>Motifs récurrents</small><strong>Deuil · mémoire · choix</strong></div>
         </div>
       </section>
 
       <section class="ellie-section">
         <div class="ellie-section-heading">
-          <small>Fragments du parcours</small>
-          <h3>La route <em>de la vengeance.</em></h3>
+          <small>Le parcours</small>
+          <h3>Quatre étapes <em>dans la spirale.</em></h3>
         </div>
-        <div class="ellie-timeline">
-          <article class="ellie-event">
-            <small>JACKSON</small>
-            <h4>La rupture</h4>
-            <p>Un événement traumatique fait basculer le quotidien d’Ellie et déclenche son départ.</p>
+
+        <div class="ellie-chapter-grid">
+          <article class="ellie-chapter">
+            <span class="ellie-chapter-number">01</span>
+            <small>JACKSON · LE DÉPART</small>
+            <h4>Une vie interrompue</h4>
+            <p>
+              Jackson représente une possibilité rare : vivre au sein d’une communauté,
+              construire des habitudes et imaginer un avenir. Une tragédie détruit cet
+              équilibre. Ellie part avec Dina, déterminée à poursuivre les responsables.
+            </p>
           </article>
-          <article class="ellie-event">
-            <small>SEATTLE</small>
-            <h4>La poursuite</h4>
-            <p>Dans une ville déchirée par les conflits, Ellie suit une piste et se rapproche de sa cible.</p>
+
+          <article class="ellie-chapter">
+            <span class="ellie-chapter-number">02</span>
+            <small>SEATTLE · LA PISTE</small>
+            <h4>Suivre les traces</h4>
+            <p>
+              Seattle est un territoire en guerre. Ellie s’y enfonce en suivant des indices,
+              mais chaque avancée l’expose davantage aux conséquences de son choix et met
+              en danger les personnes qui l’accompagnent.
+            </p>
           </article>
-          <article class="ellie-event">
-            <small>APRÈS</small>
-            <h4>Le prix du choix</h4>
-            <p>La fin de sa quête l’oblige à regarder ce qu’elle a sacrifié et ce qu’elle veut encore préserver.</p>
+
+          <article class="ellie-chapter">
+            <span class="ellie-chapter-number">03</span>
+            <small>LA FERME · LA PAUSE</small>
+            <h4>Un calme fragile</h4>
+            <p>
+              Après Seattle, Ellie tente de vivre autrement auprès de Dina et de JJ.
+              La paix semble possible, mais les souvenirs et les blessures ne disparaissent
+              pas simplement parce que la violence s’est éloignée.
+            </p>
+          </article>
+
+          <article class="ellie-chapter">
+            <span class="ellie-chapter-number">04</span>
+            <small>SANTA BARBARA · LE CHOIX</small>
+            <h4>Le dernier face-à-face</h4>
+            <p>
+              Une nouvelle piste ramène Ellie sur la route. À Santa Barbara, elle doit
+              confronter sa quête à ce qu’elle est devenue — et décider si elle peut encore
+              interrompre le cycle de la violence.
+            </p>
+          </article>
+        </div>
+
+        <div class="ellie-file-note">
+          <strong>Lecture du dossier :</strong>
+          la progression d’Ellie n’est pas une simple montée en puissance. C’est une
+          accumulation de pertes, d’hésitations et de conséquences qui rendent chaque
+          nouvelle étape plus coûteuse que la précédente.
+        </div>
+      </section>
+
+      <section class="ellie-section">
+        <div class="ellie-section-heading">
+          <small>Liens personnels</small>
+          <h3>Ce qu’elle cherche <em>à protéger.</em></h3>
+        </div>
+
+        <div class="ellie-relationship-grid">
+          <article class="ellie-relationship">
+            <h4>Joel</h4>
+            <p>
+              Leur relation est faite d’amour, de confiance abîmée et de choses qui n’ont
+              pas été dites. La mémoire de Joel accompagne Ellie tout au long du récit,
+              jusque dans les moments où elle doit choisir ce qu’elle veut préserver de lui.
+            </p>
+          </article>
+
+          <article class="ellie-relationship">
+            <h4>Dina</h4>
+            <p>
+              Dina représente une vie possible en dehors de la vengeance. Leur lien est
+              confronté à une question douloureuse : jusqu’où peut-on accompagner quelqu’un
+              qui n’arrive plus à s’arrêter ?
+            </p>
+          </article>
+
+          <article class="ellie-relationship">
+            <h4>Tommy</h4>
+            <p>
+              Tommy partage une partie de son deuil et de sa colère, mais leurs façons de
+              poursuivre leur objectif diffèrent. Leur relation montre que la douleur ne
+              conduit pas tout le monde aux mêmes décisions.
+            </p>
           </article>
         </div>
       </section>
 
+      <section class="ellie-section">
+        <div class="ellie-section-heading">
+          <small>Analyse narrative · spoilers</small>
+          <h3>Une quête qui <em>se retourne contre elle.</em></h3>
+        </div>
+
+        <div class="ellie-details">
+          <details>
+            <summary>Pourquoi Ellie part-elle à Seattle ?</summary>
+            <p>
+              Ellie part parce qu’elle veut faire payer ceux qu’elle tient pour responsables
+              de la tragédie qui a bouleversé sa vie. Mais sa quête est aussi une tentative
+              de reprendre le contrôle : agir lui paraît plus supportable que rester seule
+              avec son chagrin. Le voyage ne lui apporte pas la paix attendue ; il multiplie
+              plutôt les pertes et les décisions irréversibles.
+            </p>
+          </details>
+
+          <details>
+            <summary>Pourquoi le jeu raconte-t-il aussi l’histoire d’Abby ?</summary>
+            <p>
+              Le changement de perspective oblige à revoir les événements autrement.
+              Abby n’est pas seulement une cible dans le parcours d’Ellie : elle a elle aussi
+              ses relations, ses loyautés et ses raisons. Ce choix narratif met le joueur
+              face aux limites d’un récit où l’on ne connaît d’abord qu’un seul côté du conflit.
+            </p>
+          </details>
+
+          <details>
+            <summary>Que représente la musique pour Ellie ?</summary>
+            <p>
+              La musique est associée à l’intimité, au souvenir et à la possibilité d’exprimer
+              ce qui reste difficile à dire. La guitare devient un lien avec Joel, mais aussi
+              une manière de mesurer ce que la quête lui a coûté. Elle relie plusieurs moments
+              du récit sans effacer leur douleur.
+            </p>
+          </details>
+
+          <details>
+            <summary>La fin est-elle une victoire ?</summary>
+            <p>
+              Le récit ne présente pas la fin comme un triomphe simple. Ellie met un terme
+              à une confrontation, mais elle rentre avec les conséquences de ses choix et
+              sans retrouver intacte la vie qu’elle avait quittée. La fin laisse place au
+              deuil, à l’interprétation et à la possibilité — incertaine — d’un nouveau départ.
+            </p>
+          </details>
+        </div>
+      </section>
+
+      <section class="ellie-section">
+        <div class="ellie-section-heading">
+          <small>Thèmes du dossier</small>
+          <h3>La vengeance laisse <em>des traces.</em></h3>
+        </div>
+
+        <div class="ellie-story-grid">
+          <article class="ellie-story-card">
+            <p>
+              <strong>Le deuil :</strong> Ellie ne traverse pas sa douleur de façon linéaire.
+              Elle oscille entre souvenirs, colère, moments de tendresse et besoin de fuir
+              ce qu’elle ressent.
+            </p>
+            <p>
+              <strong>Le cycle de la violence :</strong> les actes d’un personnage deviennent
+              les raisons d’agir d’un autre. Le récit met en scène cette chaîne sans réduire
+              chaque protagoniste à une seule action.
+            </p>
+            <p>
+              <strong>Le choix :</strong> le moment décisif ne consiste pas seulement à
+              atteindre une cible. Il s’agit aussi de savoir ce qu’Ellie accepte de devenir
+              et ce qu’elle décide de laisser derrière elle.
+            </p>
+          </article>
+
+          <aside class="ellie-note">
+            <small>Conclusion provisoire</small>
+            <p>La vengeance peut guider un voyage. Elle ne peut pas rendre le passé.</p>
+          </aside>
+        </div>
+      </section>
+
       <section class="ellie-quote">
-        <blockquote>« La vengeance promet une fin. Elle ne promet pas la guérison. »</blockquote>
+        <blockquote>
+          « La vengeance promet une fin. Elle ne promet pas la guérison. »
+        </blockquote>
         <cite>NOTE DES ARCHIVES · INTERPRÉTATION DE FAN</cite>
       </section>
 
       <section class="ellie-ending">
         <div>
-          <h3>Une histoire<br>de conséquences.</h3>
+          <p class="ellie-eyebrow">Fin du dossier · l'histoire continue</p>
+          <h3>Ce qui reste<br>après la colère.</h3>
           <p>
-            Ce dossier est une lecture de fan de l’histoire d’Ellie : il ne cherche pas à
-            justifier ses choix, mais à montrer comment le deuil et la violence transforment
-            les personnes qui les traversent.
+            Le parcours d’Ellie ne se résume ni à sa vengeance ni aux pertes qu’elle subit.
+            Il parle aussi de mémoire, d’attachement et de la possibilité de s’arrêter.
+            Ce dossier propose une interprétation de fan ; chacun peut lire sa fin différemment.
           </p>
           <a class="ellie-back-top" href="#ellieTitle">Retour au début du dossier ↑</a>
         </div>
@@ -1336,453 +1093,64 @@
   </dialog>
 
   <script>
-    const characters = [
-      {
-        id:"joel", name:"Joel Miller", role:"Le survivant", games:["part1","part2"],
-        years:"2013–2038", origin:"Texas, États-Unis", group:"Jackson",
-        summary:"Un homme marqué par son passé, prêt à tout pour protéger ceux qu'il aime.",
-        bio:"Avant l'épidémie, Joel est père de Sarah. Après le Jour de l'épidémie, il traverse des années de survie et de compromis. Sa rencontre avec Ellie devient le centre d'une relation complexe.",
-        relations:"Sarah, Tommy, Ellie, Tess", traits:"Pragmatique · Protecteur · Méfiant",
-        image:"https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=900&q=85"
-      },
-      {
-        id:"ellie", name:"Ellie Williams", role:"L'immunisée", games:["part1","part2"],
-        years:"2013–2039", origin:"Boston", group:"Jackson",
-        summary:"Une jeune survivante dont l'immunité pourrait changer le destin de l'humanité.",
-        bio:"Née après le début de l'épidémie, Ellie grandit dans une zone de quarantaine. Son immunité apparente au Cordyceps fait d'elle un espoir pour les Lucioles. Son histoire explore l'identité, l'amour, le deuil et le prix de la vengeance.",
-        relations:"Riley, Marlene, Joel, Dina, Tommy", traits:"Déterminée · Sarcastique · Courageuse",
-        image:"https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=900&q=85"
-      },
-      {
-        id:"abby", name:"Abby Anderson", role:"La combattante", games:["part2"],
-        years:"Seattle · 2038", origin:"Seattle", group:"WLF",
-        summary:"Soldate du WLF, Abby est guidée par un passé douloureux et une quête personnelle.",
-        bio:"Abby traverse des événements traumatisants qui la conduisent à rejoindre le WLF à Seattle. Son parcours propose une autre perspective sur les conflits et les cycles de violence.",
-        relations:"Jerry, Owen, Mel, Lev, Yara", traits:"Disciplinée · Puissante · Complexe",
-        image:"https://images.unsplash.com/photo-1531123897727-8f129e1688ce?auto=format&fit=crop&w=900&q=85"
-      },
-      {
-        id:"tommy", name:"Tommy Miller", role:"Le frère", games:["part1","part2"],
-        years:"2013–2039", origin:"Jackson", group:"Jackson",
-        summary:"Le frère de Joel tente de bâtir une communauté durable dans un monde hostile.",
-        bio:"Tommy accompagne Joel au début de l'épidémie avant que leurs chemins ne divergent. Il rejoint ensuite les Lucioles, puis s'installe à Jackson avec Maria.",
-        relations:"Joel, Maria, Ellie", traits:"Loyal · Idéaliste · Tenace",
-        image:"https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=900&q=85"
-      },
-      {
-        id:"dina", name:"Dina", role:"La survivante", games:["part2"],
-        years:"Jackson · 2038", origin:"Jackson", group:"Jackson",
-        summary:"Proche d'Ellie, Dina apporte humour, affection et courage au cœur d'un monde brutal.",
-        bio:"Dina vit à Jackson et partage avec Ellie une relation profonde. Elle accompagne Ellie dans une partie de son voyage et doit constamment évaluer le prix de la vengeance et de la sécurité.",
-        relations:"Ellie, Jesse, JJ", traits:"Vive · Loyale · Résiliente",
-        image:"https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=900&q=85"
-      },
-      {
-        id:"tess", name:"Tess", role:"La partenaire", games:["part1"],
-        years:"Boston · 2033", origin:"Boston", group:"Contrebande",
-        summary:"Partenaire de Joel dans les activités de contrebande, elle connaît les règles de la zone.",
-        bio:"Tess est une contrebandière expérimentée de Boston. Elle travaille avec Joel et sait négocier dans un environnement où la confiance est rare.",
-        relations:"Joel, Marlene", traits:"Pragmatique · Ferme · Lucide",
-        image:"https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=900&q=85"
-      }
-    ];
+    const dossier = document.querySelector("#elliePage");
+    const openButton = document.querySelector("#openElliePage");
+    const closeButton = document.querySelector("#closeElliePage");
+    const mainProgress = document.querySelector("#mainProgress");
 
-    const infected = [
-      {
-        id:"runner", name:"Coureur", stage:"Stade précoce", danger:"Élevé",
-        desc:"Au début de l'infection, l'hôte conserve une apparence relativement humaine. Les Coureurs se déplacent vite et attaquent souvent en groupe.",
-        tags:["Vision fonctionnelle","Attaque en groupe","Mobilité élevée"],
-        image:"https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=900&q=85"
-      },
-      {
-        id:"stalker", name:"Rôdeur", stage:"Stade intermédiaire", danger:"Très élevé",
-        desc:"Le Rôdeur se développe dans des environnements sombres et confinés. Il alterne entre immobilité, observation et attaques soudaines.",
-        tags:["Embuscade","Zones sombres","Déplacement furtif"],
-        image:"https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=900&q=85"
-      },
-      {
-        id:"clicker", name:"Claqueur", stage:"Stade avancé", danger:"Extrême",
-        desc:"Le champignon a profondément déformé le crâne du Claqueur. Aveugle, il utilise des sons et des claquements pour localiser ses proies.",
-        tags:["Aveugle","Écholocalisation","Force importante"],
-        image:"https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=900&q=85"
-      },
-      {
-        id:"bloater", name:"Colosse", stage:"Infection avancée", danger:"Extrême",
-        desc:"Après une très longue période d'infection, le champignon forme une épaisse couche protectrice. Le Colosse est puissant et résistant.",
-        tags:["Très résistant","Lent","Force élevée"],
-        image:"https://images.unsplash.com/photo-1504593811423-6dd665756598?auto=format&fit=crop&w=900&q=85"
-      },
-      {
-        id:"shambler", name:"Puant", stage:"Variante avancée", danger:"Très élevé",
-        desc:"Rencontré notamment dans les environnements humides de Seattle, le Puant libère un nuage de substances irritantes.",
-        tags:["Nuage toxique","Zones humides","Contact dangereux"],
-        image:"https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=900&q=85"
-      },
-      {
-        id:"ratking", name:"Roi des rats", stage:"Cas exceptionnel", danger:"Catastrophique",
-        desc:"Une masse d'infectés fusionnés après des années de confinement. Cette créature exceptionnelle est l'une des menaces les plus impressionnantes de la saga.",
-        tags:["Cas unique","Extrêmement dangereux","Seattle"],
-        image:"https://images.unsplash.com/photo-1517849845537-4d257902454a?auto=format&fit=crop&w=900&q=85"
-      }
-    ];
+    function updateProgress(scroller, bar) {
+      const maxScroll = scroller.scrollHeight - scroller.clientHeight;
+      const progress = maxScroll > 0 ? scroller.scrollTop / maxScroll : 0;
+      bar.style.width = `${Math.max(0, Math.min(100, progress * 100))}%`;
+    }
 
-    const events = [
-      ["2003","AVANT LA CHUTE","La vie quotidienne continue. Joel élève sa fille Sarah au Texas, avant que l'épidémie ne bouleverse tout."],
-      ["2013","LE JOUR DE L'ÉPIDÉMIE","Le Cordyceps se propage rapidement. Les autorités perdent le contrôle et les survivants fuient les zones urbaines."],
-      ["2033","LA MISSION DE BOSTON","Joel et Tess rencontrent Ellie. Une mission de transport se transforme en traversée d'un pays dévasté."],
-      ["2033–2034","À TRAVERS LES ÉTATS-UNIS","Le voyage conduit le trio à travers plusieurs régions, communautés et dangers."],
-      ["2038","JACKSON & SEATTLE","Des événements tragiques déclenchent une quête qui mène Ellie et d'autres survivants à Seattle."],
-      ["2038–2039","PLUSIEURS PERSPECTIVES","Le récit de Part II explore les conséquences de la vengeance et les trajectoires croisées de plusieurs personnages."]
-    ];
+    window.addEventListener("scroll", () => {
+      updateProgress(document.documentElement, mainProgress);
+    }, { passive: true });
 
-    const places = {
-      boston: {
-        name:"Boston", region:"Massachusetts · Côte Est",
-        text:"Zone de quarantaine sous contrôle militaire. Joel et Tess y travaillent comme contrebandiers et y rencontrent Ellie.",
-        status:"ZONE DE QUARANTAINE · PART I",
-        landmarks:"Zone de quarantaine · Capitole",
-        groups:"Armée · Contrebandiers · Lucioles",
-        atmosphere:"Urbaine · Contrôlée · Dangereuse"
-      },
-      jackson: {
-        name:"Jackson", region:"Wyoming · Ouest américain",
-        text:"Communauté organisée autour de ressources partagées. Jackson représente une tentative de reconstruire une vie collective et relativement stable.",
-        status:"COMMUNAUTÉ · PART I & PART II",
-        landmarks:"Barrage · Village · Patrouilles",
-        groups:"Communauté de Jackson",
-        atmosphere:"Montagneuse · Rurale · Accueillante"
-      },
-      saltlake: {
-        name:"Salt Lake City", region:"Utah · Ouest américain",
-        text:"Ville associée à la recherche des Lucioles et à un moment décisif du parcours de Joel et Ellie.",
-        status:"DESTINATION DES LUCIOLES · PART I",
-        landmarks:"Hôpital · Quartiers abandonnés",
-        groups:"Lucioles · Survivants",
-        atmosphere:"Urbaine · Silencieuse · Dévastée"
-      },
-      seattle: {
-        name:"Seattle", region:"Washington · Nord-Ouest",
-        text:"Une ville divisée par un conflit entre le WLF et les Séraphites. La végétation a repris de nombreux bâtiments.",
-        status:"ZONE DE CONFLIT · PART II",
-        landmarks:"Centre-ville · Hôpital · Île",
-        groups:"WLF · Séraphites",
-        atmosphere:"Humide · Végétalisée · Instable"
-      },
-      santa: {
-        name:"Santa Barbara", region:"Californie · Côte Pacifique",
-        text:"Région côtière qui apparaît dans la dernière partie du récit, avec un environnement et des factions distincts.",
-        status:"CÔTE PACIFIQUE · PART II",
-        landmarks:"Côte · Quartiers résidentiels",
-        groups:"Rattlers · Survivants",
-        atmosphere:"Côtière · Ensoleillée · Hostile"
-      }
-    };
+    openButton.addEventListener("click", () => {
+      dossier.showModal();
+      document.body.classList.add("modal-open");
+      closeButton.focus();
+      updateProgress(dossier, mainProgress);
+    });
 
-    const arsenal = [
-      {
-        name:"Revolver", type:"armes", tag:"Arme de poing",
-        desc:"Une arme compacte présente dans l'équipement de plusieurs survivants.",
-        image:"https://images.unsplash.com/photo-1517849845537-4d257902454a?auto=format&fit=crop&w=900&q=85"
-      },
-      {
-        name:"Arc", type:"armes", tag:"Silencieux",
-        desc:"Un outil de chasse et de combat apprécié pour sa discrétion.",
-        image:"https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=900&q=85"
-      },
-      {
-        name:"Fusil à pompe", type:"armes", tag:"Courte portée",
-        desc:"Une arme fictive puissante à courte distance, dans l'univers du jeu.",
-        image:"https://images.unsplash.com/photo-1537884944318-2a1a4dd6f67a?auto=format&fit=crop&w=900&q=85"
-      },
-      {
-        name:"Kit de soin", type:"survie", tag:"Soin",
-        desc:"Un équipement de survie permettant au personnage de récupérer de la santé dans le jeu.",
-        image:"https://images.unsplash.com/photo-1584515933487-779824d29309?auto=format&fit=crop&w=900&q=85"
-      },
-      {
-        name:"Sac à dos", type:"survie", tag:"Équipement",
-        desc:"Un compagnon de voyage utile pour transporter les ressources et objets récupérés.",
-        image:"https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=900&q=85"
-      },
-      {
-        name:"Lampe torche", type:"outils", tag:"Exploration",
-        desc:"Indispensable pour explorer les bâtiments sombres, tunnels et espaces abandonnés.",
-        image:"https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=900&q=85"
-      }
-    ];
+    function closeDossier() {
+      dossier.close();
+      document.body.classList.remove("modal-open");
+      openButton.focus();
+    }
 
-    const gallery = [
-      {title:"Forêt reconquise", url:"https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=1200&q=85"},
-      {title:"Ville abandonnée", url:"https://images.unsplash.com/photo-1519608487953-e999c86e7455?auto=format&fit=crop&w=1200&q=85"},
-      {title:"Brume sur les arbres", url:"https://images.unsplash.com/photo-1472396961693-142e6e269027?auto=format&fit=crop&w=1200&q=85"},
-      {title:"Bâtiments oubliés", url:"https://images.unsplash.com/photo-1511818966892-d7d671e672a2?auto=format&fit=crop&w=1200&q=85"},
-      {title:"Route vers l'inconnu", url:"https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=85"},
-      {title:"Nature silencieuse", url:"https://images.unsplash.com/photo-1511497584788-876760111969?auto=format&fit=crop&w=1200&q=85"}
-    ];
+    closeButton.addEventListener("click", closeDossier);
 
-    const $ = selector => document.querySelector(selector);
-    const $$ = selector => [...document.querySelectorAll(selector)];
+    dossier.addEventListener("click", event => {
+      if (event.target === dossier) closeDossier();
+    });
 
-    let characterFilter = "all";
+    dossier.addEventListener("close", () => {
+      document.body.classList.remove("modal-open");
+    });
 
+    dossier.addEventListener("scroll", () => {
+      updateProgress(dossier, mainProgress);
+    }, { passive: true });
+
+    // Apparition douce des sections lorsque le dossier défile.
     const revealObserver = new IntersectionObserver(entries => {
       entries.forEach(entry => {
         if (!entry.isIntersecting) return;
         entry.target.classList.add("visible");
         revealObserver.unobserve(entry.target);
       });
-    }, { threshold: .08 });
-
-    function observeReveals(root = document) {
-      root.querySelectorAll(".reveal, section, .character, .arsenal-card")
-        .forEach(element => {
-          element.classList.add("reveal");
-          revealObserver.observe(element);
-        });
-    }
-
-    function renderCharacters() {
-      const query = $("#search").value.toLowerCase().trim();
-      const list = characters.filter(character =>
-        (characterFilter === "all" || character.games.includes(characterFilter)) &&
-        (character.name + " " + character.role + " " + character.group).toLowerCase().includes(query)
-      );
-
-      $("#characterGrid").innerHTML = list.length ? list.map(character => `
-        <article class="character" data-id="${character.id}" tabindex="0" role="button" aria-label="Voir le dossier de ${character.name}">
-          <div class="character-bg" style="background-image:url('${character.image}')"></div>
-          <div class="character-info">
-            <small>${character.role} · ${character.games.map(game => game === "part1" ? "PART I" : "PART II").join(" / ")}</small>
-            <h3>${character.name}</h3>
-            <p>${character.summary}</p>
-          </div>
-        </article>
-      `).join("") : `<p class="empty">Aucun personnage trouvé.</p>`;
-
-      $$(".character").forEach(card => {
-        const open = () => showCharacter(card.dataset.id);
-        card.addEventListener("click", open);
-        card.addEventListener("keydown", event => {
-          if (event.key === "Enter" || event.key === " ") {
-            event.preventDefault();
-            open();
-          }
-        });
-      });
-
-      observeReveals($("#characterGrid"));
-    }
-
-    function showCharacter(id) {
-      const character = characters.find(item => item.id === id);
-      if (!character) return;
-
-      $("#characterContent").innerHTML = `
-        <small style="color:var(--green);letter-spacing:2px">${character.role.toUpperCase()}</small>
-        <h2 id="characterModalTitle">${character.name}</h2>
-        <p>${character.bio}</p>
-        <div class="facts">
-          <div><small>PÉRIODE</small><strong>${character.years}</strong></div>
-          <div><small>ORIGINE</small><strong>${character.origin}</strong></div>
-          <div><small>GROUPE / LIEU</small><strong>${character.group}</strong></div>
-          <div><small>RELATIONS</small><strong>${character.relations}</strong></div>
-          <div style="grid-column:1/-1"><small>TRAITS</small><strong>${character.traits}</strong></div>
-        </div>
-      `;
-      $("#characterModal").showModal();
-    }
-
-    $("#closeCharacter").addEventListener("click", () => $("#characterModal").close());
-    $("#characterModal").addEventListener("click", event => {
-      if (event.target === $("#characterModal")) $("#characterModal").close();
+    }, {
+      root: dossier,
+      threshold: 0.08
     });
 
-    $("#search").addEventListener("input", renderCharacters);
-
-    $("#characterFilters").addEventListener("click", event => {
-      const button = event.target.closest("button[data-filter]");
-      if (!button) return;
-      characterFilter = button.dataset.filter;
-      $$("#characterFilters .chip").forEach(chip => chip.classList.toggle("active", chip === button));
-      renderCharacters();
+    dossier.querySelectorAll(".ellie-section, .ellie-quote, .ellie-ending").forEach(section => {
+      section.classList.add("reveal");
+      revealObserver.observe(section);
     });
-
-    function renderInfected(id = "runner") {
-      const selected = infected.find(item => item.id === id) || infected[0];
-
-      $("#infectedList").innerHTML = infected.map(item => `
-        <button type="button" class="infected-choice ${item.id === selected.id ? "active" : ""}" data-id="${item.id}">
-          <span>${item.name}</span><span aria-hidden="true">↗</span>
-        </button>
-      `).join("");
-
-      $("#infectedDetail").innerHTML = `
-        <div>
-          <small>${selected.stage.toUpperCase()} · DANGER ${selected.danger.toUpperCase()}</small>
-          <h3>${selected.name}</h3>
-          <p>${selected.desc}</p>
-          <div class="tags">${selected.tags.map(tag => `<span>${tag}</span>`).join("")}</div>
-        </div>
-        <div class="infected-visual">
-          <img src="${selected.image}" alt="Image d'illustration pour ${selected.name}" loading="lazy">
-        </div>
-      `;
-
-      $$(".infected-choice").forEach(button => {
-        button.addEventListener("click", () => renderInfected(button.dataset.id));
-      });
-    }
-
-    $("#timeline").innerHTML = events.map(event => `
-      <article class="event">
-        <small>${event[0]}</small>
-        <h3>${event[1]}</h3>
-        <p>${event[2]}</p>
-      </article>
-    `).join("");
-
-    function showPlace(id) {
-      const place = places[id];
-      if (!place) return;
-
-      $("#mapPanel").innerHTML = `
-        <small>${place.region.toUpperCase()}</small>
-        <h3>${place.name}</h3>
-        <p>${place.text}</p>
-        <div class="map-facts">
-          <div><small>REPÈRES</small>${place.landmarks}</div>
-          <div><small>GROUPES PRÉSENTS</small>${place.groups}</div>
-          <div><small>AMBIANCE</small>${place.atmosphere}</div>
-        </div>
-        <div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--line);font-size:9px;color:var(--green)">${place.status}</div>
-      `;
-
-      $$(".pin").forEach(button => button.classList.toggle("active", button.dataset.place === id));
-    }
-
-    $$(".pin").forEach(button => {
-      button.addEventListener("click", () => showPlace(button.dataset.place));
-    });
-
-    function renderArsenal(filter = "all") {
-      const list = arsenal.filter(item => filter === "all" || item.type === filter);
-
-      $("#arsenalGrid").innerHTML = list.map(item => `
-        <article class="arsenal-card">
-          <div class="arsenal-image">
-            <img src="${item.image}" alt="Illustration : ${item.name}" loading="lazy">
-          </div>
-          <small>${item.tag}</small>
-          <h3>${item.name}</h3>
-          <p>${item.desc}</p>
-        </article>
-      `).join("");
-
-      observeReveals($("#arsenalGrid"));
-    }
-
-    $("#arsenalFilters").addEventListener("click", event => {
-      const button = event.target.closest("button[data-filter]");
-      if (!button) return;
-      $$("#arsenalFilters .chip").forEach(chip => chip.classList.toggle("active", chip === button));
-      renderArsenal(button.dataset.filter);
-    });
-
-    $("#galleryGrid").innerHTML = gallery.map(item => `
-      <button class="gallery-item" type="button" data-url="${item.url}" data-title="${item.title}" aria-label="Agrandir : ${item.title}">
-        <img loading="lazy" src="${item.url}" alt="${item.title}">
-        <span>${item.title}</span>
-      </button>
-    `).join("");
-
-    $$(".gallery-item").forEach(button => {
-      button.addEventListener("click", () => {
-        $("#lightboxImage").src = button.dataset.url;
-        $("#lightboxImage").alt = button.dataset.title;
-        $("#lightboxTitle").textContent = button.dataset.title;
-        $("#lightbox").showModal();
-      });
-    });
-
-    $("#closeLightbox").addEventListener("click", () => $("#lightbox").close());
-    $("#lightbox").addEventListener("click", event => {
-      if (event.target === $("#lightbox")) $("#lightbox").close();
-    });
-
-    $("#menuBtn").addEventListener("click", () => {
-      const open = $("#nav").classList.toggle("open");
-      $("#menuBtn").textContent = open ? "×" : "☰";
-      $("#menuBtn").setAttribute("aria-expanded", String(open));
-      $("#menuBtn").setAttribute("aria-label", open ? "Fermer le menu" : "Ouvrir le menu");
-    });
-
-    $$("nav a").forEach(link => {
-      link.addEventListener("click", () => {
-        $("#nav").classList.remove("open");
-        $("#menuBtn").textContent = "☰";
-        $("#menuBtn").setAttribute("aria-expanded", "false");
-        $("#menuBtn").setAttribute("aria-label", "Ouvrir le menu");
-      });
-    });
-
-    const elliePage = $("#elliePage");
-    const openElliePage = $("#openElliePage");
-    const closeElliePage = $("#closeElliePage");
-
-    openElliePage.addEventListener("click", () => {
-      elliePage.showModal();
-      document.body.classList.add("modal-open");
-      closeElliePage.focus();
-      updateDossierProgress();
-    });
-
-    function closeDossier() {
-      elliePage.close();
-      document.body.classList.remove("modal-open");
-      openElliePage.focus();
-    }
-
-    closeElliePage.addEventListener("click", closeDossier);
-
-    elliePage.addEventListener("click", event => {
-      if (event.target === elliePage) closeDossier();
-    });
-
-    elliePage.addEventListener("close", () => {
-      document.body.classList.remove("modal-open");
-    });
-
-    function updateProgress(element, target) {
-      const max = element.scrollHeight - element.clientHeight;
-      const progress = max > 0 ? element.scrollTop / max : 0;
-      target.style.width = `${Math.max(0, Math.min(100, progress * 100))}%`;
-    }
-
-    const mainProgress = $("#scrollProgress");
-    window.addEventListener("scroll", () => updateProgress(document.documentElement, mainProgress), { passive: true });
-
-    /* Barre rouge de progression dans le dossier */
-    const dossierProgress = document.createElement("div");
-    dossierProgress.className = "scroll-progress";
-    dossierProgress.style.position = "absolute";
-    dossierProgress.style.zIndex = "10";
-    dossierProgress.style.top = "0";
-    dossierProgress.style.left = "0";
-    dossierProgress.style.width = "0";
-    dossierProgress.style.pointerEvents = "none";
-    elliePage.appendChild(dossierProgress);
-
-    function updateDossierProgress() {
-      updateProgress(elliePage, dossierProgress);
-    }
-
-    elliePage.addEventListener("scroll", updateDossierProgress, { passive: true });
-
-    observeReveals();
-    renderCharacters();
-    renderInfected();
-    renderArsenal();
-    showPlace("boston");
   </script>
 </body>
 </html>
